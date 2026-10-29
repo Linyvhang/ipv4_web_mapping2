@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.93 scan initiated Sat Aug  8 19:24:46 2026 as: nmap -iL l2_workspace/l2_targets_batch_31.txt -p T:21,22,23,25,53,80,110,135,139,143,443,445,465,587,993,995,1433,3306,3389,5432,6379,8080,8443,9200,27017,U:53,67,68,69,123,137,138,161,162,500,514,520,1900,5353,4500 -oX l2_workspace/l2_result_31.xml -oN l2_workspace/l2_result_31.txt -T4 -Pn -sV -sS -sU -&#45;version-light -&#45;max-retries 1 -&#45;host-timeout 5s -->
+<nmaprun scanner="nmap" args="nmap -iL l2_workspace/l2_targets_batch_31.txt -p T:21,22,23,25,53,80,110,135,139,143,443,445,465,587,993,995,1433,3306,3389,5432,6379,8080,8443,9200,27017,U:53,67,68,69,123,137,138,161,162,500,514,520,1900,5353,4500 -oX l2_workspace/l2_result_31.xml -oN l2_workspace/l2_result_31.txt -T4 -Pn -sV -sS -sU -&#45;version-light -&#45;max-retries 1 -&#45;host-timeout 5s" start="1786188286" startstr="Sat Aug  8 19:24:46 2026" version="7.93" xmloutputversion="1.05">
+<scaninfo type="syn" protocol="tcp" numservices="25" services="21-23,25,53,80,110,135,139,143,443,445,465,587,993,995,1433,3306,3389,5432,6379,8080,8443,9200,27017"/>
+<scaninfo type="udp" protocol="udp" numservices="15" services="53,67-69,123,137-138,161-162,500,514,520,1900,4500,5353"/>
+</runstats>
+</nmaprun>

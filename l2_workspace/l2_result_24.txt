@@ -1,0 +1,1886 @@
+# Nmap 7.93 scan initiated Sat Aug  8 19:55:23 2026 as: nmap -iL l2_workspace/l2_targets_batch_24.txt -p 21,22,23,25,53,80,110,135,139,143,443,445,465,587,993,995,1433,3306,3389,5432,6379,8080,8443,9200,27017 -oX l2_workspace/l2_result_24.xml -oN l2_workspace/l2_result_24.txt -Pn -sV -sT --version-light --max-retries 1 --host-timeout 5s
+Warning: 1.34.163.140 giving up on port because retransmission cap hit (1).
+Warning: 1.34.170.143 giving up on port because retransmission cap hit (1).
+Warning: 1.34.167.6 giving up on port because retransmission cap hit (1).
+Warning: 1.34.166.25 giving up on port because retransmission cap hit (1).
+Warning: 1.34.167.34 giving up on port because retransmission cap hit (1).
+Warning: 1.34.166.21 giving up on port because retransmission cap hit (1).
+Warning: 1.34.164.49 giving up on port because retransmission cap hit (1).
+Warning: 1.34.166.22 giving up on port because retransmission cap hit (1).
+Warning: 1.34.169.105 giving up on port because retransmission cap hit (1).
+Warning: 1.34.166.108 giving up on port because retransmission cap hit (1).
+Warning: 1.34.163.117 giving up on port because retransmission cap hit (1).
+Warning: 1.34.163.171 giving up on port because retransmission cap hit (1).
+Warning: 1.34.164.181 giving up on port because retransmission cap hit (1).
+Warning: 1.34.163.182 giving up on port because retransmission cap hit (1).
+Warning: 1.34.164.202 giving up on port because retransmission cap hit (1).
+Warning: 1.34.166.237 giving up on port because retransmission cap hit (1).
+Warning: 1.34.169.240 giving up on port because retransmission cap hit (1).
+Warning: 1.34.169.242 giving up on port because retransmission cap hit (1).
+Nmap scan report for 1.34.163.111
+Host is up (0.046s latency).
+Skipping host 1.34.163.111 due to host timeout
+Nmap scan report for 1-34-163-116.hinet-ip.hinet.net (1.34.163.116)
+Host is up (0.048s latency).
+
+PORT      STATE    SERVICE       VERSION
+21/tcp    closed   ftp
+22/tcp    closed   ssh
+23/tcp    closed   telnet
+25/tcp    filtered smtp
+53/tcp    closed   domain
+80/tcp    open     tcpwrapped
+110/tcp   closed   pop3
+135/tcp   closed   msrpc
+139/tcp   closed   netbios-ssn
+143/tcp   closed   imap
+443/tcp   closed   https
+445/tcp   closed   microsoft-ds
+465/tcp   closed   smtps
+587/tcp   closed   submission
+993/tcp   closed   imaps
+995/tcp   closed   pop3s
+1433/tcp  closed   ms-sql-s
+3306/tcp  closed   mysql
+3389/tcp  closed   ms-wbt-server
+5432/tcp  closed   postgresql
+6379/tcp  closed   redis
+8080/tcp  closed   http-proxy
+8443/tcp  closed   https-alt
+9200/tcp  closed   wap-wsp
+27017/tcp closed   mongod
+
+Nmap scan report for 1-34-163-117.hinet-ip.hinet.net (1.34.163.117)
+Host is up (0.049s latency).
+Skipping host 1-34-163-117.hinet-ip.hinet.net (1.34.163.117) due to host timeout
+Nmap scan report for 1.34.163.132
+Host is up (0.049s latency).
+Skipping host 1.34.163.132 due to host timeout
+Nmap scan report for 1-34-163-140.hinet-ip.hinet.net (1.34.163.140)
+Host is up (0.052s latency).
+Skipping host 1-34-163-140.hinet-ip.hinet.net (1.34.163.140) due to host timeout
+Nmap scan report for 1-34-163-150.hinet-ip.hinet.net (1.34.163.150)
+Host is up (0.049s latency).
+Skipping host 1-34-163-150.hinet-ip.hinet.net (1.34.163.150) due to host timeout
+Nmap scan report for 1-34-163-171.hinet-ip.hinet.net (1.34.163.171)
+Host is up (0.041s latency).
+Skipping host 1-34-163-171.hinet-ip.hinet.net (1.34.163.171) due to host timeout
+Nmap scan report for 1.34.163.182
+Host is up (0.044s latency).
+Skipping host 1.34.163.182 due to host timeout
+Nmap scan report for 1.34.163.184
+Host is up (0.042s latency).
+Skipping host 1.34.163.184 due to host timeout
+Nmap scan report for 1-34-163-207.hinet-ip.hinet.net (1.34.163.207)
+Host is up (0.043s latency).
+Skipping host 1-34-163-207.hinet-ip.hinet.net (1.34.163.207) due to host timeout
+Nmap scan report for 1.34.163.222
+Host is up (0.044s latency).
+Skipping host 1.34.163.222 due to host timeout
+Nmap scan report for 1.34.164.2
+Host is up.
+Skipping host 1.34.164.2 due to host timeout
+Nmap scan report for 1.34.164.7
+Host is up (0.043s latency).
+Skipping host 1.34.164.7 due to host timeout
+Nmap scan report for 1.34.164.14
+Host is up (0.040s latency).
+Skipping host 1.34.164.14 due to host timeout
+Nmap scan report for 1.34.164.15
+Host is up (0.044s latency).
+Skipping host 1.34.164.15 due to host timeout
+Nmap scan report for 1-34-164-32.hinet-ip.hinet.net (1.34.164.32)
+Host is up (0.040s latency).
+Skipping host 1-34-164-32.hinet-ip.hinet.net (1.34.164.32) due to host timeout
+Nmap scan report for 1-34-164-43.hinet-ip.hinet.net (1.34.164.43)
+Host is up (0.048s latency).
+Skipping host 1-34-164-43.hinet-ip.hinet.net (1.34.164.43) due to host timeout
+Nmap scan report for 1-34-164-49.hinet-ip.hinet.net (1.34.164.49)
+Host is up (0.041s latency).
+Skipping host 1-34-164-49.hinet-ip.hinet.net (1.34.164.49) due to host timeout
+Nmap scan report for 1.34.164.67
+Host is up (0.043s latency).
+Skipping host 1.34.164.67 due to host timeout
+Nmap scan report for 1-34-164-78.hinet-ip.hinet.net (1.34.164.78)
+Host is up.
+Skipping host 1-34-164-78.hinet-ip.hinet.net (1.34.164.78) due to host timeout
+Nmap scan report for 1.34.164.181
+Host is up (0.039s latency).
+Skipping host 1.34.164.181 due to host timeout
+Nmap scan report for 1.34.164.202
+Host is up (0.039s latency).
+Skipping host 1.34.164.202 due to host timeout
+Nmap scan report for 1.34.166.18
+Host is up (0.039s latency).
+Skipping host 1.34.166.18 due to host timeout
+Nmap scan report for 1.34.166.21
+Host is up (0.049s latency).
+Skipping host 1.34.166.21 due to host timeout
+Nmap scan report for 1-34-166-22.hinet-ip.hinet.net (1.34.166.22)
+Host is up (0.046s latency).
+Skipping host 1-34-166-22.hinet-ip.hinet.net (1.34.166.22) due to host timeout
+Nmap scan report for 1-34-166-25.hinet-ip.hinet.net (1.34.166.25)
+Host is up (0.048s latency).
+Skipping host 1-34-166-25.hinet-ip.hinet.net (1.34.166.25) due to host timeout
+Nmap scan report for 1-34-166-30.hinet-ip.hinet.net (1.34.166.30)
+Host is up.
+Skipping host 1-34-166-30.hinet-ip.hinet.net (1.34.166.30) due to host timeout
+Nmap scan report for 1-34-166-33.hinet-ip.hinet.net (1.34.166.33)
+Host is up.
+Skipping host 1-34-166-33.hinet-ip.hinet.net (1.34.166.33) due to host timeout
+Nmap scan report for 1-34-166-82.hinet-ip.hinet.net (1.34.166.82)
+Host is up.
+Skipping host 1-34-166-82.hinet-ip.hinet.net (1.34.166.82) due to host timeout
+Nmap scan report for 1-34-166-90.hinet-ip.hinet.net (1.34.166.90)
+Host is up (0.049s latency).
+Skipping host 1-34-166-90.hinet-ip.hinet.net (1.34.166.90) due to host timeout
+Nmap scan report for 1.34.166.91
+Host is up (0.048s latency).
+Skipping host 1.34.166.91 due to host timeout
+Nmap scan report for 1.34.166.108
+Host is up (0.052s latency).
+Skipping host 1.34.166.108 due to host timeout
+Nmap scan report for 1-34-166-132.hinet-ip.hinet.net (1.34.166.132)
+Host is up.
+Skipping host 1-34-166-132.hinet-ip.hinet.net (1.34.166.132) due to host timeout
+Nmap scan report for 1.34.166.134
+Host is up (0.040s latency).
+Skipping host 1.34.166.134 due to host timeout
+Nmap scan report for 1.34.166.237
+Host is up (0.045s latency).
+Skipping host 1.34.166.237 due to host timeout
+Nmap scan report for 1-34-166-238.hinet-ip.hinet.net (1.34.166.238)
+Host is up.
+Skipping host 1-34-166-238.hinet-ip.hinet.net (1.34.166.238) due to host timeout
+Nmap scan report for 1-34-166-243.hinet-ip.hinet.net (1.34.166.243)
+Host is up (0.047s latency).
+Skipping host 1-34-166-243.hinet-ip.hinet.net (1.34.166.243) due to host timeout
+Nmap scan report for 1.34.166.251
+Host is up.
+Skipping host 1.34.166.251 due to host timeout
+Nmap scan report for 1.34.167.6
+Host is up (0.042s latency).
+Skipping host 1.34.167.6 due to host timeout
+Nmap scan report for 1-34-167-15.hinet-ip.hinet.net (1.34.167.15)
+Host is up (0.047s latency).
+Skipping host 1-34-167-15.hinet-ip.hinet.net (1.34.167.15) due to host timeout
+Nmap scan report for 1-34-167-32.hinet-ip.hinet.net (1.34.167.32)
+Host is up (0.058s latency).
+Skipping host 1-34-167-32.hinet-ip.hinet.net (1.34.167.32) due to host timeout
+Nmap scan report for 1.34.167.34
+Host is up (0.060s latency).
+Skipping host 1.34.167.34 due to host timeout
+Nmap scan report for 1.34.167.41
+Host is up.
+Skipping host 1.34.167.41 due to host timeout
+Nmap scan report for 1-34-167-101.hinet-ip.hinet.net (1.34.167.101)
+Host is up (0.048s latency).
+Skipping host 1-34-167-101.hinet-ip.hinet.net (1.34.167.101) due to host timeout
+Nmap scan report for 1.34.167.152
+Host is up.
+Skipping host 1.34.167.152 due to host timeout
+Nmap scan report for 1.34.167.209
+Host is up.
+Skipping host 1.34.167.209 due to host timeout
+Nmap scan report for 1.34.167.244
+Host is up (0.040s latency).
+Skipping host 1.34.167.244 due to host timeout
+Nmap scan report for 1-34-168-39.hinet-ip.hinet.net (1.34.168.39)
+Host is up (0.051s latency).
+Skipping host 1-34-168-39.hinet-ip.hinet.net (1.34.168.39) due to host timeout
+Nmap scan report for 1-34-169-70.hinet-ip.hinet.net (1.34.169.70)
+Host is up.
+Skipping host 1-34-169-70.hinet-ip.hinet.net (1.34.169.70) due to host timeout
+Nmap scan report for 1-34-169-100.hinet-ip.hinet.net (1.34.169.100)
+Host is up (0.044s latency).
+Skipping host 1-34-169-100.hinet-ip.hinet.net (1.34.169.100) due to host timeout
+Nmap scan report for 1-34-169-105.hinet-ip.hinet.net (1.34.169.105)
+Host is up (0.043s latency).
+Skipping host 1-34-169-105.hinet-ip.hinet.net (1.34.169.105) due to host timeout
+Nmap scan report for 1-34-169-152.hinet-ip.hinet.net (1.34.169.152)
+Host is up.
+Skipping host 1-34-169-152.hinet-ip.hinet.net (1.34.169.152) due to host timeout
+Nmap scan report for 1-34-169-160.hinet-ip.hinet.net (1.34.169.160)
+Host is up (0.042s latency).
+Skipping host 1-34-169-160.hinet-ip.hinet.net (1.34.169.160) due to host timeout
+Nmap scan report for 1-34-169-196.hinet-ip.hinet.net (1.34.169.196)
+Host is up.
+Skipping host 1-34-169-196.hinet-ip.hinet.net (1.34.169.196) due to host timeout
+Nmap scan report for 1.34.169.240
+Host is up (0.050s latency).
+Skipping host 1.34.169.240 due to host timeout
+Nmap scan report for 1-34-169-242.hinet-ip.hinet.net (1.34.169.242)
+Host is up (0.043s latency).
+Skipping host 1-34-169-242.hinet-ip.hinet.net (1.34.169.242) due to host timeout
+Nmap scan report for 1-34-170-16.hinet-ip.hinet.net (1.34.170.16)
+Host is up (0.046s latency).
+Skipping host 1-34-170-16.hinet-ip.hinet.net (1.34.170.16) due to host timeout
+Nmap scan report for 1-34-170-30.hinet-ip.hinet.net (1.34.170.30)
+Host is up.
+Skipping host 1-34-170-30.hinet-ip.hinet.net (1.34.170.30) due to host timeout
+Nmap scan report for 1-34-170-36.hinet-ip.hinet.net (1.34.170.36)
+Host is up.
+Skipping host 1-34-170-36.hinet-ip.hinet.net (1.34.170.36) due to host timeout
+Nmap scan report for 1-34-170-88.hinet-ip.hinet.net (1.34.170.88)
+Host is up (0.052s latency).
+Skipping host 1-34-170-88.hinet-ip.hinet.net (1.34.170.88) due to host timeout
+Nmap scan report for 1-34-170-102.hinet-ip.hinet.net (1.34.170.102)
+Host is up (0.048s latency).
+Skipping host 1-34-170-102.hinet-ip.hinet.net (1.34.170.102) due to host timeout
+Nmap scan report for 1-34-170-106.hinet-ip.hinet.net (1.34.170.106)
+Host is up (0.046s latency).
+Skipping host 1-34-170-106.hinet-ip.hinet.net (1.34.170.106) due to host timeout
+Nmap scan report for 1-34-170-143.hinet-ip.hinet.net (1.34.170.143)
+Host is up (0.042s latency).
+Skipping host 1-34-170-143.hinet-ip.hinet.net (1.34.170.143) due to host timeout
+Nmap scan report for 1-34-170-159.hinet-ip.hinet.net (1.34.170.159)
+Host is up.
+Skipping host 1-34-170-159.hinet-ip.hinet.net (1.34.170.159) due to host timeout
+Warning: 1.34.172.23 giving up on port because retransmission cap hit (1).
+Warning: 1.34.174.40 giving up on port because retransmission cap hit (1).
+Warning: 1.34.172.59 giving up on port because retransmission cap hit (1).
+Warning: 1.34.178.4 giving up on port because retransmission cap hit (1).
+Warning: 1.34.174.55 giving up on port because retransmission cap hit (1).
+Warning: 1.34.173.84 giving up on port because retransmission cap hit (1).
+Warning: 1.34.174.74 giving up on port because retransmission cap hit (1).
+Warning: 1.34.174.89 giving up on port because retransmission cap hit (1).
+Warning: 1.34.174.112 giving up on port because retransmission cap hit (1).
+Warning: 1.34.174.140 giving up on port because retransmission cap hit (1).
+Warning: 1.34.176.160 giving up on port because retransmission cap hit (1).
+Warning: 1.34.177.194 giving up on port because retransmission cap hit (1).
+Warning: 1.34.174.199 giving up on port because retransmission cap hit (1).
+Warning: 1.34.178.201 giving up on port because retransmission cap hit (1).
+Warning: 1.34.172.213 giving up on port because retransmission cap hit (1).
+Warning: 1.34.172.221 giving up on port because retransmission cap hit (1).
+Warning: 1.34.173.237 giving up on port because retransmission cap hit (1).
+Warning: 1.34.172.238 giving up on port because retransmission cap hit (1).
+Warning: 1.34.173.242 giving up on port because retransmission cap hit (1).
+Nmap scan report for 1-34-170-174.hinet-ip.hinet.net (1.34.170.174)
+Host is up (0.045s latency).
+Skipping host 1-34-170-174.hinet-ip.hinet.net (1.34.170.174) due to host timeout
+Nmap scan report for 1-34-170-183.hinet-ip.hinet.net (1.34.170.183)
+Host is up.
+Skipping host 1-34-170-183.hinet-ip.hinet.net (1.34.170.183) due to host timeout
+Nmap scan report for 1-34-170-197.hinet-ip.hinet.net (1.34.170.197)
+Host is up (0.048s latency).
+Skipping host 1-34-170-197.hinet-ip.hinet.net (1.34.170.197) due to host timeout
+Nmap scan report for 1-34-170-235.hinet-ip.hinet.net (1.34.170.235)
+Host is up.
+Skipping host 1-34-170-235.hinet-ip.hinet.net (1.34.170.235) due to host timeout
+Nmap scan report for 1-34-172-3.hinet-ip.hinet.net (1.34.172.3)
+Host is up (0.041s latency).
+Skipping host 1-34-172-3.hinet-ip.hinet.net (1.34.172.3) due to host timeout
+Nmap scan report for 1.34.172.9
+Host is up (0.042s latency).
+Skipping host 1.34.172.9 due to host timeout
+Nmap scan report for 1.34.172.16
+Host is up (0.048s latency).
+Skipping host 1.34.172.16 due to host timeout
+Nmap scan report for 1.34.172.23
+Host is up (0.041s latency).
+
+PORT      STATE    SERVICE       VERSION
+21/tcp    closed   ftp
+22/tcp    closed   ssh
+23/tcp    closed   telnet
+25/tcp    filtered smtp
+53/tcp    closed   domain
+80/tcp    open     tcpwrapped
+110/tcp   closed   pop3
+135/tcp   closed   msrpc
+139/tcp   closed   netbios-ssn
+143/tcp   closed   imap
+443/tcp   closed   https
+445/tcp   closed   microsoft-ds
+465/tcp   closed   smtps
+587/tcp   closed   submission
+993/tcp   closed   imaps
+995/tcp   closed   pop3s
+1433/tcp  closed   ms-sql-s
+3306/tcp  closed   mysql
+3389/tcp  closed   ms-wbt-server
+5432/tcp  closed   postgresql
+6379/tcp  closed   redis
+8080/tcp  closed   http-proxy
+8443/tcp  closed   https-alt
+9200/tcp  closed   wap-wsp
+27017/tcp closed   mongod
+
+Nmap scan report for 1-34-172-28.hinet-ip.hinet.net (1.34.172.28)
+Host is up.
+Skipping host 1-34-172-28.hinet-ip.hinet.net (1.34.172.28) due to host timeout
+Nmap scan report for 1-34-172-54.hinet-ip.hinet.net (1.34.172.54)
+Host is up (0.041s latency).
+Skipping host 1-34-172-54.hinet-ip.hinet.net (1.34.172.54) due to host timeout
+Nmap scan report for 1-34-172-59.hinet-ip.hinet.net (1.34.172.59)
+Host is up (0.041s latency).
+Skipping host 1-34-172-59.hinet-ip.hinet.net (1.34.172.59) due to host timeout
+Nmap scan report for 1.34.172.131
+Host is up (0.040s latency).
+Skipping host 1.34.172.131 due to host timeout
+Nmap scan report for 1.34.172.136
+Host is up.
+Skipping host 1.34.172.136 due to host timeout
+Nmap scan report for 1-34-172-205.hinet-ip.hinet.net (1.34.172.205)
+Host is up (0.049s latency).
+Skipping host 1-34-172-205.hinet-ip.hinet.net (1.34.172.205) due to host timeout
+Nmap scan report for 1-34-172-213.hinet-ip.hinet.net (1.34.172.213)
+Host is up (0.043s latency).
+Skipping host 1-34-172-213.hinet-ip.hinet.net (1.34.172.213) due to host timeout
+Nmap scan report for 1.34.172.221
+Host is up (0.040s latency).
+Skipping host 1.34.172.221 due to host timeout
+Nmap scan report for 1-34-172-238.hinet-ip.hinet.net (1.34.172.238)
+Host is up (0.041s latency).
+Skipping host 1-34-172-238.hinet-ip.hinet.net (1.34.172.238) due to host timeout
+Nmap scan report for 1.34.173.6
+Host is up (0.043s latency).
+Skipping host 1.34.173.6 due to host timeout
+Nmap scan report for 1-34-173-18.hinet-ip.hinet.net (1.34.173.18)
+Host is up (0.037s latency).
+Skipping host 1-34-173-18.hinet-ip.hinet.net (1.34.173.18) due to host timeout
+Nmap scan report for 1-34-173-56.hinet-ip.hinet.net (1.34.173.56)
+Host is up (0.040s latency).
+Skipping host 1-34-173-56.hinet-ip.hinet.net (1.34.173.56) due to host timeout
+Nmap scan report for 1-34-173-84.hinet-ip.hinet.net (1.34.173.84)
+Host is up (0.043s latency).
+Skipping host 1-34-173-84.hinet-ip.hinet.net (1.34.173.84) due to host timeout
+Nmap scan report for 1-34-173-85.hinet-ip.hinet.net (1.34.173.85)
+Host is up (0.043s latency).
+Skipping host 1-34-173-85.hinet-ip.hinet.net (1.34.173.85) due to host timeout
+Nmap scan report for 1-34-173-93.hinet-ip.hinet.net (1.34.173.93)
+Host is up (0.042s latency).
+Skipping host 1-34-173-93.hinet-ip.hinet.net (1.34.173.93) due to host timeout
+Nmap scan report for 1.34.173.137
+Host is up.
+Skipping host 1.34.173.137 due to host timeout
+Nmap scan report for 1-34-173-144.hinet-ip.hinet.net (1.34.173.144)
+Host is up (0.040s latency).
+Skipping host 1-34-173-144.hinet-ip.hinet.net (1.34.173.144) due to host timeout
+Nmap scan report for 1-34-173-197.hinet-ip.hinet.net (1.34.173.197)
+Host is up (0.048s latency).
+Skipping host 1-34-173-197.hinet-ip.hinet.net (1.34.173.197) due to host timeout
+Nmap scan report for 1.34.173.207
+Host is up (0.046s latency).
+Skipping host 1.34.173.207 due to host timeout
+Nmap scan report for 1-34-173-223.hinet-ip.hinet.net (1.34.173.223)
+Host is up.
+Skipping host 1-34-173-223.hinet-ip.hinet.net (1.34.173.223) due to host timeout
+Nmap scan report for 1-34-173-237.hinet-ip.hinet.net (1.34.173.237)
+Host is up (0.048s latency).
+Skipping host 1-34-173-237.hinet-ip.hinet.net (1.34.173.237) due to host timeout
+Nmap scan report for 1-34-173-241.hinet-ip.hinet.net (1.34.173.241)
+Host is up (0.044s latency).
+Skipping host 1-34-173-241.hinet-ip.hinet.net (1.34.173.241) due to host timeout
+Nmap scan report for 1.34.173.242
+Host is up (0.040s latency).
+Skipping host 1.34.173.242 due to host timeout
+Nmap scan report for 1.34.174.40
+Host is up (0.049s latency).
+Skipping host 1.34.174.40 due to host timeout
+Nmap scan report for 1-34-174-55.hinet-ip.hinet.net (1.34.174.55)
+Host is up (0.044s latency).
+Skipping host 1-34-174-55.hinet-ip.hinet.net (1.34.174.55) due to host timeout
+Nmap scan report for 1-34-174-64.hinet-ip.hinet.net (1.34.174.64)
+Host is up (0.042s latency).
+Skipping host 1-34-174-64.hinet-ip.hinet.net (1.34.174.64) due to host timeout
+Nmap scan report for 1-34-174-74.hinet-ip.hinet.net (1.34.174.74)
+Host is up (0.042s latency).
+Skipping host 1-34-174-74.hinet-ip.hinet.net (1.34.174.74) due to host timeout
+Nmap scan report for 1.34.174.89
+Host is up (0.043s latency).
+Skipping host 1.34.174.89 due to host timeout
+Nmap scan report for 1-34-174-95.hinet-ip.hinet.net (1.34.174.95)
+Host is up.
+Skipping host 1-34-174-95.hinet-ip.hinet.net (1.34.174.95) due to host timeout
+Nmap scan report for 1-34-174-112.hinet-ip.hinet.net (1.34.174.112)
+Host is up (0.041s latency).
+Skipping host 1-34-174-112.hinet-ip.hinet.net (1.34.174.112) due to host timeout
+Nmap scan report for 1-34-174-138.hinet-ip.hinet.net (1.34.174.138)
+Host is up (0.043s latency).
+Skipping host 1-34-174-138.hinet-ip.hinet.net (1.34.174.138) due to host timeout
+Nmap scan report for 1.34.174.140
+Host is up (0.051s latency).
+Skipping host 1.34.174.140 due to host timeout
+Nmap scan report for 1.34.174.199
+Host is up (0.042s latency).
+Skipping host 1.34.174.199 due to host timeout
+Nmap scan report for 1.34.175.18
+Host is up (0.050s latency).
+Skipping host 1.34.175.18 due to host timeout
+Nmap scan report for 1-34-176-160.hinet-ip.hinet.net (1.34.176.160)
+Host is up (0.043s latency).
+Skipping host 1-34-176-160.hinet-ip.hinet.net (1.34.176.160) due to host timeout
+Nmap scan report for 1-34-176-170.hinet-ip.hinet.net (1.34.176.170)
+Host is up.
+Skipping host 1-34-176-170.hinet-ip.hinet.net (1.34.176.170) due to host timeout
+Nmap scan report for 1-34-176-185.hinet-ip.hinet.net (1.34.176.185)
+Host is up (0.038s latency).
+Skipping host 1-34-176-185.hinet-ip.hinet.net (1.34.176.185) due to host timeout
+Nmap scan report for 1-34-177-11.hinet-ip.hinet.net (1.34.177.11)
+Host is up (0.041s latency).
+Skipping host 1-34-177-11.hinet-ip.hinet.net (1.34.177.11) due to host timeout
+Nmap scan report for 1-34-177-82.hinet-ip.hinet.net (1.34.177.82)
+Host is up (0.043s latency).
+Skipping host 1-34-177-82.hinet-ip.hinet.net (1.34.177.82) due to host timeout
+Nmap scan report for 1-34-177-83.hinet-ip.hinet.net (1.34.177.83)
+Host is up (0.050s latency).
+Skipping host 1-34-177-83.hinet-ip.hinet.net (1.34.177.83) due to host timeout
+Nmap scan report for 1.34.177.144
+Host is up (0.042s latency).
+Skipping host 1.34.177.144 due to host timeout
+Nmap scan report for 1.34.177.150
+Host is up (0.047s latency).
+Skipping host 1.34.177.150 due to host timeout
+Nmap scan report for 1.34.177.181
+Host is up (0.045s latency).
+Skipping host 1.34.177.181 due to host timeout
+Nmap scan report for 1.34.177.194
+Host is up (0.041s latency).
+Skipping host 1.34.177.194 due to host timeout
+Nmap scan report for 1.34.177.223
+Host is up (0.042s latency).
+Skipping host 1.34.177.223 due to host timeout
+Nmap scan report for 1-34-177-251.hinet-ip.hinet.net (1.34.177.251)
+Host is up (0.043s latency).
+Skipping host 1-34-177-251.hinet-ip.hinet.net (1.34.177.251) due to host timeout
+Nmap scan report for 1-34-178-4.hinet-ip.hinet.net (1.34.178.4)
+Host is up (0.046s latency).
+Skipping host 1-34-178-4.hinet-ip.hinet.net (1.34.178.4) due to host timeout
+Nmap scan report for 1-34-178-7.hinet-ip.hinet.net (1.34.178.7)
+Host is up (0.039s latency).
+Skipping host 1-34-178-7.hinet-ip.hinet.net (1.34.178.7) due to host timeout
+Nmap scan report for 1-34-178-8.hinet-ip.hinet.net (1.34.178.8)
+Host is up (0.068s latency).
+Skipping host 1-34-178-8.hinet-ip.hinet.net (1.34.178.8) due to host timeout
+Nmap scan report for 1-34-178-36.hinet-ip.hinet.net (1.34.178.36)
+Host is up (0.043s latency).
+Skipping host 1-34-178-36.hinet-ip.hinet.net (1.34.178.36) due to host timeout
+Nmap scan report for 1.34.178.78
+Host is up.
+Skipping host 1.34.178.78 due to host timeout
+Nmap scan report for 1-34-178-100.hinet-ip.hinet.net (1.34.178.100)
+Host is up.
+Skipping host 1-34-178-100.hinet-ip.hinet.net (1.34.178.100) due to host timeout
+Nmap scan report for 1-34-178-169.hinet-ip.hinet.net (1.34.178.169)
+Host is up (0.042s latency).
+Skipping host 1-34-178-169.hinet-ip.hinet.net (1.34.178.169) due to host timeout
+Nmap scan report for 1.34.178.195
+Host is up.
+Skipping host 1.34.178.195 due to host timeout
+Nmap scan report for 1-34-178-201.hinet-ip.hinet.net (1.34.178.201)
+Host is up (0.048s latency).
+Skipping host 1-34-178-201.hinet-ip.hinet.net (1.34.178.201) due to host timeout
+Nmap scan report for 1.34.178.233
+Host is up (0.046s latency).
+Skipping host 1.34.178.233 due to host timeout
+Warning: 1.34.183.63 giving up on port because retransmission cap hit (1).
+Warning: 1.34.182.41 giving up on port because retransmission cap hit (1).
+Warning: 1.34.181.6 giving up on port because retransmission cap hit (1).
+Warning: 1.34.181.48 giving up on port because retransmission cap hit (1).
+Warning: 1.34.182.58 giving up on port because retransmission cap hit (1).
+Warning: 1.34.179.50 giving up on port because retransmission cap hit (1).
+Warning: 1.34.184.59 giving up on port because retransmission cap hit (1).
+Warning: 1.34.180.66 giving up on port because retransmission cap hit (1).
+Warning: 1.34.183.71 giving up on port because retransmission cap hit (1).
+Warning: 1.34.181.56 giving up on port because retransmission cap hit (1).
+Warning: 1.34.182.59 giving up on port because retransmission cap hit (1).
+Warning: 1.34.180.99 giving up on port because retransmission cap hit (1).
+Warning: 1.34.182.151 giving up on port because retransmission cap hit (1).
+Warning: 1.34.183.158 giving up on port because retransmission cap hit (1).
+Warning: 1.34.181.165 giving up on port because retransmission cap hit (1).
+Warning: 1.34.179.193 giving up on port because retransmission cap hit (1).
+Warning: 1.34.182.224 giving up on port because retransmission cap hit (1).
+Warning: 1.34.182.237 giving up on port because retransmission cap hit (1).
+Warning: 1.34.183.164 giving up on port because retransmission cap hit (1).
+Nmap scan report for 1-34-179-50.hinet-ip.hinet.net (1.34.179.50)
+Host is up (0.044s latency).
+Skipping host 1-34-179-50.hinet-ip.hinet.net (1.34.179.50) due to host timeout
+Nmap scan report for 1-34-179-59.hinet-ip.hinet.net (1.34.179.59)
+Host is up (0.040s latency).
+Skipping host 1-34-179-59.hinet-ip.hinet.net (1.34.179.59) due to host timeout
+Nmap scan report for 1-34-179-67.hinet-ip.hinet.net (1.34.179.67)
+Host is up (0.049s latency).
+Skipping host 1-34-179-67.hinet-ip.hinet.net (1.34.179.67) due to host timeout
+Nmap scan report for 1.34.179.153
+Host is up (0.044s latency).
+Skipping host 1.34.179.153 due to host timeout
+Nmap scan report for 1-34-179-154.hinet-ip.hinet.net (1.34.179.154)
+Host is up.
+Skipping host 1-34-179-154.hinet-ip.hinet.net (1.34.179.154) due to host timeout
+Nmap scan report for 1.34.179.193
+Host is up (0.044s latency).
+Skipping host 1.34.179.193 due to host timeout
+Nmap scan report for 1-34-179-227.hinet-ip.hinet.net (1.34.179.227)
+Host is up (0.046s latency).
+Skipping host 1-34-179-227.hinet-ip.hinet.net (1.34.179.227) due to host timeout
+Nmap scan report for 1.34.180.66
+Host is up (0.041s latency).
+Skipping host 1.34.180.66 due to host timeout
+Nmap scan report for 1-34-180-99.hinet-ip.hinet.net (1.34.180.99)
+Host is up (0.041s latency).
+Skipping host 1-34-180-99.hinet-ip.hinet.net (1.34.180.99) due to host timeout
+Nmap scan report for 1-34-180-103.hinet-ip.hinet.net (1.34.180.103)
+Host is up (0.042s latency).
+Skipping host 1-34-180-103.hinet-ip.hinet.net (1.34.180.103) due to host timeout
+Nmap scan report for 1-34-180-137.hinet-ip.hinet.net (1.34.180.137)
+Host is up (0.038s latency).
+Skipping host 1-34-180-137.hinet-ip.hinet.net (1.34.180.137) due to host timeout
+Nmap scan report for 1-34-180-157.hinet-ip.hinet.net (1.34.180.157)
+Host is up.
+Skipping host 1-34-180-157.hinet-ip.hinet.net (1.34.180.157) due to host timeout
+Nmap scan report for 1-34-180-174.hinet-ip.hinet.net (1.34.180.174)
+Host is up.
+Skipping host 1-34-180-174.hinet-ip.hinet.net (1.34.180.174) due to host timeout
+Nmap scan report for 1-34-180-206.hinet-ip.hinet.net (1.34.180.206)
+Host is up (0.048s latency).
+Skipping host 1-34-180-206.hinet-ip.hinet.net (1.34.180.206) due to host timeout
+Nmap scan report for 1.34.181.6
+Host is up (0.042s latency).
+Skipping host 1.34.181.6 due to host timeout
+Nmap scan report for 1.34.181.29
+Host is up (0.045s latency).
+Skipping host 1.34.181.29 due to host timeout
+Nmap scan report for 1.34.181.30
+Host is up (0.042s latency).
+Skipping host 1.34.181.30 due to host timeout
+Nmap scan report for 1-34-181-44.hinet-ip.hinet.net (1.34.181.44)
+Host is up (0.041s latency).
+Skipping host 1-34-181-44.hinet-ip.hinet.net (1.34.181.44) due to host timeout
+Nmap scan report for 1.34.181.48
+Host is up (0.044s latency).
+Skipping host 1.34.181.48 due to host timeout
+Nmap scan report for 1-34-181-55.hinet-ip.hinet.net (1.34.181.55)
+Host is up (0.046s latency).
+Skipping host 1-34-181-55.hinet-ip.hinet.net (1.34.181.55) due to host timeout
+Nmap scan report for 1-34-181-56.hinet-ip.hinet.net (1.34.181.56)
+Host is up (0.041s latency).
+Skipping host 1-34-181-56.hinet-ip.hinet.net (1.34.181.56) due to host timeout
+Nmap scan report for 1.34.181.65
+Host is up (0.043s latency).
+Skipping host 1.34.181.65 due to host timeout
+Nmap scan report for 1-34-181-101.hinet-ip.hinet.net (1.34.181.101)
+Host is up (0.044s latency).
+Skipping host 1-34-181-101.hinet-ip.hinet.net (1.34.181.101) due to host timeout
+Nmap scan report for 1.34.181.116
+Host is up.
+Skipping host 1.34.181.116 due to host timeout
+Nmap scan report for 1.34.181.120
+Host is up (0.040s latency).
+Skipping host 1.34.181.120 due to host timeout
+Nmap scan report for 1-34-181-147.hinet-ip.hinet.net (1.34.181.147)
+Host is up (0.042s latency).
+Skipping host 1-34-181-147.hinet-ip.hinet.net (1.34.181.147) due to host timeout
+Nmap scan report for 1.34.181.149
+Host is up (0.044s latency).
+
+PORT      STATE    SERVICE       VERSION
+21/tcp    closed   ftp
+22/tcp    closed   ssh
+23/tcp    closed   telnet
+25/tcp    filtered smtp
+53/tcp    closed   domain
+80/tcp    open     tcpwrapped
+110/tcp   closed   pop3
+135/tcp   closed   msrpc
+139/tcp   closed   netbios-ssn
+143/tcp   closed   imap
+443/tcp   closed   https
+445/tcp   closed   microsoft-ds
+465/tcp   closed   smtps
+587/tcp   closed   submission
+993/tcp   closed   imaps
+995/tcp   closed   pop3s
+1433/tcp  closed   ms-sql-s
+3306/tcp  closed   mysql
+3389/tcp  closed   ms-wbt-server
+5432/tcp  closed   postgresql
+6379/tcp  closed   redis
+8080/tcp  closed   http-proxy
+8443/tcp  closed   https-alt
+9200/tcp  closed   wap-wsp
+27017/tcp closed   mongod
+
+Nmap scan report for 1-34-181-165.hinet-ip.hinet.net (1.34.181.165)
+Host is up (0.042s latency).
+Skipping host 1-34-181-165.hinet-ip.hinet.net (1.34.181.165) due to host timeout
+Nmap scan report for 1-34-181-193.hinet-ip.hinet.net (1.34.181.193)
+Host is up.
+Skipping host 1-34-181-193.hinet-ip.hinet.net (1.34.181.193) due to host timeout
+Nmap scan report for 1-34-181-252.hinet-ip.hinet.net (1.34.181.252)
+Host is up (0.041s latency).
+Skipping host 1-34-181-252.hinet-ip.hinet.net (1.34.181.252) due to host timeout
+Nmap scan report for 1-34-182-16.hinet-ip.hinet.net (1.34.182.16)
+Host is up (0.037s latency).
+Skipping host 1-34-182-16.hinet-ip.hinet.net (1.34.182.16) due to host timeout
+Nmap scan report for 1.34.182.19
+Host is up (0.050s latency).
+Skipping host 1.34.182.19 due to host timeout
+Nmap scan report for 1.34.182.22
+Host is up (0.045s latency).
+Skipping host 1.34.182.22 due to host timeout
+Nmap scan report for 1.34.182.36
+Host is up.
+Skipping host 1.34.182.36 due to host timeout
+Nmap scan report for 1.34.182.41
+Host is up (0.043s latency).
+Skipping host 1.34.182.41 due to host timeout
+Nmap scan report for 1.34.182.48
+Host is up (0.043s latency).
+Skipping host 1.34.182.48 due to host timeout
+Nmap scan report for 1.34.182.58
+Host is up (0.044s latency).
+Skipping host 1.34.182.58 due to host timeout
+Nmap scan report for 1.34.182.59
+Host is up (0.042s latency).
+Skipping host 1.34.182.59 due to host timeout
+Nmap scan report for 1.34.182.67
+Host is up (0.049s latency).
+Skipping host 1.34.182.67 due to host timeout
+Nmap scan report for 1-34-182-72.hinet-ip.hinet.net (1.34.182.72)
+Host is up (0.041s latency).
+Skipping host 1-34-182-72.hinet-ip.hinet.net (1.34.182.72) due to host timeout
+Nmap scan report for 1-34-182-82.hinet-ip.hinet.net (1.34.182.82)
+Host is up (0.044s latency).
+Skipping host 1-34-182-82.hinet-ip.hinet.net (1.34.182.82) due to host timeout
+Nmap scan report for 1-34-182-151.hinet-ip.hinet.net (1.34.182.151)
+Host is up (0.049s latency).
+Skipping host 1-34-182-151.hinet-ip.hinet.net (1.34.182.151) due to host timeout
+Nmap scan report for 1.34.182.187
+Host is up.
+Skipping host 1.34.182.187 due to host timeout
+Nmap scan report for 1.34.182.207
+Host is up.
+Skipping host 1.34.182.207 due to host timeout
+Nmap scan report for 1-34-182-224.hinet-ip.hinet.net (1.34.182.224)
+Host is up (0.071s latency).
+Skipping host 1-34-182-224.hinet-ip.hinet.net (1.34.182.224) due to host timeout
+Nmap scan report for 1-34-182-237.hinet-ip.hinet.net (1.34.182.237)
+Host is up (0.040s latency).
+Skipping host 1-34-182-237.hinet-ip.hinet.net (1.34.182.237) due to host timeout
+Nmap scan report for 1-34-183-62.hinet-ip.hinet.net (1.34.183.62)
+Host is up.
+Skipping host 1-34-183-62.hinet-ip.hinet.net (1.34.183.62) due to host timeout
+Nmap scan report for 1.34.183.63
+Host is up (0.042s latency).
+Skipping host 1.34.183.63 due to host timeout
+Nmap scan report for 1.34.183.66
+Host is up.
+Skipping host 1.34.183.66 due to host timeout
+Nmap scan report for 1-34-183-69.hinet-ip.hinet.net (1.34.183.69)
+Host is up (0.045s latency).
+Skipping host 1-34-183-69.hinet-ip.hinet.net (1.34.183.69) due to host timeout
+Nmap scan report for 1-34-183-71.hinet-ip.hinet.net (1.34.183.71)
+Host is up (0.040s latency).
+Skipping host 1-34-183-71.hinet-ip.hinet.net (1.34.183.71) due to host timeout
+Nmap scan report for 1-34-183-103.hinet-ip.hinet.net (1.34.183.103)
+Host is up (0.047s latency).
+Skipping host 1-34-183-103.hinet-ip.hinet.net (1.34.183.103) due to host timeout
+Nmap scan report for 1-34-183-115.hinet-ip.hinet.net (1.34.183.115)
+Host is up (0.046s latency).
+Skipping host 1-34-183-115.hinet-ip.hinet.net (1.34.183.115) due to host timeout
+Nmap scan report for 1-34-183-141.hinet-ip.hinet.net (1.34.183.141)
+Host is up (0.040s latency).
+Skipping host 1-34-183-141.hinet-ip.hinet.net (1.34.183.141) due to host timeout
+Nmap scan report for 1.34.183.158
+Host is up (0.047s latency).
+Skipping host 1.34.183.158 due to host timeout
+Nmap scan report for 1.34.183.162
+Host is up (0.047s latency).
+Skipping host 1.34.183.162 due to host timeout
+Nmap scan report for 1-34-183-164.hinet-ip.hinet.net (1.34.183.164)
+Host is up (0.041s latency).
+Skipping host 1-34-183-164.hinet-ip.hinet.net (1.34.183.164) due to host timeout
+Nmap scan report for 1-34-183-169.hinet-ip.hinet.net (1.34.183.169)
+Host is up.
+Skipping host 1-34-183-169.hinet-ip.hinet.net (1.34.183.169) due to host timeout
+Nmap scan report for 1.34.184.9
+Host is up (0.049s latency).
+Skipping host 1.34.184.9 due to host timeout
+Nmap scan report for 1.34.184.59
+Host is up (0.040s latency).
+Skipping host 1.34.184.59 due to host timeout
+Nmap scan report for 1-34-184-73.hinet-ip.hinet.net (1.34.184.73)
+Host is up (0.040s latency).
+Skipping host 1-34-184-73.hinet-ip.hinet.net (1.34.184.73) due to host timeout
+Nmap scan report for 1-34-184-85.hinet-ip.hinet.net (1.34.184.85)
+Host is up (0.041s latency).
+Skipping host 1-34-184-85.hinet-ip.hinet.net (1.34.184.85) due to host timeout
+Nmap scan report for 1-34-184-124.hinet-ip.hinet.net (1.34.184.124)
+Host is up.
+Skipping host 1-34-184-124.hinet-ip.hinet.net (1.34.184.124) due to host timeout
+Nmap scan report for 1-34-184-158.hinet-ip.hinet.net (1.34.184.158)
+Host is up.
+Skipping host 1-34-184-158.hinet-ip.hinet.net (1.34.184.158) due to host timeout
+Warning: 1.34.185.51 giving up on port because retransmission cap hit (1).
+Warning: 1.34.193.12 giving up on port because retransmission cap hit (1).
+Warning: 1.34.193.64 giving up on port because retransmission cap hit (1).
+Warning: 1.34.186.67 giving up on port because retransmission cap hit (1).
+Warning: 1.34.188.126 giving up on port because retransmission cap hit (1).
+Warning: 1.34.189.153 giving up on port because retransmission cap hit (1).
+Warning: 1.34.193.190 giving up on port because retransmission cap hit (1).
+Warning: 1.34.190.206 giving up on port because retransmission cap hit (1).
+Warning: 1.34.189.213 giving up on port because retransmission cap hit (1).
+Warning: 1.34.186.247 giving up on port because retransmission cap hit (1).
+Warning: 1.34.184.249 giving up on port because retransmission cap hit (1).
+Warning: 1.34.186.250 giving up on port because retransmission cap hit (1).
+Warning: 1.34.188.76 giving up on port because retransmission cap hit (1).
+Nmap scan report for 1-34-184-185.hinet-ip.hinet.net (1.34.184.185)
+Host is up (0.043s latency).
+Skipping host 1-34-184-185.hinet-ip.hinet.net (1.34.184.185) due to host timeout
+Nmap scan report for 1-34-184-200.hinet-ip.hinet.net (1.34.184.200)
+Host is up (0.045s latency).
+Skipping host 1-34-184-200.hinet-ip.hinet.net (1.34.184.200) due to host timeout
+Nmap scan report for 1-34-184-204.hinet-ip.hinet.net (1.34.184.204)
+Host is up.
+Skipping host 1-34-184-204.hinet-ip.hinet.net (1.34.184.204) due to host timeout
+Nmap scan report for 1-34-184-206.hinet-ip.hinet.net (1.34.184.206)
+Host is up (0.051s latency).
+Skipping host 1-34-184-206.hinet-ip.hinet.net (1.34.184.206) due to host timeout
+Nmap scan report for 1-34-184-214.hinet-ip.hinet.net (1.34.184.214)
+Host is up (0.040s latency).
+Skipping host 1-34-184-214.hinet-ip.hinet.net (1.34.184.214) due to host timeout
+Nmap scan report for 1-34-184-221.hinet-ip.hinet.net (1.34.184.221)
+Host is up (0.043s latency).
+Skipping host 1-34-184-221.hinet-ip.hinet.net (1.34.184.221) due to host timeout
+Nmap scan report for 1-34-184-249.hinet-ip.hinet.net (1.34.184.249)
+Host is up (0.041s latency).
+Skipping host 1-34-184-249.hinet-ip.hinet.net (1.34.184.249) due to host timeout
+Nmap scan report for 1-34-185-6.hinet-ip.hinet.net (1.34.185.6)
+Host is up (0.045s latency).
+Skipping host 1-34-185-6.hinet-ip.hinet.net (1.34.185.6) due to host timeout
+Nmap scan report for 1-34-185-35.hinet-ip.hinet.net (1.34.185.35)
+Host is up (0.041s latency).
+Skipping host 1-34-185-35.hinet-ip.hinet.net (1.34.185.35) due to host timeout
+Nmap scan report for 1-34-185-51.hinet-ip.hinet.net (1.34.185.51)
+Host is up (0.047s latency).
+Skipping host 1-34-185-51.hinet-ip.hinet.net (1.34.185.51) due to host timeout
+Nmap scan report for 1-34-185-60.hinet-ip.hinet.net (1.34.185.60)
+Host is up (0.047s latency).
+Skipping host 1-34-185-60.hinet-ip.hinet.net (1.34.185.60) due to host timeout
+Nmap scan report for 1-34-185-92.hinet-ip.hinet.net (1.34.185.92)
+Host is up (0.047s latency).
+Skipping host 1-34-185-92.hinet-ip.hinet.net (1.34.185.92) due to host timeout
+Nmap scan report for 1-34-185-115.hinet-ip.hinet.net (1.34.185.115)
+Host is up.
+Skipping host 1-34-185-115.hinet-ip.hinet.net (1.34.185.115) due to host timeout
+Nmap scan report for 1.34.185.143
+Host is up.
+Skipping host 1.34.185.143 due to host timeout
+Nmap scan report for 1.34.185.151
+Host is up (0.051s latency).
+Skipping host 1.34.185.151 due to host timeout
+Nmap scan report for 1-34-185-166.hinet-ip.hinet.net (1.34.185.166)
+Host is up (0.047s latency).
+Skipping host 1-34-185-166.hinet-ip.hinet.net (1.34.185.166) due to host timeout
+Nmap scan report for 1-34-186-67.hinet-ip.hinet.net (1.34.186.67)
+Host is up (0.043s latency).
+Skipping host 1-34-186-67.hinet-ip.hinet.net (1.34.186.67) due to host timeout
+Nmap scan report for 1-34-186-194.hinet-ip.hinet.net (1.34.186.194)
+Host is up (0.052s latency).
+Skipping host 1-34-186-194.hinet-ip.hinet.net (1.34.186.194) due to host timeout
+Nmap scan report for 1-34-186-228.hinet-ip.hinet.net (1.34.186.228)
+Host is up (0.046s latency).
+Skipping host 1-34-186-228.hinet-ip.hinet.net (1.34.186.228) due to host timeout
+Nmap scan report for 1-34-186-245.hinet-ip.hinet.net (1.34.186.245)
+Host is up (0.042s latency).
+Skipping host 1-34-186-245.hinet-ip.hinet.net (1.34.186.245) due to host timeout
+Nmap scan report for 1-34-186-247.hinet-ip.hinet.net (1.34.186.247)
+Host is up (0.047s latency).
+Skipping host 1-34-186-247.hinet-ip.hinet.net (1.34.186.247) due to host timeout
+Nmap scan report for 1-34-186-250.hinet-ip.hinet.net (1.34.186.250)
+Host is up (0.041s latency).
+Skipping host 1-34-186-250.hinet-ip.hinet.net (1.34.186.250) due to host timeout
+Nmap scan report for 1.34.188.18
+Host is up (0.038s latency).
+Skipping host 1.34.188.18 due to host timeout
+Nmap scan report for 1.34.188.25
+Host is up (0.042s latency).
+Skipping host 1.34.188.25 due to host timeout
+Nmap scan report for 1-34-188-76.hinet-ip.hinet.net (1.34.188.76)
+Host is up (0.039s latency).
+Skipping host 1-34-188-76.hinet-ip.hinet.net (1.34.188.76) due to host timeout
+Nmap scan report for 1-34-188-126.hinet-ip.hinet.net (1.34.188.126)
+Host is up (0.044s latency).
+Skipping host 1-34-188-126.hinet-ip.hinet.net (1.34.188.126) due to host timeout
+Nmap scan report for 1.34.188.185
+Host is up (0.046s latency).
+Skipping host 1.34.188.185 due to host timeout
+Nmap scan report for 1.34.188.187
+Host is up.
+Skipping host 1.34.188.187 due to host timeout
+Nmap scan report for 1-34-188-195.hinet-ip.hinet.net (1.34.188.195)
+Host is up (0.042s latency).
+Skipping host 1-34-188-195.hinet-ip.hinet.net (1.34.188.195) due to host timeout
+Nmap scan report for 1.34.188.220
+Host is up (0.041s latency).
+Skipping host 1.34.188.220 due to host timeout
+Nmap scan report for 1-34-188-221.hinet-ip.hinet.net (1.34.188.221)
+Host is up (0.039s latency).
+Skipping host 1-34-188-221.hinet-ip.hinet.net (1.34.188.221) due to host timeout
+Nmap scan report for 1.34.188.237
+Host is up.
+Skipping host 1.34.188.237 due to host timeout
+Nmap scan report for 1.34.189.6
+Host is up (0.038s latency).
+Skipping host 1.34.189.6 due to host timeout
+Nmap scan report for 1-34-189-38.hinet-ip.hinet.net (1.34.189.38)
+Host is up (0.039s latency).
+Skipping host 1-34-189-38.hinet-ip.hinet.net (1.34.189.38) due to host timeout
+Nmap scan report for 1.34.189.44
+Host is up (0.049s latency).
+Skipping host 1.34.189.44 due to host timeout
+Nmap scan report for 1-34-189-144.hinet-ip.hinet.net (1.34.189.144)
+Host is up (0.041s latency).
+Skipping host 1-34-189-144.hinet-ip.hinet.net (1.34.189.144) due to host timeout
+Nmap scan report for 1.34.189.153
+Host is up (0.045s latency).
+Skipping host 1.34.189.153 due to host timeout
+Nmap scan report for 1-34-189-164.hinet-ip.hinet.net (1.34.189.164)
+Host is up.
+Skipping host 1-34-189-164.hinet-ip.hinet.net (1.34.189.164) due to host timeout
+Nmap scan report for 1.34.189.203
+Host is up.
+Skipping host 1.34.189.203 due to host timeout
+Nmap scan report for 1.34.189.204
+Host is up (0.046s latency).
+Skipping host 1.34.189.204 due to host timeout
+Nmap scan report for 1.34.189.213
+Host is up (0.051s latency).
+Skipping host 1.34.189.213 due to host timeout
+Nmap scan report for 1.34.189.221
+Host is up.
+Skipping host 1.34.189.221 due to host timeout
+Nmap scan report for 1.34.190.42
+Host is up (0.049s latency).
+Skipping host 1.34.190.42 due to host timeout
+Nmap scan report for 1-34-190-44.hinet-ip.hinet.net (1.34.190.44)
+Host is up.
+Skipping host 1-34-190-44.hinet-ip.hinet.net (1.34.190.44) due to host timeout
+Nmap scan report for 1.34.190.55
+Host is up (0.069s latency).
+Skipping host 1.34.190.55 due to host timeout
+Nmap scan report for 1.34.190.56
+Host is up (0.054s latency).
+Skipping host 1.34.190.56 due to host timeout
+Nmap scan report for 1.34.190.92
+Host is up (0.043s latency).
+Skipping host 1.34.190.92 due to host timeout
+Nmap scan report for 1-34-190-121.hinet-ip.hinet.net (1.34.190.121)
+Host is up (0.042s latency).
+Skipping host 1-34-190-121.hinet-ip.hinet.net (1.34.190.121) due to host timeout
+Nmap scan report for 1-34-190-159.hinet-ip.hinet.net (1.34.190.159)
+Host is up (0.050s latency).
+Skipping host 1-34-190-159.hinet-ip.hinet.net (1.34.190.159) due to host timeout
+Nmap scan report for 1.34.190.175
+Host is up (0.040s latency).
+Skipping host 1.34.190.175 due to host timeout
+Nmap scan report for 1-34-190-205.hinet-ip.hinet.net (1.34.190.205)
+Host is up.
+Skipping host 1-34-190-205.hinet-ip.hinet.net (1.34.190.205) due to host timeout
+Nmap scan report for 1-34-190-206.hinet-ip.hinet.net (1.34.190.206)
+Host is up (0.043s latency).
+Skipping host 1-34-190-206.hinet-ip.hinet.net (1.34.190.206) due to host timeout
+Nmap scan report for 1.34.190.233
+Host is up (0.042s latency).
+Skipping host 1.34.190.233 due to host timeout
+Nmap scan report for 1-34-190-244.hinet-ip.hinet.net (1.34.190.244)
+Host is up (0.043s latency).
+Skipping host 1-34-190-244.hinet-ip.hinet.net (1.34.190.244) due to host timeout
+Nmap scan report for 1.34.190.247
+Host is up (0.047s latency).
+Skipping host 1.34.190.247 due to host timeout
+Nmap scan report for 1.34.192.67
+Host is up.
+Skipping host 1.34.192.67 due to host timeout
+Nmap scan report for 1-34-193-7.hinet-ip.hinet.net (1.34.193.7)
+Host is up (0.051s latency).
+Skipping host 1-34-193-7.hinet-ip.hinet.net (1.34.193.7) due to host timeout
+Nmap scan report for 1.34.193.12
+Host is up (0.041s latency).
+
+PORT      STATE    SERVICE       VERSION
+21/tcp    closed   ftp
+22/tcp    closed   ssh
+23/tcp    closed   telnet
+25/tcp    filtered smtp
+53/tcp    closed   domain
+80/tcp    open     tcpwrapped
+110/tcp   closed   pop3
+135/tcp   closed   msrpc
+139/tcp   closed   netbios-ssn
+143/tcp   closed   imap
+443/tcp   closed   https
+445/tcp   closed   microsoft-ds
+465/tcp   closed   smtps
+587/tcp   closed   submission
+993/tcp   closed   imaps
+995/tcp   closed   pop3s
+1433/tcp  closed   ms-sql-s
+3306/tcp  closed   mysql
+3389/tcp  closed   ms-wbt-server
+5432/tcp  closed   postgresql
+6379/tcp  closed   redis
+8080/tcp  closed   http-proxy
+8443/tcp  closed   https-alt
+9200/tcp  closed   wap-wsp
+27017/tcp closed   mongod
+
+Nmap scan report for 1-34-193-27.hinet-ip.hinet.net (1.34.193.27)
+Host is up (0.045s latency).
+Skipping host 1-34-193-27.hinet-ip.hinet.net (1.34.193.27) due to host timeout
+Nmap scan report for 1.34.193.42
+Host is up.
+Skipping host 1.34.193.42 due to host timeout
+Nmap scan report for 1.34.193.64
+Host is up (0.045s latency).
+Skipping host 1.34.193.64 due to host timeout
+Nmap scan report for 1-34-193-99.hinet-ip.hinet.net (1.34.193.99)
+Host is up.
+Skipping host 1-34-193-99.hinet-ip.hinet.net (1.34.193.99) due to host timeout
+Nmap scan report for 1.34.193.169
+Host is up (0.044s latency).
+Skipping host 1.34.193.169 due to host timeout
+Nmap scan report for 1-34-193-190.hinet-ip.hinet.net (1.34.193.190)
+Host is up (0.045s latency).
+Skipping host 1-34-193-190.hinet-ip.hinet.net (1.34.193.190) due to host timeout
+Warning: 1.34.205.3 giving up on port because retransmission cap hit (1).
+Warning: 1.34.203.40 giving up on port because retransmission cap hit (1).
+Warning: 1.34.204.43 giving up on port because retransmission cap hit (1).
+Warning: 1.34.204.51 giving up on port because retransmission cap hit (1).
+Warning: 1.34.202.72 giving up on port because retransmission cap hit (1).
+Warning: 1.34.204.95 giving up on port because retransmission cap hit (1).
+Warning: 1.34.203.101 giving up on port because retransmission cap hit (1).
+Warning: 1.34.202.96 giving up on port because retransmission cap hit (1).
+Warning: 1.34.203.120 giving up on port because retransmission cap hit (1).
+Warning: 1.34.202.149 giving up on port because retransmission cap hit (1).
+Warning: 1.34.200.163 giving up on port because retransmission cap hit (1).
+Warning: 1.34.202.177 giving up on port because retransmission cap hit (1).
+Warning: 1.34.202.199 giving up on port because retransmission cap hit (1).
+Warning: 1.34.193.201 giving up on port because retransmission cap hit (1).
+Warning: 1.34.200.250 giving up on port because retransmission cap hit (1).
+Warning: 1.34.203.122 giving up on port because retransmission cap hit (1).
+Nmap scan report for 1-34-193-201.hinet-ip.hinet.net (1.34.193.201)
+Host is up (0.046s latency).
+Skipping host 1-34-193-201.hinet-ip.hinet.net (1.34.193.201) due to host timeout
+Nmap scan report for 1-34-194-18.hinet-ip.hinet.net (1.34.194.18)
+Host is up (0.045s latency).
+Skipping host 1-34-194-18.hinet-ip.hinet.net (1.34.194.18) due to host timeout
+Nmap scan report for 1-34-194-29.hinet-ip.hinet.net (1.34.194.29)
+Host is up (0.047s latency).
+Skipping host 1-34-194-29.hinet-ip.hinet.net (1.34.194.29) due to host timeout
+Nmap scan report for 1-34-194-41.hinet-ip.hinet.net (1.34.194.41)
+Host is up.
+Skipping host 1-34-194-41.hinet-ip.hinet.net (1.34.194.41) due to host timeout
+Nmap scan report for 1-34-194-94.hinet-ip.hinet.net (1.34.194.94)
+Host is up (0.042s latency).
+Skipping host 1-34-194-94.hinet-ip.hinet.net (1.34.194.94) due to host timeout
+Nmap scan report for 1-34-195-8.hinet-ip.hinet.net (1.34.195.8)
+Host is up (0.043s latency).
+Skipping host 1-34-195-8.hinet-ip.hinet.net (1.34.195.8) due to host timeout
+Nmap scan report for 1-34-195-11.hinet-ip.hinet.net (1.34.195.11)
+Host is up (0.039s latency).
+Skipping host 1-34-195-11.hinet-ip.hinet.net (1.34.195.11) due to host timeout
+Nmap scan report for 1.34.195.20
+Host is up (0.037s latency).
+Skipping host 1.34.195.20 due to host timeout
+Nmap scan report for 1-34-195-84.hinet-ip.hinet.net (1.34.195.84)
+Host is up (0.037s latency).
+Skipping host 1-34-195-84.hinet-ip.hinet.net (1.34.195.84) due to host timeout
+Nmap scan report for 1-34-195-195.hinet-ip.hinet.net (1.34.195.195)
+Host is up.
+Skipping host 1-34-195-195.hinet-ip.hinet.net (1.34.195.195) due to host timeout
+Nmap scan report for 1.34.200.1
+Host is up (0.044s latency).
+Skipping host 1.34.200.1 due to host timeout
+Nmap scan report for 1-34-200-77.hinet-ip.hinet.net (1.34.200.77)
+Host is up (0.044s latency).
+Skipping host 1-34-200-77.hinet-ip.hinet.net (1.34.200.77) due to host timeout
+Nmap scan report for 1.34.200.78
+Host is up.
+Skipping host 1.34.200.78 due to host timeout
+Nmap scan report for 1.34.200.85
+Host is up.
+Skipping host 1.34.200.85 due to host timeout
+Nmap scan report for 1-34-200-109.hinet-ip.hinet.net (1.34.200.109)
+Host is up (0.048s latency).
+Skipping host 1-34-200-109.hinet-ip.hinet.net (1.34.200.109) due to host timeout
+Nmap scan report for 1-34-200-127.hinet-ip.hinet.net (1.34.200.127)
+Host is up (0.040s latency).
+Skipping host 1-34-200-127.hinet-ip.hinet.net (1.34.200.127) due to host timeout
+Nmap scan report for 1.34.200.155
+Host is up.
+Skipping host 1.34.200.155 due to host timeout
+Nmap scan report for 1-34-200-163.hinet-ip.hinet.net (1.34.200.163)
+Host is up (0.047s latency).
+Skipping host 1-34-200-163.hinet-ip.hinet.net (1.34.200.163) due to host timeout
+Nmap scan report for 1.34.200.182
+Host is up (0.044s latency).
+Skipping host 1.34.200.182 due to host timeout
+Nmap scan report for 1.34.200.240
+Host is up (0.042s latency).
+Skipping host 1.34.200.240 due to host timeout
+Nmap scan report for 1-34-200-242.hinet-ip.hinet.net (1.34.200.242)
+Host is up (0.047s latency).
+Skipping host 1-34-200-242.hinet-ip.hinet.net (1.34.200.242) due to host timeout
+Nmap scan report for 1-34-200-250.hinet-ip.hinet.net (1.34.200.250)
+Host is up (0.043s latency).
+Skipping host 1-34-200-250.hinet-ip.hinet.net (1.34.200.250) due to host timeout
+Nmap scan report for 1.34.201.2
+Host is up (0.049s latency).
+Skipping host 1.34.201.2 due to host timeout
+Nmap scan report for 1.34.201.32
+Host is up (0.044s latency).
+Skipping host 1.34.201.32 due to host timeout
+Nmap scan report for 1-34-201-104.hinet-ip.hinet.net (1.34.201.104)
+Host is up.
+Skipping host 1-34-201-104.hinet-ip.hinet.net (1.34.201.104) due to host timeout
+Nmap scan report for 1.34.202.10
+Host is up (0.043s latency).
+Skipping host 1.34.202.10 due to host timeout
+Nmap scan report for 1.34.202.23
+Host is up (0.050s latency).
+Skipping host 1.34.202.23 due to host timeout
+Nmap scan report for 1-34-202-28.hinet-ip.hinet.net (1.34.202.28)
+Host is up.
+Skipping host 1-34-202-28.hinet-ip.hinet.net (1.34.202.28) due to host timeout
+Nmap scan report for 1-34-202-72.hinet-ip.hinet.net (1.34.202.72)
+Host is up (0.047s latency).
+Skipping host 1-34-202-72.hinet-ip.hinet.net (1.34.202.72) due to host timeout
+Nmap scan report for 1.34.202.81
+Host is up (0.061s latency).
+Skipping host 1.34.202.81 due to host timeout
+Nmap scan report for 1-34-202-95.hinet-ip.hinet.net (1.34.202.95)
+Host is up.
+Skipping host 1-34-202-95.hinet-ip.hinet.net (1.34.202.95) due to host timeout
+Nmap scan report for 1-34-202-96.hinet-ip.hinet.net (1.34.202.96)
+Host is up (0.053s latency).
+Skipping host 1-34-202-96.hinet-ip.hinet.net (1.34.202.96) due to host timeout
+Nmap scan report for 1-34-202-104.hinet-ip.hinet.net (1.34.202.104)
+Host is up.
+Skipping host 1-34-202-104.hinet-ip.hinet.net (1.34.202.104) due to host timeout
+Nmap scan report for 1.34.202.117
+Host is up.
+Skipping host 1.34.202.117 due to host timeout
+Nmap scan report for 1-34-202-149.hinet-ip.hinet.net (1.34.202.149)
+Host is up (0.052s latency).
+Skipping host 1-34-202-149.hinet-ip.hinet.net (1.34.202.149) due to host timeout
+Nmap scan report for 1-34-202-177.hinet-ip.hinet.net (1.34.202.177)
+Host is up (0.051s latency).
+Skipping host 1-34-202-177.hinet-ip.hinet.net (1.34.202.177) due to host timeout
+Nmap scan report for 1-34-202-181.hinet-ip.hinet.net (1.34.202.181)
+Host is up.
+Skipping host 1-34-202-181.hinet-ip.hinet.net (1.34.202.181) due to host timeout
+Nmap scan report for 1-34-202-182.hinet-ip.hinet.net (1.34.202.182)
+Host is up.
+Skipping host 1-34-202-182.hinet-ip.hinet.net (1.34.202.182) due to host timeout
+Nmap scan report for 1.34.202.197
+Host is up (0.045s latency).
+Skipping host 1.34.202.197 due to host timeout
+Nmap scan report for 1.34.202.199
+Host is up (0.043s latency).
+Skipping host 1.34.202.199 due to host timeout
+Nmap scan report for 1-34-202-200.hinet-ip.hinet.net (1.34.202.200)
+Host is up (0.050s latency).
+Skipping host 1-34-202-200.hinet-ip.hinet.net (1.34.202.200) due to host timeout
+Nmap scan report for 1-34-202-227.hinet-ip.hinet.net (1.34.202.227)
+Host is up (0.039s latency).
+Skipping host 1-34-202-227.hinet-ip.hinet.net (1.34.202.227) due to host timeout
+Nmap scan report for 1-34-203-40.hinet-ip.hinet.net (1.34.203.40)
+Host is up (0.039s latency).
+Skipping host 1-34-203-40.hinet-ip.hinet.net (1.34.203.40) due to host timeout
+Nmap scan report for 1-34-203-61.hinet-ip.hinet.net (1.34.203.61)
+Host is up (0.043s latency).
+Skipping host 1-34-203-61.hinet-ip.hinet.net (1.34.203.61) due to host timeout
+Nmap scan report for 1.34.203.70
+Host is up (0.046s latency).
+Skipping host 1.34.203.70 due to host timeout
+Nmap scan report for 1-34-203-101.hinet-ip.hinet.net (1.34.203.101)
+Host is up (0.046s latency).
+Skipping host 1-34-203-101.hinet-ip.hinet.net (1.34.203.101) due to host timeout
+Nmap scan report for 1-34-203-120.hinet-ip.hinet.net (1.34.203.120)
+Host is up (0.044s latency).
+Skipping host 1-34-203-120.hinet-ip.hinet.net (1.34.203.120) due to host timeout
+Nmap scan report for 1-34-203-122.hinet-ip.hinet.net (1.34.203.122)
+Host is up (0.043s latency).
+Skipping host 1-34-203-122.hinet-ip.hinet.net (1.34.203.122) due to host timeout
+Nmap scan report for 1-34-203-180.hinet-ip.hinet.net (1.34.203.180)
+Host is up (0.050s latency).
+Skipping host 1-34-203-180.hinet-ip.hinet.net (1.34.203.180) due to host timeout
+Nmap scan report for 1-34-204-10.hinet-ip.hinet.net (1.34.204.10)
+Host is up (0.046s latency).
+Skipping host 1-34-204-10.hinet-ip.hinet.net (1.34.204.10) due to host timeout
+Nmap scan report for 1-34-204-43.hinet-ip.hinet.net (1.34.204.43)
+Host is up (0.047s latency).
+Skipping host 1-34-204-43.hinet-ip.hinet.net (1.34.204.43) due to host timeout
+Nmap scan report for 1.34.204.51
+Host is up (0.046s latency).
+Skipping host 1.34.204.51 due to host timeout
+Nmap scan report for 1-34-204-95.hinet-ip.hinet.net (1.34.204.95)
+Host is up (0.052s latency).
+Skipping host 1-34-204-95.hinet-ip.hinet.net (1.34.204.95) due to host timeout
+Nmap scan report for 1.34.204.96
+Host is up (0.046s latency).
+Skipping host 1.34.204.96 due to host timeout
+Nmap scan report for 1-34-204-133.hinet-ip.hinet.net (1.34.204.133)
+Host is up (0.042s latency).
+Skipping host 1-34-204-133.hinet-ip.hinet.net (1.34.204.133) due to host timeout
+Nmap scan report for 1-34-204-154.hinet-ip.hinet.net (1.34.204.154)
+Host is up.
+Skipping host 1-34-204-154.hinet-ip.hinet.net (1.34.204.154) due to host timeout
+Nmap scan report for 1-34-204-191.hinet-ip.hinet.net (1.34.204.191)
+Host is up.
+Skipping host 1-34-204-191.hinet-ip.hinet.net (1.34.204.191) due to host timeout
+Nmap scan report for 1.34.204.205
+Host is up (0.040s latency).
+Skipping host 1.34.204.205 due to host timeout
+Nmap scan report for 1-34-204-209.hinet-ip.hinet.net (1.34.204.209)
+Host is up (0.041s latency).
+Skipping host 1-34-204-209.hinet-ip.hinet.net (1.34.204.209) due to host timeout
+Nmap scan report for 1.34.205.3
+Host is up (0.047s latency).
+
+PORT      STATE    SERVICE       VERSION
+21/tcp    closed   ftp
+22/tcp    closed   ssh
+23/tcp    closed   telnet
+25/tcp    filtered smtp
+53/tcp    closed   domain
+80/tcp    open     tcpwrapped
+110/tcp   closed   pop3
+135/tcp   filtered msrpc
+139/tcp   closed   netbios-ssn
+143/tcp   closed   imap
+443/tcp   closed   https
+445/tcp   closed   microsoft-ds
+465/tcp   closed   smtps
+587/tcp   closed   submission
+993/tcp   closed   imaps
+995/tcp   closed   pop3s
+1433/tcp  closed   ms-sql-s
+3306/tcp  closed   mysql
+3389/tcp  closed   ms-wbt-server
+5432/tcp  closed   postgresql
+6379/tcp  closed   redis
+8080/tcp  closed   http-proxy
+8443/tcp  closed   https-alt
+9200/tcp  closed   wap-wsp
+27017/tcp closed   mongod
+
+Nmap scan report for 1.34.205.6
+Host is up (0.039s latency).
+Skipping host 1.34.205.6 due to host timeout
+Nmap scan report for 1-34-205-39.hinet-ip.hinet.net (1.34.205.39)
+Host is up (0.044s latency).
+Skipping host 1-34-205-39.hinet-ip.hinet.net (1.34.205.39) due to host timeout
+Nmap scan report for 1-34-205-40.hinet-ip.hinet.net (1.34.205.40)
+Host is up.
+Skipping host 1-34-205-40.hinet-ip.hinet.net (1.34.205.40) due to host timeout
+Nmap scan report for 1-34-205-63.hinet-ip.hinet.net (1.34.205.63)
+Host is up.
+Skipping host 1-34-205-63.hinet-ip.hinet.net (1.34.205.63) due to host timeout
+Warning: 1.34.206.14 giving up on port because retransmission cap hit (1).
+Warning: 1.34.211.115 giving up on port because retransmission cap hit (1).
+Warning: 1.34.210.8 giving up on port because retransmission cap hit (1).
+Warning: 1.34.209.75 giving up on port because retransmission cap hit (1).
+Warning: 1.34.211.75 giving up on port because retransmission cap hit (1).
+Warning: 1.34.211.91 giving up on port because retransmission cap hit (1).
+Warning: 1.34.208.106 giving up on port because retransmission cap hit (1).
+Warning: 1.34.211.102 giving up on port because retransmission cap hit (1).
+Warning: 1.34.208.121 giving up on port because retransmission cap hit (1).
+Warning: 1.34.211.122 giving up on port because retransmission cap hit (1).
+Warning: 1.34.211.176 giving up on port because retransmission cap hit (1).
+Warning: 1.34.205.203 giving up on port because retransmission cap hit (1).
+Warning: 1.34.209.243 giving up on port because retransmission cap hit (1).
+Warning: 1.34.205.122 giving up on port because retransmission cap hit (1).
+Warning: 1.34.208.21 giving up on port because retransmission cap hit (1).
+Warning: 1.34.206.42 giving up on port because retransmission cap hit (1).
+Warning: 1.34.209.228 giving up on port because retransmission cap hit (1).
+Nmap scan report for 1-34-205-122.hinet-ip.hinet.net (1.34.205.122)
+Host is up (0.043s latency).
+Skipping host 1-34-205-122.hinet-ip.hinet.net (1.34.205.122) due to host timeout
+Nmap scan report for 1.34.205.135
+Host is up (0.044s latency).
+Skipping host 1.34.205.135 due to host timeout
+Nmap scan report for 1-34-205-151.hinet-ip.hinet.net (1.34.205.151)
+Host is up.
+Skipping host 1-34-205-151.hinet-ip.hinet.net (1.34.205.151) due to host timeout
+Nmap scan report for 1-34-205-189.hinet-ip.hinet.net (1.34.205.189)
+Host is up (0.048s latency).
+Skipping host 1-34-205-189.hinet-ip.hinet.net (1.34.205.189) due to host timeout
+Nmap scan report for 1-34-205-195.hinet-ip.hinet.net (1.34.205.195)
+Host is up.
+Skipping host 1-34-205-195.hinet-ip.hinet.net (1.34.205.195) due to host timeout
+Nmap scan report for 1-34-205-203.hinet-ip.hinet.net (1.34.205.203)
+Host is up (0.050s latency).
+Skipping host 1-34-205-203.hinet-ip.hinet.net (1.34.205.203) due to host timeout
+Nmap scan report for 1-34-205-208.hinet-ip.hinet.net (1.34.205.208)
+Host is up.
+Skipping host 1-34-205-208.hinet-ip.hinet.net (1.34.205.208) due to host timeout
+Nmap scan report for 1-34-205-222.hinet-ip.hinet.net (1.34.205.222)
+Host is up (0.046s latency).
+Skipping host 1-34-205-222.hinet-ip.hinet.net (1.34.205.222) due to host timeout
+Nmap scan report for 1-34-206-14.hinet-ip.hinet.net (1.34.206.14)
+Host is up (0.048s latency).
+Skipping host 1-34-206-14.hinet-ip.hinet.net (1.34.206.14) due to host timeout
+Nmap scan report for 1-34-206-42.hinet-ip.hinet.net (1.34.206.42)
+Host is up (0.048s latency).
+Skipping host 1-34-206-42.hinet-ip.hinet.net (1.34.206.42) due to host timeout
+Nmap scan report for 1.34.206.51
+Host is up (0.041s latency).
+Skipping host 1.34.206.51 due to host timeout
+Nmap scan report for 1.34.206.63
+Host is up.
+Skipping host 1.34.206.63 due to host timeout
+Nmap scan report for 1-34-206-102.hinet-ip.hinet.net (1.34.206.102)
+Host is up.
+Skipping host 1-34-206-102.hinet-ip.hinet.net (1.34.206.102) due to host timeout
+Nmap scan report for 1-34-206-123.hinet-ip.hinet.net (1.34.206.123)
+Host is up (0.041s latency).
+Skipping host 1-34-206-123.hinet-ip.hinet.net (1.34.206.123) due to host timeout
+Nmap scan report for 1.34.206.195
+Host is up (0.050s latency).
+Skipping host 1.34.206.195 due to host timeout
+Nmap scan report for 1-34-207-24.hinet-ip.hinet.net (1.34.207.24)
+Host is up (0.050s latency).
+Skipping host 1-34-207-24.hinet-ip.hinet.net (1.34.207.24) due to host timeout
+Nmap scan report for 1-34-207-60.hinet-ip.hinet.net (1.34.207.60)
+Host is up (0.087s latency).
+Skipping host 1-34-207-60.hinet-ip.hinet.net (1.34.207.60) due to host timeout
+Nmap scan report for 1.34.207.70
+Host is up (0.037s latency).
+Skipping host 1.34.207.70 due to host timeout
+Nmap scan report for 1.34.207.90
+Host is up (0.043s latency).
+Skipping host 1.34.207.90 due to host timeout
+Nmap scan report for 1.34.207.197
+Host is up (0.041s latency).
+Skipping host 1.34.207.197 due to host timeout
+Nmap scan report for 1-34-207-204.hinet-ip.hinet.net (1.34.207.204)
+Host is up (0.040s latency).
+Skipping host 1-34-207-204.hinet-ip.hinet.net (1.34.207.204) due to host timeout
+Nmap scan report for 1-34-207-245.hinet-ip.hinet.net (1.34.207.245)
+Host is up (0.040s latency).
+Skipping host 1-34-207-245.hinet-ip.hinet.net (1.34.207.245) due to host timeout
+Nmap scan report for 1.34.207.250
+Host is up.
+Skipping host 1.34.207.250 due to host timeout
+Nmap scan report for 1-34-208-21.hinet-ip.hinet.net (1.34.208.21)
+Host is up (0.041s latency).
+Skipping host 1-34-208-21.hinet-ip.hinet.net (1.34.208.21) due to host timeout
+Nmap scan report for 1-34-208-33.hinet-ip.hinet.net (1.34.208.33)
+Host is up (0.036s latency).
+Skipping host 1-34-208-33.hinet-ip.hinet.net (1.34.208.33) due to host timeout
+Nmap scan report for 1.34.208.62
+Host is up (0.039s latency).
+Skipping host 1.34.208.62 due to host timeout
+Nmap scan report for 1-34-208-106.hinet-ip.hinet.net (1.34.208.106)
+Host is up (0.042s latency).
+Skipping host 1-34-208-106.hinet-ip.hinet.net (1.34.208.106) due to host timeout
+Nmap scan report for 1-34-208-121.hinet-ip.hinet.net (1.34.208.121)
+Host is up (0.045s latency).
+Skipping host 1-34-208-121.hinet-ip.hinet.net (1.34.208.121) due to host timeout
+Nmap scan report for 1-34-208-144.hinet-ip.hinet.net (1.34.208.144)
+Host is up (0.040s latency).
+Skipping host 1-34-208-144.hinet-ip.hinet.net (1.34.208.144) due to host timeout
+Nmap scan report for 1-34-208-167.hinet-ip.hinet.net (1.34.208.167)
+Host is up (0.041s latency).
+Skipping host 1-34-208-167.hinet-ip.hinet.net (1.34.208.167) due to host timeout
+Nmap scan report for 1-34-208-181.hinet-ip.hinet.net (1.34.208.181)
+Host is up (0.042s latency).
+Skipping host 1-34-208-181.hinet-ip.hinet.net (1.34.208.181) due to host timeout
+Nmap scan report for 1-34-208-230.hinet-ip.hinet.net (1.34.208.230)
+Host is up (0.040s latency).
+Skipping host 1-34-208-230.hinet-ip.hinet.net (1.34.208.230) due to host timeout
+Nmap scan report for 1-34-208-242.hinet-ip.hinet.net (1.34.208.242)
+Host is up (0.047s latency).
+Skipping host 1-34-208-242.hinet-ip.hinet.net (1.34.208.242) due to host timeout
+Nmap scan report for 1.34.209.19
+Host is up (0.041s latency).
+Skipping host 1.34.209.19 due to host timeout
+Nmap scan report for 1-34-209-30.hinet-ip.hinet.net (1.34.209.30)
+Host is up (0.047s latency).
+Skipping host 1-34-209-30.hinet-ip.hinet.net (1.34.209.30) due to host timeout
+Nmap scan report for 1.34.209.64
+Host is up (0.044s latency).
+Skipping host 1.34.209.64 due to host timeout
+Nmap scan report for 1.34.209.75
+Host is up (0.039s latency).
+Skipping host 1.34.209.75 due to host timeout
+Nmap scan report for 1-34-209-166.hinet-ip.hinet.net (1.34.209.166)
+Host is up (0.040s latency).
+Skipping host 1-34-209-166.hinet-ip.hinet.net (1.34.209.166) due to host timeout
+Nmap scan report for 1-34-209-195.hinet-ip.hinet.net (1.34.209.195)
+Host is up (0.039s latency).
+Skipping host 1-34-209-195.hinet-ip.hinet.net (1.34.209.195) due to host timeout
+Nmap scan report for 1.34.209.218
+Host is up (0.054s latency).
+Skipping host 1.34.209.218 due to host timeout
+Nmap scan report for 1-34-209-228.hinet-ip.hinet.net (1.34.209.228)
+Host is up (0.043s latency).
+Skipping host 1-34-209-228.hinet-ip.hinet.net (1.34.209.228) due to host timeout
+Nmap scan report for 1.34.209.231
+Host is up.
+Skipping host 1.34.209.231 due to host timeout
+Nmap scan report for 1-34-209-235.hinet-ip.hinet.net (1.34.209.235)
+Host is up (0.042s latency).
+Skipping host 1-34-209-235.hinet-ip.hinet.net (1.34.209.235) due to host timeout
+Nmap scan report for 1-34-209-243.hinet-ip.hinet.net (1.34.209.243)
+Host is up (0.042s latency).
+Skipping host 1-34-209-243.hinet-ip.hinet.net (1.34.209.243) due to host timeout
+Nmap scan report for 1-34-209-247.hinet-ip.hinet.net (1.34.209.247)
+Host is up (0.050s latency).
+Skipping host 1-34-209-247.hinet-ip.hinet.net (1.34.209.247) due to host timeout
+Nmap scan report for 1-34-209-252.hinet-ip.hinet.net (1.34.209.252)
+Host is up (0.038s latency).
+Skipping host 1-34-209-252.hinet-ip.hinet.net (1.34.209.252) due to host timeout
+Nmap scan report for 1.34.210.8
+Host is up (0.039s latency).
+Skipping host 1.34.210.8 due to host timeout
+Nmap scan report for 1.34.211.68
+Host is up (0.042s latency).
+Skipping host 1.34.211.68 due to host timeout
+Nmap scan report for 1-34-211-75.hinet-ip.hinet.net (1.34.211.75)
+Host is up (0.047s latency).
+Skipping host 1-34-211-75.hinet-ip.hinet.net (1.34.211.75) due to host timeout
+Nmap scan report for 1.34.211.91
+Host is up (0.044s latency).
+Skipping host 1.34.211.91 due to host timeout
+Nmap scan report for 1-34-211-102.hinet-ip.hinet.net (1.34.211.102)
+Host is up (0.047s latency).
+Skipping host 1-34-211-102.hinet-ip.hinet.net (1.34.211.102) due to host timeout
+Nmap scan report for 1-34-211-109.hinet-ip.hinet.net (1.34.211.109)
+Host is up (0.045s latency).
+Skipping host 1-34-211-109.hinet-ip.hinet.net (1.34.211.109) due to host timeout
+Nmap scan report for 1.34.211.115
+Host is up (0.036s latency).
+Skipping host 1.34.211.115 due to host timeout
+Nmap scan report for 1-34-211-122.hinet-ip.hinet.net (1.34.211.122)
+Host is up (0.040s latency).
+Skipping host 1-34-211-122.hinet-ip.hinet.net (1.34.211.122) due to host timeout
+Nmap scan report for 1.34.211.125
+Host is up (0.041s latency).
+Skipping host 1.34.211.125 due to host timeout
+Nmap scan report for 1-34-211-139.hinet-ip.hinet.net (1.34.211.139)
+Host is up (0.046s latency).
+Skipping host 1-34-211-139.hinet-ip.hinet.net (1.34.211.139) due to host timeout
+Nmap scan report for 1-34-211-156.hinet-ip.hinet.net (1.34.211.156)
+Host is up (0.047s latency).
+Skipping host 1-34-211-156.hinet-ip.hinet.net (1.34.211.156) due to host timeout
+Nmap scan report for 1-34-211-159.hinet-ip.hinet.net (1.34.211.159)
+Host is up (0.049s latency).
+Skipping host 1-34-211-159.hinet-ip.hinet.net (1.34.211.159) due to host timeout
+Nmap scan report for 1-34-211-176.hinet-ip.hinet.net (1.34.211.176)
+Host is up (0.045s latency).
+Skipping host 1-34-211-176.hinet-ip.hinet.net (1.34.211.176) due to host timeout
+Nmap scan report for 1-34-211-190.hinet-ip.hinet.net (1.34.211.190)
+Host is up (0.038s latency).
+Skipping host 1-34-211-190.hinet-ip.hinet.net (1.34.211.190) due to host timeout
+Nmap scan report for 1.34.211.208
+Host is up (0.049s latency).
+Skipping host 1.34.211.208 due to host timeout
+Nmap scan report for 1-34-211-226.hinet-ip.hinet.net (1.34.211.226)
+Host is up (0.049s latency).
+Skipping host 1-34-211-226.hinet-ip.hinet.net (1.34.211.226) due to host timeout
+Nmap scan report for 1-34-211-231.hinet-ip.hinet.net (1.34.211.231)
+Host is up (0.053s latency).
+Skipping host 1-34-211-231.hinet-ip.hinet.net (1.34.211.231) due to host timeout
+Nmap scan report for 1-34-211-248.hinet-ip.hinet.net (1.34.211.248)
+Host is up (0.048s latency).
+Skipping host 1-34-211-248.hinet-ip.hinet.net (1.34.211.248) due to host timeout
+Warning: 1.34.215.34 giving up on port because retransmission cap hit (1).
+Warning: 1.34.219.20 giving up on port because retransmission cap hit (1).
+Warning: 1.34.217.64 giving up on port because retransmission cap hit (1).
+Warning: 1.34.218.29 giving up on port because retransmission cap hit (1).
+Warning: 1.34.218.43 giving up on port because retransmission cap hit (1).
+Warning: 1.34.216.72 giving up on port because retransmission cap hit (1).
+Warning: 1.34.212.86 giving up on port because retransmission cap hit (1).
+Warning: 1.34.218.110 giving up on port because retransmission cap hit (1).
+Warning: 1.34.216.113 giving up on port because retransmission cap hit (1).
+Warning: 1.34.216.117 giving up on port because retransmission cap hit (1).
+Warning: 1.34.216.139 giving up on port because retransmission cap hit (1).
+Warning: 1.34.216.169 giving up on port because retransmission cap hit (1).
+Warning: 1.34.215.177 giving up on port because retransmission cap hit (1).
+Warning: 1.34.218.228 giving up on port because retransmission cap hit (1).
+Warning: 1.34.212.243 giving up on port because retransmission cap hit (1).
+Warning: 1.34.216.222 giving up on port because retransmission cap hit (1).
+Warning: 1.34.219.209 giving up on port because retransmission cap hit (1).
+Nmap scan report for 1.34.212.74
+Host is up (0.045s latency).
+Skipping host 1.34.212.74 due to host timeout
+Nmap scan report for 1-34-212-86.hinet-ip.hinet.net (1.34.212.86)
+Host is up (0.043s latency).
+Skipping host 1-34-212-86.hinet-ip.hinet.net (1.34.212.86) due to host timeout
+Nmap scan report for 1.34.212.103
+Host is up.
+Skipping host 1.34.212.103 due to host timeout
+Nmap scan report for 1-34-212-149.hinet-ip.hinet.net (1.34.212.149)
+Host is up (0.041s latency).
+Skipping host 1-34-212-149.hinet-ip.hinet.net (1.34.212.149) due to host timeout
+Nmap scan report for 1-34-212-150.hinet-ip.hinet.net (1.34.212.150)
+Host is up.
+Skipping host 1-34-212-150.hinet-ip.hinet.net (1.34.212.150) due to host timeout
+Nmap scan report for 1.34.212.163
+Host is up (0.048s latency).
+Skipping host 1.34.212.163 due to host timeout
+Nmap scan report for 1.34.212.164
+Host is up (0.040s latency).
+Skipping host 1.34.212.164 due to host timeout
+Nmap scan report for 1-34-212-232.hinet-ip.hinet.net (1.34.212.232)
+Host is up (0.047s latency).
+Skipping host 1-34-212-232.hinet-ip.hinet.net (1.34.212.232) due to host timeout
+Nmap scan report for 1-34-212-241.hinet-ip.hinet.net (1.34.212.241)
+Host is up (0.038s latency).
+Skipping host 1-34-212-241.hinet-ip.hinet.net (1.34.212.241) due to host timeout
+Nmap scan report for 1-34-212-242.hinet-ip.hinet.net (1.34.212.242)
+Host is up (0.042s latency).
+Skipping host 1-34-212-242.hinet-ip.hinet.net (1.34.212.242) due to host timeout
+Nmap scan report for 1.34.212.243
+Host is up (0.042s latency).
+Skipping host 1.34.212.243 due to host timeout
+Nmap scan report for 1-34-212-244.hinet-ip.hinet.net (1.34.212.244)
+Host is up (0.046s latency).
+Skipping host 1-34-212-244.hinet-ip.hinet.net (1.34.212.244) due to host timeout
+Nmap scan report for 1.34.215.9
+Host is up (0.041s latency).
+Skipping host 1.34.215.9 due to host timeout
+Nmap scan report for 1-34-215-34.hinet-ip.hinet.net (1.34.215.34)
+Host is up (0.037s latency).
+Skipping host 1-34-215-34.hinet-ip.hinet.net (1.34.215.34) due to host timeout
+Nmap scan report for 1-34-215-38.hinet-ip.hinet.net (1.34.215.38)
+Host is up.
+Skipping host 1-34-215-38.hinet-ip.hinet.net (1.34.215.38) due to host timeout
+Nmap scan report for 1-34-215-78.hinet-ip.hinet.net (1.34.215.78)
+Host is up (0.044s latency).
+Skipping host 1-34-215-78.hinet-ip.hinet.net (1.34.215.78) due to host timeout
+Nmap scan report for 1-34-215-114.hinet-ip.hinet.net (1.34.215.114)
+Host is up.
+Skipping host 1-34-215-114.hinet-ip.hinet.net (1.34.215.114) due to host timeout
+Nmap scan report for 1-34-215-160.hinet-ip.hinet.net (1.34.215.160)
+Host is up (0.047s latency).
+Skipping host 1-34-215-160.hinet-ip.hinet.net (1.34.215.160) due to host timeout
+Nmap scan report for 1.34.215.177
+Host is up (0.042s latency).
+Skipping host 1.34.215.177 due to host timeout
+Nmap scan report for 1.34.215.180
+Host is up.
+Skipping host 1.34.215.180 due to host timeout
+Nmap scan report for 1-34-215-210.hinet-ip.hinet.net (1.34.215.210)
+Host is up.
+Skipping host 1-34-215-210.hinet-ip.hinet.net (1.34.215.210) due to host timeout
+Nmap scan report for 1-34-215-219.hinet-ip.hinet.net (1.34.215.219)
+Host is up (0.040s latency).
+Skipping host 1-34-215-219.hinet-ip.hinet.net (1.34.215.219) due to host timeout
+Nmap scan report for 1.34.215.221
+Host is up (0.042s latency).
+Skipping host 1.34.215.221 due to host timeout
+Nmap scan report for 1.34.215.245
+Host is up (0.041s latency).
+Skipping host 1.34.215.245 due to host timeout
+Nmap scan report for 1.34.216.2
+Host is up.
+Skipping host 1.34.216.2 due to host timeout
+Nmap scan report for 1-34-216-3.hinet-ip.hinet.net (1.34.216.3)
+Host is up (0.048s latency).
+Skipping host 1-34-216-3.hinet-ip.hinet.net (1.34.216.3) due to host timeout
+Nmap scan report for 1.34.216.57
+Host is up.
+Skipping host 1.34.216.57 due to host timeout
+Nmap scan report for 1-34-216-72.hinet-ip.hinet.net (1.34.216.72)
+Host is up (0.050s latency).
+Skipping host 1-34-216-72.hinet-ip.hinet.net (1.34.216.72) due to host timeout
+Nmap scan report for 1-34-216-113.hinet-ip.hinet.net (1.34.216.113)
+Host is up (0.044s latency).
+Skipping host 1-34-216-113.hinet-ip.hinet.net (1.34.216.113) due to host timeout
+Nmap scan report for 1.34.216.117
+Host is up (0.049s latency).
+Skipping host 1.34.216.117 due to host timeout
+Nmap scan report for 1-34-216-130.hinet-ip.hinet.net (1.34.216.130)
+Host is up (0.041s latency).
+Skipping host 1-34-216-130.hinet-ip.hinet.net (1.34.216.130) due to host timeout
+Nmap scan report for 1-34-216-139.hinet-ip.hinet.net (1.34.216.139)
+Host is up (0.042s latency).
+Skipping host 1-34-216-139.hinet-ip.hinet.net (1.34.216.139) due to host timeout
+Nmap scan report for 1.34.216.158
+Host is up (0.044s latency).
+Skipping host 1.34.216.158 due to host timeout
+Nmap scan report for 1-34-216-166.hinet-ip.hinet.net (1.34.216.166)
+Host is up (0.040s latency).
+Skipping host 1-34-216-166.hinet-ip.hinet.net (1.34.216.166) due to host timeout
+Nmap scan report for 1.34.216.169
+Host is up (0.042s latency).
+Skipping host 1.34.216.169 due to host timeout
+Nmap scan report for 1.34.216.188
+Host is up (0.043s latency).
+Skipping host 1.34.216.188 due to host timeout
+Nmap scan report for 1-34-216-205.hinet-ip.hinet.net (1.34.216.205)
+Host is up (0.053s latency).
+Skipping host 1-34-216-205.hinet-ip.hinet.net (1.34.216.205) due to host timeout
+Nmap scan report for 1.34.216.217
+Host is up.
+Skipping host 1.34.216.217 due to host timeout
+Nmap scan report for 1.34.216.222
+Host is up (0.045s latency).
+Skipping host 1.34.216.222 due to host timeout
+Nmap scan report for 1.34.216.252
+Host is up.
+Skipping host 1.34.216.252 due to host timeout
+Nmap scan report for 1.34.217.5
+Host is up (0.041s latency).
+Skipping host 1.34.217.5 due to host timeout
+Nmap scan report for 1-34-217-64.hinet-ip.hinet.net (1.34.217.64)
+Host is up (0.046s latency).
+Skipping host 1-34-217-64.hinet-ip.hinet.net (1.34.217.64) due to host timeout
+Nmap scan report for 1-34-217-211.hinet-ip.hinet.net (1.34.217.211)
+Host is up (0.046s latency).
+Skipping host 1-34-217-211.hinet-ip.hinet.net (1.34.217.211) due to host timeout
+Nmap scan report for 1-34-218-15.hinet-ip.hinet.net (1.34.218.15)
+Host is up (0.040s latency).
+Skipping host 1-34-218-15.hinet-ip.hinet.net (1.34.218.15) due to host timeout
+Nmap scan report for 1-34-218-29.hinet-ip.hinet.net (1.34.218.29)
+Host is up (0.039s latency).
+Skipping host 1-34-218-29.hinet-ip.hinet.net (1.34.218.29) due to host timeout
+Nmap scan report for 1.34.218.38
+Host is up.
+Skipping host 1.34.218.38 due to host timeout
+Nmap scan report for 1-34-218-43.hinet-ip.hinet.net (1.34.218.43)
+Host is up (0.042s latency).
+Skipping host 1-34-218-43.hinet-ip.hinet.net (1.34.218.43) due to host timeout
+Nmap scan report for 1.34.218.77
+Host is up (0.040s latency).
+Skipping host 1.34.218.77 due to host timeout
+Nmap scan report for 1.34.218.85
+Host is up (0.039s latency).
+Skipping host 1.34.218.85 due to host timeout
+Nmap scan report for 1.34.218.110
+Host is up (0.040s latency).
+Skipping host 1.34.218.110 due to host timeout
+Nmap scan report for 1-34-218-111.hinet-ip.hinet.net (1.34.218.111)
+Host is up (0.039s latency).
+Skipping host 1-34-218-111.hinet-ip.hinet.net (1.34.218.111) due to host timeout
+Nmap scan report for 1-34-218-116.hinet-ip.hinet.net (1.34.218.116)
+Host is up (0.042s latency).
+Skipping host 1-34-218-116.hinet-ip.hinet.net (1.34.218.116) due to host timeout
+Nmap scan report for 1.34.218.145
+Host is up (0.048s latency).
+Skipping host 1.34.218.145 due to host timeout
+Nmap scan report for 1.34.218.172
+Host is up (0.044s latency).
+Skipping host 1.34.218.172 due to host timeout
+Nmap scan report for 1-34-218-220.hinet-ip.hinet.net (1.34.218.220)
+Host is up (0.050s latency).
+Skipping host 1-34-218-220.hinet-ip.hinet.net (1.34.218.220) due to host timeout
+Nmap scan report for 1-34-218-228.hinet-ip.hinet.net (1.34.218.228)
+Host is up (0.042s latency).
+Skipping host 1-34-218-228.hinet-ip.hinet.net (1.34.218.228) due to host timeout
+Nmap scan report for 1-34-219-17.hinet-ip.hinet.net (1.34.219.17)
+Host is up (0.034s latency).
+Skipping host 1-34-219-17.hinet-ip.hinet.net (1.34.219.17) due to host timeout
+Nmap scan report for 1.34.219.19
+Host is up (0.037s latency).
+Skipping host 1.34.219.19 due to host timeout
+Nmap scan report for 1-34-219-20.hinet-ip.hinet.net (1.34.219.20)
+Host is up (0.047s latency).
+Skipping host 1-34-219-20.hinet-ip.hinet.net (1.34.219.20) due to host timeout
+Nmap scan report for 1.34.219.31
+Host is up (0.041s latency).
+
+PORT      STATE    SERVICE       VERSION
+21/tcp    closed   ftp
+22/tcp    closed   ssh
+23/tcp    closed   telnet
+25/tcp    filtered smtp
+53/tcp    closed   domain
+80/tcp    closed   http
+110/tcp   closed   pop3
+135/tcp   closed   msrpc
+139/tcp   closed   netbios-ssn
+143/tcp   closed   imap
+443/tcp   open     tcpwrapped
+445/tcp   closed   microsoft-ds
+465/tcp   closed   smtps
+587/tcp   closed   submission
+993/tcp   closed   imaps
+995/tcp   closed   pop3s
+1433/tcp  closed   ms-sql-s
+3306/tcp  closed   mysql
+3389/tcp  closed   ms-wbt-server
+5432/tcp  closed   postgresql
+6379/tcp  closed   redis
+8080/tcp  closed   http-proxy
+8443/tcp  closed   https-alt
+9200/tcp  closed   wap-wsp
+27017/tcp closed   mongod
+
+Nmap scan report for 1-34-219-40.hinet-ip.hinet.net (1.34.219.40)
+Host is up (0.041s latency).
+Skipping host 1-34-219-40.hinet-ip.hinet.net (1.34.219.40) due to host timeout
+Nmap scan report for 1-34-219-53.hinet-ip.hinet.net (1.34.219.53)
+Host is up (0.039s latency).
+Skipping host 1-34-219-53.hinet-ip.hinet.net (1.34.219.53) due to host timeout
+Nmap scan report for 1-34-219-142.hinet-ip.hinet.net (1.34.219.142)
+Host is up (0.042s latency).
+Skipping host 1-34-219-142.hinet-ip.hinet.net (1.34.219.142) due to host timeout
+Nmap scan report for 1.34.219.209
+Host is up (0.052s latency).
+Skipping host 1.34.219.209 due to host timeout
+Warning: 1.34.220.26 giving up on port because retransmission cap hit (1).
+Warning: 1.34.224.47 giving up on port because retransmission cap hit (1).
+Warning: 1.34.220.36 giving up on port because retransmission cap hit (1).
+Warning: 1.34.223.79 giving up on port because retransmission cap hit (1).
+Warning: 1.34.222.108 giving up on port because retransmission cap hit (1).
+Warning: 1.34.220.105 giving up on port because retransmission cap hit (1).
+Warning: 1.34.222.111 giving up on port because retransmission cap hit (1).
+Warning: 1.34.220.129 giving up on port because retransmission cap hit (1).
+Warning: 1.34.221.129 giving up on port because retransmission cap hit (1).
+Warning: 1.34.220.135 giving up on port because retransmission cap hit (1).
+Warning: 1.34.220.156 giving up on port because retransmission cap hit (1).
+Warning: 1.34.220.162 giving up on port because retransmission cap hit (1).
+Warning: 1.34.222.169 giving up on port because retransmission cap hit (1).
+Warning: 1.34.220.184 giving up on port because retransmission cap hit (1).
+Warning: 1.34.222.203 giving up on port because retransmission cap hit (1).
+Warning: 1.34.221.212 giving up on port because retransmission cap hit (1).
+Warning: 1.34.223.207 giving up on port because retransmission cap hit (1).
+Warning: 1.34.223.249 giving up on port because retransmission cap hit (1).
+Warning: 1.34.222.251 giving up on port because retransmission cap hit (1).
+Warning: 1.34.223.89 giving up on port because retransmission cap hit (1).
+Warning: 1.34.222.244 giving up on port because retransmission cap hit (1).
+Nmap scan report for 1-34-219-252.hinet-ip.hinet.net (1.34.219.252)
+Host is up (0.040s latency).
+Skipping host 1-34-219-252.hinet-ip.hinet.net (1.34.219.252) due to host timeout
+Nmap scan report for 1.34.220.26
+Host is up (0.042s latency).
+Skipping host 1.34.220.26 due to host timeout
+Nmap scan report for 1.34.220.36
+Host is up (0.049s latency).
+Skipping host 1.34.220.36 due to host timeout
+Nmap scan report for 1.34.220.105
+Host is up (0.043s latency).
+Skipping host 1.34.220.105 due to host timeout
+Nmap scan report for 1-34-220-129.hinet-ip.hinet.net (1.34.220.129)
+Host is up (0.042s latency).
+Skipping host 1-34-220-129.hinet-ip.hinet.net (1.34.220.129) due to host timeout
+Nmap scan report for 1-34-220-135.hinet-ip.hinet.net (1.34.220.135)
+Host is up (0.046s latency).
+Skipping host 1-34-220-135.hinet-ip.hinet.net (1.34.220.135) due to host timeout
+Nmap scan report for 1.34.220.139
+Host is up (0.040s latency).
+Skipping host 1.34.220.139 due to host timeout
+Nmap scan report for 1-34-220-156.hinet-ip.hinet.net (1.34.220.156)
+Host is up (0.044s latency).
+Skipping host 1-34-220-156.hinet-ip.hinet.net (1.34.220.156) due to host timeout
+Nmap scan report for 1.34.220.162
+Host is up (0.041s latency).
+Skipping host 1.34.220.162 due to host timeout
+Nmap scan report for 1.34.220.184
+Host is up (0.043s latency).
+Skipping host 1.34.220.184 due to host timeout
+Nmap scan report for 1-34-220-199.hinet-ip.hinet.net (1.34.220.199)
+Host is up (0.050s latency).
+Skipping host 1-34-220-199.hinet-ip.hinet.net (1.34.220.199) due to host timeout
+Nmap scan report for 1.34.221.43
+Host is up (0.042s latency).
+Skipping host 1.34.221.43 due to host timeout
+Nmap scan report for 1.34.221.129
+Host is up (0.053s latency).
+Skipping host 1.34.221.129 due to host timeout
+Nmap scan report for 1.34.221.169
+Host is up (0.041s latency).
+Skipping host 1.34.221.169 due to host timeout
+Nmap scan report for 1-34-221-172.hinet-ip.hinet.net (1.34.221.172)
+Host is up (0.042s latency).
+Skipping host 1-34-221-172.hinet-ip.hinet.net (1.34.221.172) due to host timeout
+Nmap scan report for 1-34-221-212.hinet-ip.hinet.net (1.34.221.212)
+Host is up (0.040s latency).
+Skipping host 1-34-221-212.hinet-ip.hinet.net (1.34.221.212) due to host timeout
+Nmap scan report for 1-34-221-226.hinet-ip.hinet.net (1.34.221.226)
+Host is up.
+Skipping host 1-34-221-226.hinet-ip.hinet.net (1.34.221.226) due to host timeout
+Nmap scan report for 1-34-221-243.hinet-ip.hinet.net (1.34.221.243)
+Host is up.
+Skipping host 1-34-221-243.hinet-ip.hinet.net (1.34.221.243) due to host timeout
+Nmap scan report for 1.34.222.39
+Host is up (0.048s latency).
+Skipping host 1.34.222.39 due to host timeout
+Nmap scan report for 1-34-222-56.hinet-ip.hinet.net (1.34.222.56)
+Host is up.
+Skipping host 1-34-222-56.hinet-ip.hinet.net (1.34.222.56) due to host timeout
+Nmap scan report for 1-34-222-57.hinet-ip.hinet.net (1.34.222.57)
+Host is up (0.045s latency).
+
+PORT      STATE    SERVICE       VERSION
+21/tcp    closed   ftp
+22/tcp    closed   ssh
+23/tcp    closed   telnet
+25/tcp    filtered smtp
+53/tcp    closed   domain
+80/tcp    open     tcpwrapped
+110/tcp   closed   pop3
+135/tcp   closed   msrpc
+139/tcp   closed   netbios-ssn
+143/tcp   closed   imap
+443/tcp   closed   https
+445/tcp   closed   microsoft-ds
+465/tcp   closed   smtps
+587/tcp   closed   submission
+993/tcp   closed   imaps
+995/tcp   closed   pop3s
+1433/tcp  closed   ms-sql-s
+3306/tcp  closed   mysql
+3389/tcp  closed   ms-wbt-server
+5432/tcp  closed   postgresql
+6379/tcp  closed   redis
+8080/tcp  closed   http-proxy
+8443/tcp  closed   https-alt
+9200/tcp  closed   wap-wsp
+27017/tcp closed   mongod
+
+Nmap scan report for 1.34.222.104
+Host is up (0.044s latency).
+Skipping host 1.34.222.104 due to host timeout
+Nmap scan report for 1.34.222.108
+Host is up (0.049s latency).
+Skipping host 1.34.222.108 due to host timeout
+Nmap scan report for 1-34-222-111.hinet-ip.hinet.net (1.34.222.111)
+Host is up (0.043s latency).
+Skipping host 1-34-222-111.hinet-ip.hinet.net (1.34.222.111) due to host timeout
+Nmap scan report for 1-34-222-169.hinet-ip.hinet.net (1.34.222.169)
+Host is up (0.041s latency).
+
+PORT      STATE    SERVICE       VERSION
+21/tcp    closed   ftp
+22/tcp    closed   ssh
+23/tcp    closed   telnet
+25/tcp    filtered smtp
+53/tcp    closed   domain
+80/tcp    open     tcpwrapped
+110/tcp   closed   pop3
+135/tcp   closed   msrpc
+139/tcp   closed   netbios-ssn
+143/tcp   closed   imap
+443/tcp   closed   https
+445/tcp   closed   microsoft-ds
+465/tcp   closed   smtps
+587/tcp   closed   submission
+993/tcp   closed   imaps
+995/tcp   closed   pop3s
+1433/tcp  closed   ms-sql-s
+3306/tcp  closed   mysql
+3389/tcp  closed   ms-wbt-server
+5432/tcp  closed   postgresql
+6379/tcp  closed   redis
+8080/tcp  closed   http-proxy
+8443/tcp  closed   https-alt
+9200/tcp  closed   wap-wsp
+27017/tcp closed   mongod
+
+Nmap scan report for 1-34-222-178.hinet-ip.hinet.net (1.34.222.178)
+Host is up (0.043s latency).
+Skipping host 1-34-222-178.hinet-ip.hinet.net (1.34.222.178) due to host timeout
+Nmap scan report for 1-34-222-203.hinet-ip.hinet.net (1.34.222.203)
+Host is up (0.043s latency).
+Skipping host 1-34-222-203.hinet-ip.hinet.net (1.34.222.203) due to host timeout
+Nmap scan report for 1-34-222-217.hinet-ip.hinet.net (1.34.222.217)
+Host is up (0.041s latency).
+Skipping host 1-34-222-217.hinet-ip.hinet.net (1.34.222.217) due to host timeout
+Nmap scan report for 1-34-222-244.hinet-ip.hinet.net (1.34.222.244)
+Host is up (0.040s latency).
+Skipping host 1-34-222-244.hinet-ip.hinet.net (1.34.222.244) due to host timeout
+Nmap scan report for 1.34.222.251
+Host is up (0.047s latency).
+Skipping host 1.34.222.251 due to host timeout
+Nmap scan report for 1.34.222.252
+Host is up (0.046s latency).
+Skipping host 1.34.222.252 due to host timeout
+Nmap scan report for 1-34-223-16.hinet-ip.hinet.net (1.34.223.16)
+Host is up (0.043s latency).
+Skipping host 1-34-223-16.hinet-ip.hinet.net (1.34.223.16) due to host timeout
+Nmap scan report for 1-34-223-55.hinet-ip.hinet.net (1.34.223.55)
+Host is up (0.041s latency).
+
+PORT      STATE    SERVICE       VERSION
+21/tcp    closed   ftp
+22/tcp    closed   ssh
+23/tcp    closed   telnet
+25/tcp    filtered smtp
+53/tcp    closed   domain
+80/tcp    open     tcpwrapped
+110/tcp   closed   pop3
+135/tcp   closed   msrpc
+139/tcp   closed   netbios-ssn
+143/tcp   closed   imap
+443/tcp   closed   https
+445/tcp   closed   microsoft-ds
+465/tcp   closed   smtps
+587/tcp   closed   submission
+993/tcp   closed   imaps
+995/tcp   closed   pop3s
+1433/tcp  closed   ms-sql-s
+3306/tcp  closed   mysql
+3389/tcp  closed   ms-wbt-server
+5432/tcp  closed   postgresql
+6379/tcp  closed   redis
+8080/tcp  closed   http-proxy
+8443/tcp  closed   https-alt
+9200/tcp  closed   wap-wsp
+27017/tcp closed   mongod
+
+Nmap scan report for 1-34-223-79.hinet-ip.hinet.net (1.34.223.79)
+Host is up (0.040s latency).
+Skipping host 1-34-223-79.hinet-ip.hinet.net (1.34.223.79) due to host timeout
+Nmap scan report for 1.34.223.89
+Host is up (0.047s latency).
+Skipping host 1.34.223.89 due to host timeout
+Nmap scan report for 1.34.223.106
+Host is up (0.040s latency).
+Skipping host 1.34.223.106 due to host timeout
+Nmap scan report for 1-34-223-129.hinet-ip.hinet.net (1.34.223.129)
+Host is up (0.050s latency).
+Skipping host 1-34-223-129.hinet-ip.hinet.net (1.34.223.129) due to host timeout
+Nmap scan report for 1-34-223-157.hinet-ip.hinet.net (1.34.223.157)
+Host is up.
+Skipping host 1-34-223-157.hinet-ip.hinet.net (1.34.223.157) due to host timeout
+Nmap scan report for 1.34.223.176
+Host is up (0.045s latency).
+Skipping host 1.34.223.176 due to host timeout
+Nmap scan report for 1-34-223-207.hinet-ip.hinet.net (1.34.223.207)
+Host is up (0.046s latency).
+Skipping host 1-34-223-207.hinet-ip.hinet.net (1.34.223.207) due to host timeout
+Nmap scan report for 1-34-223-208.hinet-ip.hinet.net (1.34.223.208)
+Host is up (0.039s latency).
+Skipping host 1-34-223-208.hinet-ip.hinet.net (1.34.223.208) due to host timeout
+Nmap scan report for 1.34.223.249
+Host is up (0.041s latency).
+Skipping host 1.34.223.249 due to host timeout
+Nmap scan report for 1-34-223-252.hinet-ip.hinet.net (1.34.223.252)
+Host is up (0.042s latency).
+Skipping host 1-34-223-252.hinet-ip.hinet.net (1.34.223.252) due to host timeout
+Nmap scan report for 1.34.224.1
+Host is up.
+Skipping host 1.34.224.1 due to host timeout
+Nmap scan report for 1-34-224-26.hinet-ip.hinet.net (1.34.224.26)
+Host is up (0.040s latency).
+Skipping host 1-34-224-26.hinet-ip.hinet.net (1.34.224.26) due to host timeout
+Nmap scan report for 1.34.224.44
+Host is up (0.036s latency).
+Skipping host 1.34.224.44 due to host timeout
+Nmap scan report for 1-34-224-47.hinet-ip.hinet.net (1.34.224.47)
+Host is up (0.040s latency).
+Skipping host 1-34-224-47.hinet-ip.hinet.net (1.34.224.47) due to host timeout
+Nmap scan report for 1.34.224.49
+Host is up (0.040s latency).
+Skipping host 1.34.224.49 due to host timeout
+Nmap scan report for 1-34-224-94.hinet-ip.hinet.net (1.34.224.94)
+Host is up (0.042s latency).
+Skipping host 1-34-224-94.hinet-ip.hinet.net (1.34.224.94) due to host timeout
+Nmap scan report for 1-34-224-116.hinet-ip.hinet.net (1.34.224.116)
+Host is up (0.044s latency).
+Skipping host 1-34-224-116.hinet-ip.hinet.net (1.34.224.116) due to host timeout
+Nmap scan report for 1.34.224.122
+Host is up (0.042s latency).
+Skipping host 1.34.224.122 due to host timeout
+Nmap scan report for 1.34.224.125
+Host is up.
+Skipping host 1.34.224.125 due to host timeout
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Sat Aug  8 19:59:06 2026 -- 500 IP addresses (500 hosts up) scanned in 223.10 seconds
