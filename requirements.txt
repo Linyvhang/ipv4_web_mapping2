@@ -1,0 +1,38 @@
+# IPv4 Web Mapping 项目依赖清单
+#
+# 安装：python -m pip install -r requirements.txt
+#
+# 说明：masscan、nmap、MySQL Server 和 Redis Server 属于系统/服务依赖，
+# 不通过本文件安装，详见 docs/技术栈方案.md。
+
+# ==================== 现有扫描模块 ====================
+aiomysql
+pymysql
+mysql-connector-python
+requests
+cryptography
+urllib3
+
+# 可选：部分 XML/HTML 处理场景使用
+lxml
+
+# ==================== Agent API 与工作流 ====================
+fastapi
+uvicorn[standard]
+langgraph
+pydantic>=2,<3
+sqlalchemy[asyncio]
+alembic
+
+# ==================== 异步任务与缓存 ====================
+redis
+celery
+
+# ==================== 模型 API 与报告预览 ====================
+httpx
+openai
+jinja2
+
+# ==================== 测试 ====================
+pytest
+pytest-asyncio
