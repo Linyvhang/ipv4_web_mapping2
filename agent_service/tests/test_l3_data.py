@@ -39,6 +39,9 @@ def test_normalize_service_merges_l2_and_l3_detail() -> None:
     assert service.service_type == "web"
     assert service.detail_table == "web_service_detail"
     assert service.detail == {"server_header": "nginx/1.24.0", "http_status": 200}
+    assert service.product is not None
+    assert service.product.normalized_product_name == "nginx"
+    assert service.product.normalized_version == "1.24.0"
 
 
 def test_normalize_asset_contains_services_and_limitations() -> None:

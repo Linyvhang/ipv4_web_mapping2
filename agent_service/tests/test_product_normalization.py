@@ -1,6 +1,6 @@
 import pytest
 
-from agent_service.normalization.product import normalize_product
+from agent_service.normalization.product import extract_product_fields, normalize_product
 
 
 def test_normalize_nginx_product_and_version() -> None:
@@ -58,4 +58,47 @@ def test_original_values_are_not_overwritten() -> None:
     assert result.raw_version == "v1.24.0"
     assert result.normalized_product_name == "nginx"
     assert result.normalized_version == "1.24.0"
+
+
+def test_extract_ssh_product_from_software() -> None:
+    product, version, evidence = extract_product_fields(
+        service_type="ssh",
+        application_protocol="ssh",
+        banner="SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6",
+        detail={"software": "OpenSSH_8.9p1"},
+    )
+
+    assert product == "OpenSSH_8.9p1"
+    assert version is None
+    assert evidence == ["ssh_service_detail.software"]
+
+
+def test_extract_database_product_and_version() -> None:
+    product, version, evidence = extract_product_fields(
+        service_type="db",
+        application_protocol="mysql",
+        banner="MySQL Server",
+        detail={"db_type": "mariadb", "version": "10.6.16"},
+    )
+
+    assert product == "mariadb"
+    assert version == "10.6.16"
+    assert evidence == ["db_service_detail.db_type"]
+
+
+def test_extract_web_product_from_fingerprint_when_server_missing() -> None:
+    product, version, evidence = extract_product_fields(
+        service_type="web",
+        application_protocol="http",
+        banner=None,
+        detail={
+            "web_fingerprint": {
+                "fingerprints": [{"name": "WordPress", "evidence": "wp-content"}]
+            }
+        },
+    )
+
+    assert product == "WordPress"
+    assert version is None
+    assert evidence == ["web_service_detail.web_fingerprint"]
 

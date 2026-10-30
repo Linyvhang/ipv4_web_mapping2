@@ -7,7 +7,7 @@ from ipaddress import ip_address
 
 from pydantic import Field, field_validator
 
-from .analysis_schema import SchemaModel
+from .analysis_schema import ProductFingerprint, SchemaModel
 
 
 class L3ServiceInput(SchemaModel):
@@ -27,6 +27,7 @@ class L3ServiceInput(SchemaModel):
     l3_scan_time: datetime | None = None
     detail_table: str | None = None
     detail: dict[str, object] = Field(default_factory=dict)
+    product: ProductFingerprint | None = None
 
 
 class AssetAnalysisInput(SchemaModel):

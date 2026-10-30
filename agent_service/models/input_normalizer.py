@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from agent_service.normalization.product import extract_product_fields, normalize_product
+
 from .input_schema import AssetAnalysisInput, L3ServiceInput
 
 
@@ -54,6 +56,12 @@ def normalize_service(
     detail.pop("scan_time", None)
     detail.pop("created_at", None)
     detail.pop("updated_at", None)
+    raw_product, raw_version, product_evidence = extract_product_fields(
+        service_type=service_type,
+        application_protocol=service_row.get("application_proto"),
+        banner=service_row.get("banner"),
+        detail=detail,
+    )
 
     return L3ServiceInput(
         service_instance_id=int(service_row["id"]),
@@ -70,6 +78,11 @@ def normalize_service(
         l3_scan_time=service_row.get("l3_scan_time"),
         detail_table=detail_table,
         detail=detail,
+        product=normalize_product(
+            raw_product,
+            raw_version,
+            evidence=product_evidence,
+        ),
     )
 
 

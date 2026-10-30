@@ -7,7 +7,8 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
+from typing import Any
 
 from agent_service.models.analysis_schema import ProductFingerprint
 
@@ -76,6 +77,61 @@ def _find_product(*values: str | None) -> tuple[str | None, bool]:
             if pattern.search(cleaned):
                 return canonical, True
     return None, False
+
+
+def _first_web_fingerprint(detail: Mapping[str, Any]) -> tuple[str | None, list[str]]:
+    fingerprints = detail.get("web_fingerprint")
+    if not isinstance(fingerprints, Mapping):
+        return None, []
+    marks = fingerprints.get("fingerprints")
+    if not isinstance(marks, list):
+        return None, []
+    for mark in marks:
+        if isinstance(mark, Mapping) and mark.get("name"):
+            return str(mark["name"]), ["web_service_detail.web_fingerprint"]
+    return None, []
+
+
+def extract_product_fields(
+    *,
+    service_type: str,
+    application_protocol: str | None,
+    banner: str | None,
+    detail: Mapping[str, Any],
+) -> tuple[str | None, str | None, list[str]]:
+    """从 L2/L3 字段中选择产品归一化的原始来源。
+
+    只负责选取证据，不做归一化；归一化由 :func:`normalize_product` 完成。
+    """
+
+    service_type = (service_type or "unknown").lower()
+    if service_type == "web":
+        if detail.get("server_header"):
+            return str(detail["server_header"]), None, ["web_service_detail.server_header"]
+        if detail.get("x_powered_by"):
+            return str(detail["x_powered_by"]), None, ["web_service_detail.x_powered_by"]
+        fingerprint, evidence = _first_web_fingerprint(detail)
+        if fingerprint:
+            return fingerprint, None, evidence
+    elif service_type == "ssh":
+        if detail.get("software"):
+            return str(detail["software"]), None, ["ssh_service_detail.software"]
+    elif service_type == "db":
+        if detail.get("db_type"):
+            return (
+                str(detail["db_type"]),
+                str(detail["version"]) if detail.get("version") else None,
+                ["db_service_detail.db_type"],
+            )
+    elif service_type == "iot":
+        if detail.get("device_model"):
+            return str(detail["device_model"]), None, ["iot_service_detail.device_model"]
+
+    if application_protocol:
+        return str(application_protocol), None, ["service_instance_l2.application_proto"]
+    if banner:
+        return str(banner), None, ["service_instance_l2.banner"]
+    return None, None, []
 
 
 def normalize_product(
