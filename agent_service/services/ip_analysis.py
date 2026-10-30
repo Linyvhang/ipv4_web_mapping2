@@ -105,6 +105,11 @@ class SingleIPAnalysisService:
         if asset is None:
             raise AssetNotFoundError(f"未找到 IP {ip} 的扫描数据")
 
+        return await self.analyze_asset(asset)
+
+    async def analyze_asset(self, asset: AssetAnalysisInput) -> AnalysisResult:
+        """分析已由编排层加载的资产，避免重复查询 L3 数据。"""
+
         prompt = self.build_prompt(asset)
         result = await self.model_provider.generate_structured(prompt, AnalysisResult)
         return self.finalize_result(result, asset)

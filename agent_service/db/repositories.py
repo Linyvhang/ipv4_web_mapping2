@@ -43,12 +43,15 @@ class AgentTaskRepository:
         status: TaskStatus,
         *,
         error_message: str | None = None,
+        started_at: datetime | None = None,
         completed_at: datetime | None = None,
         cancelled_at: datetime | None = None,
     ):
         values: dict[str, object] = {"status": status}
         if error_message is not None:
             values["error_message"] = error_message
+        if started_at is not None:
+            values["started_at"] = started_at
         if completed_at is not None:
             values["completed_at"] = completed_at
         if cancelled_at is not None:
@@ -61,11 +64,14 @@ class AgentTaskRepository:
         status: TaskStatus,
         *,
         error_message: str | None = None,
+        started_at: datetime | None = None,
         completed_at: datetime | None = None,
     ):
         values: dict[str, object] = {"status": status}
         if error_message is not None:
             values["error_message"] = error_message
+        if started_at is not None:
+            values["started_at"] = started_at
         if completed_at is not None:
             values["completed_at"] = completed_at
         return update(AgentTaskItem).where(AgentTaskItem.id == item_id).values(**values)
@@ -117,6 +123,7 @@ class AgentTaskRepository:
         status: TaskStatus,
         *,
         error_message: str | None = None,
+        started_at: datetime | None = None,
         completed_at: datetime | None = None,
         cancelled_at: datetime | None = None,
     ) -> None:
@@ -125,6 +132,7 @@ class AgentTaskRepository:
                 task_id,
                 status,
                 error_message=error_message,
+                started_at=started_at,
                 completed_at=completed_at,
                 cancelled_at=cancelled_at,
             )
@@ -136,6 +144,7 @@ class AgentTaskRepository:
         status: TaskStatus,
         *,
         error_message: str | None = None,
+        started_at: datetime | None = None,
         completed_at: datetime | None = None,
     ) -> None:
         await self.session.execute(
@@ -143,6 +152,7 @@ class AgentTaskRepository:
                 item_id,
                 status,
                 error_message=error_message,
+                started_at=started_at,
                 completed_at=completed_at,
             )
         )

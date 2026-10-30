@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.dialects import mysql
 
 from agent_service.db.models import (
@@ -27,12 +29,14 @@ def test_task_query_and_update_statements_are_scoped() -> None:
         7,
         TaskStatus.FAILED,
         error_message="model timeout",
+        started_at=datetime(2026, 1, 1),
     )
 
     assert "agent_task.id" in compile_mysql(task_query)
     assert "agent_task_item.id" in compile_mysql(item_query)
     assert "SET status=%s" in compile_mysql(task_update)
     assert "error_message=%s" in compile_mysql(task_update)
+    assert "started_at=%s" in compile_mysql(task_update)
 
 
 def test_cached_result_query_uses_ip_and_scan_round() -> None:
