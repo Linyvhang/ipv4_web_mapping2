@@ -12,6 +12,7 @@ from .analysis_schema import (
     RiskLevel,
     ServiceFingerprint,
 )
+from .input_schema import AssetAnalysisInput, L3ServiceInput
 
 __all__ = [
     "AnalysisMetadata",
@@ -24,5 +25,7 @@ __all__ = [
     "RiskFinding",
     "RiskLevel",
     "ServiceFingerprint",
+    "AssetAnalysisInput",
+    "L3ServiceInput",
 ]
 
