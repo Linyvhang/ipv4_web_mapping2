@@ -1,3 +1,5 @@
+import inspect
+
 from agent_service.services.single_ip_graph import build_single_ip_graph, initial_state
 
 
@@ -18,3 +20,14 @@ def test_initial_state_accepts_explicit_scan_round_and_temporary_mode() -> None:
 def test_graph_compiles_with_analyze_node() -> None:
     graph = build_single_ip_graph(object())
     assert set(graph.get_graph().nodes) == {"__start__", "analyze", "__end__"}
+
+
+def test_analyze_node_is_async_and_has_expected_contract() -> None:
+    graph = build_single_ip_graph(object())
+    node = graph.get_graph().nodes["analyze"]
+    assert inspect.iscoroutinefunction(node.data.afunc)
+    assert set(initial_state("192.0.2.1")) == {
+        "ip",
+        "scan_round",
+        "save_result",
+    }
