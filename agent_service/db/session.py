@@ -9,6 +9,11 @@ from typing import Mapping
 from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - 依赖缺失时仍可使用系统环境变量
+    load_dotenv = None
+
 
 @dataclass(frozen=True)
 class DatabaseSettings:
@@ -22,6 +27,8 @@ class DatabaseSettings:
 
     @classmethod
     def from_env(cls, environ: Mapping[str, str] | None = None) -> "DatabaseSettings":
+        if environ is None and load_dotenv is not None:
+            load_dotenv()
         values = os.environ if environ is None else environ
         required = {
             "host": "AGENT_DB_HOST",
