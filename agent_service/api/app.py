@@ -10,6 +10,7 @@ from fastapi import FastAPI
 
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
 
+from .preview import create_preview_router
 from .routes import create_single_ip_router
 
 
@@ -21,6 +22,7 @@ def create_app(orchestrator: SingleIPTaskOrchestrator) -> FastAPI:
         version="0.1.0",
         description="基于已有扫描数据的被动资产分析接口",
     )
+    app.include_router(create_preview_router())
     app.include_router(create_single_ip_router(orchestrator))
     return app
 
