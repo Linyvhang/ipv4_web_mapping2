@@ -29,6 +29,20 @@ class AgentTaskRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def commit(self) -> None:
+        """提交当前任务事务。
+
+        编排层在任务进入 running、success 或 failed 等稳定状态后调用，确保
+        状态和同一 Session 中写入的分析结果对其他数据库连接可见。
+        """
+
+        await self.session.commit()
+
+    async def rollback(self) -> None:
+        """回滚当前未提交事务，使 Session 可以继续记录失败状态。"""
+
+        await self.session.rollback()
+
     @staticmethod
     def build_task_query(task_id: int):
         return select(AgentTask).where(AgentTask.id == task_id)

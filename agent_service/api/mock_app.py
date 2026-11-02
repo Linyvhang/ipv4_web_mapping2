@@ -51,6 +51,12 @@ class MockTaskRepository:
     async def update_item_status(self, *_: object, **__: object) -> None:
         return None
 
+    async def commit(self) -> None:
+        return None
+
+    async def rollback(self) -> None:
+        return None
+
 
 class MockAnalysisRepository:
     def __init__(self) -> None:

@@ -105,6 +105,8 @@ class SingleIPTaskOrchestrator:
         await self.task_repository.update_item_status(
             item.id, TaskStatus.RUNNING, started_at=started_at
         )
+        # 先持久化任务和 running 状态。模型调用失败时仍能保留可追踪的任务。
+        await self.task_repository.commit()
         try:
             result = await self.analysis_service.analyze_asset(asset)
             returned: AnalysisResult | AgentAnalysisResult = result
@@ -119,8 +121,14 @@ class SingleIPTaskOrchestrator:
             await self.task_repository.update_task_status(
                 task.id, TaskStatus.SUCCESS, completed_at=completed_at
             )
+            # Task、Item 和 AnalysisRepository 共用同一个 Session；一次提交即可
+            # 原子地保存分析结果和最终成功状态。
+            await self.task_repository.commit()
             return SingleIPExecution(task.id, item.id, False, returned)
         except Exception as exc:
+            # 模型校验或结果入库失败可能使事务不可继续使用，先回滚再单独保存
+            # failed 状态。
+            await self.task_repository.rollback()
             completed_at = datetime.utcnow()
             await self.task_repository.update_item_status(
                 item.id,
@@ -134,4 +142,5 @@ class SingleIPTaskOrchestrator:
                 error_message=str(exc),
                 completed_at=completed_at,
             )
+            await self.task_repository.commit()
             raise
