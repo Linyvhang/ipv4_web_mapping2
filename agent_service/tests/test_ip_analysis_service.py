@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from agent_service.models.analysis_schema import AnalysisResult
+from agent_service.models.analysis_schema import ModelAnalysisPayload
 from agent_service.models.input_schema import AssetAnalysisInput, L3ServiceInput
 from agent_service.providers.mock import MockModelProvider
 from agent_service.services.ip_analysis import (
@@ -37,24 +37,16 @@ def make_asset() -> AssetAnalysisInput:
     )
 
 
-def make_result() -> AnalysisResult:
-    return AnalysisResult.model_validate(
+def make_payload() -> ModelAnalysisPayload:
+    return ModelAnalysisPayload.model_validate(
         {
-            "analysis_id": "analysis-service-001",
-            "ip": "192.0.2.10",
-            "scan_round": 1,
-            "scan_time": "2026-10-30T00:00:00Z",
             "summary": {
                 "primary_asset_type": "Web服务器",
                 "risk_level": "info",
                 "description": "根据现有证据完成分析",
                 "confidence": 0.7,
             },
-            "metadata": {
-                "model_provider": "placeholder",
-                "model_name": "placeholder",
-                "prompt_version": "placeholder",
-            },
+            "limitations": ["模型证据有限"],
         }
     )
 
@@ -62,6 +54,17 @@ def make_result() -> AnalysisResult:
 class StubDataProvider:
     async def fetch_asset(self, *, ip_value: int, scan_round: int | None = None):
         return make_asset() if ip_value == ipv4_to_uint32("192.0.2.10") else None
+
+
+def run_immediate(coroutine):
+    """运行只调用同步 Mock 的协程，避免依赖 Windows 事件循环。"""
+
+    try:
+        yielded = coroutine.send(None)
+    except StopIteration as completed:
+        return completed.value
+    coroutine.close()
+    raise AssertionError(f"测试协程意外等待了异步对象: {yielded!r}")
 
 
 def test_ipv4_to_uint32_and_ipv6_rejection() -> None:
@@ -79,9 +82,9 @@ def test_build_prompt_contains_scope_and_serialized_asset() -> None:
     assert "只覆盖指定常用端口" in prompt
 
 
-def test_finalize_result_replaces_provider_metadata() -> None:
+def test_finalize_result_combines_program_facts_and_model_analysis() -> None:
     provider = MockModelProvider(
-        make_result(),
+        make_payload(),
         provider="mock",
         model_name="mock-analysis",
         model_version="test-1",
@@ -92,22 +95,39 @@ def test_finalize_result_replaces_provider_metadata() -> None:
         prompt_version="1.2",
     )
 
-    result = service.finalize_result(make_result(), make_asset())
+    result = service.finalize_result(make_payload(), make_asset())
 
+    assert result.analysis_id.startswith("analysis-")
+    assert result.ip == "192.0.2.10"
+    assert result.scan_round == 1
+    assert result.scan_time == datetime(2026, 10, 30)
+    assert result.services[0].service_instance_id == 12
+    assert result.services[0].banner == "Server: nginx/1.24.0"
+    assert result.limitations == [
+        "本次输入仅包含已有 L1/L2/L3 扫描数据",
+        "模型证据有限",
+    ]
     assert result.metadata.model_provider == "mock"
     assert result.metadata.model_name == "mock-analysis"
     assert result.metadata.model_version == "test-1"
     assert result.metadata.prompt_version == "1.2"
 
 
-def test_finalize_result_rejects_target_mismatch() -> None:
-    provider = MockModelProvider(make_result())
+def test_analyze_asset_requests_model_only_payload_schema() -> None:
+    requested_models: list[type] = []
+
+    def response_factory(_prompt: str, output_model: type) -> dict:
+        requested_models.append(output_model)
+        return make_payload().model_dump(mode="json")
+
+    provider = MockModelProvider(response_factory=response_factory)
     service = SingleIPAnalysisService(
         data_provider=StubDataProvider(),
         model_provider=provider,
     )
-    result = make_result().model_copy(update={"ip": "192.0.2.11"})
 
-    with pytest.raises(ValueError, match="IP mismatch"):
-        service.finalize_result(result, make_asset())
+    result = run_immediate(service.analyze_asset(make_asset()))
+
+    assert requested_models == [ModelAnalysisPayload]
+    assert result.ip == "192.0.2.10"
 

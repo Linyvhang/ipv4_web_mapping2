@@ -12,7 +12,6 @@ AGENT_MODEL_PROVIDER=mock 或 deepseek，DeepSeek 密钥使用 DEEPSEEK_API_KEY�
 
 from __future__ import annotations
 
-import re
 import os
 from contextlib import asynccontextmanager
 
@@ -22,7 +21,7 @@ from agent_service.api.app import create_app
 from agent_service.db.l3_data import L3DataProvider
 from agent_service.db.repositories import AgentAnalysisRepository, AgentTaskRepository
 from agent_service.db.session import create_session_factory
-from agent_service.models.analysis_schema import AnalysisResult
+from agent_service.models.analysis_schema import ModelAnalysisPayload
 from agent_service.providers.mock import MockModelProvider
 from agent_service.providers.deepseek import DeepSeekModelProvider
 from agent_service.providers.base import ModelProvider
@@ -39,24 +38,14 @@ def _build_model_provider() -> ModelProvider:
     if provider != "mock":
         raise ValueError("AGENT_MODEL_PROVIDER 仅支持 mock 或 deepseek")
 
-    def _factory(prompt: str, _output_model: type[AnalysisResult]) -> dict:
-        ip = re.search(r'"ip":\s*"([^"]+)"', prompt)
-        round_match = re.search(r'"scan_round":\s*(\d+)', prompt)
+    def _factory(_prompt: str, _output_model: type[ModelAnalysisPayload]) -> dict:
         return {
-            "analysis_id": f"mock-{ip.group(1) if ip else 'unknown'}",
-            "ip": ip.group(1) if ip else "192.0.2.1",
-            "scan_round": int(round_match.group(1)) if round_match else 1,
-            "scan_time": "2026-01-01T00:00:00Z",
             "summary": {
                 "risk_level": "info",
                 "description": "模型调用尚未接入，当前为 Mock 结果。",
                 "confidence": 0.3,
             },
-            "metadata": {
-                "model_provider": "mock",
-                "model_name": "mock-model",
-                "prompt_version": "1.0",
-            },
+            "limitations": ["模型调用尚未接入，当前为 Mock 结果。"],
         }
 
     return MockModelProvider(response_factory=_factory)

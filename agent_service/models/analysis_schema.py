@@ -104,6 +104,21 @@ class AnalysisMetadata(SchemaModel):
     prompt_version: str
 
 
+class ModelAnalysisPayload(SchemaModel):
+    """只允许模型生成的分析内容。
+
+    IP、扫描批次、扫描时间、服务指纹和模型元信息均来自程序，避免模型
+    改写扫描事实，也降低结构化输出失败的概率。
+    """
+
+    summary: AnalysisSummary
+    asset_types: list[AssetTypeAssessment] = Field(default_factory=list)
+    risks: list[RiskFinding] = Field(default_factory=list)
+    evidence: list[EvidenceItem] = Field(default_factory=list)
+    recommendations: list[Recommendation] = Field(default_factory=list)
+    limitations: list[str] = Field(default_factory=list)
+
+
 class AnalysisResult(SchemaModel):
     """单个 IP 的完整标准分析结果。"""
 

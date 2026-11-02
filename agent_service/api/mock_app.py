@@ -5,13 +5,12 @@
 
 from __future__ import annotations
 
-import re
 from datetime import datetime
 from ipaddress import IPv4Address
 from types import SimpleNamespace
 
 from agent_service.api.app import create_app
-from agent_service.models.analysis_schema import AnalysisResult
+from agent_service.models.analysis_schema import ModelAnalysisPayload
 from agent_service.models.input_schema import AssetAnalysisInput
 from agent_service.providers.mock import MockModelProvider
 from agent_service.services.ip_analysis import SingleIPAnalysisService
@@ -71,24 +70,16 @@ class MockAnalysisRepository:
         return result
 
 
-def _mock_result_factory(prompt: str, _output_model: type[AnalysisResult]) -> dict:
-    ip = re.search(r'"ip":\s*"([^"]+)"', prompt)
-    round_match = re.search(r'"scan_round":\s*(\d+)', prompt)
+def _mock_result_factory(
+    _prompt: str, _output_model: type[ModelAnalysisPayload]
+) -> dict:
     return {
-        "analysis_id": f"mock-{ip.group(1) if ip else 'unknown'}",
-        "ip": ip.group(1) if ip else "192.0.2.1",
-        "scan_round": int(round_match.group(1)) if round_match else 1,
-        "scan_time": "2026-01-01T00:00:00Z",
         "summary": {
             "risk_level": "info",
             "description": "Mock 分析结果，仅用于接口联调",
             "confidence": 0.5,
         },
-        "metadata": {
-            "model_provider": "mock",
-            "model_name": "mock-model",
-            "prompt_version": "1.0",
-        },
+        "limitations": ["Mock 数据，仅用于接口联调"],
     }
 
 

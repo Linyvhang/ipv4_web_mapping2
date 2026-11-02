@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from ipaddress import IPv4Address, ip_address
-from typing import Any
+from uuid import uuid4
 
 from agent_service.db.l3_data import L3DataProvider
-from agent_service.models.analysis_schema import AnalysisMetadata, AnalysisResult
+from agent_service.models.analysis_schema import (
+    AnalysisMetadata,
+    AnalysisResult,
+    ModelAnalysisPayload,
+    ServiceFingerprint,
+)
 from agent_service.models.input_schema import AssetAnalysisInput
 from agent_service.providers.base import ModelProvider
 
@@ -57,7 +63,8 @@ class SingleIPAnalysisService:
             "你是 IPv4 网络资产分析助手。\n"
             "请只根据下面已有的 L1/L2/L3 被动测绘数据进行分析。\n"
             "禁止主动扫描、漏洞利用、弱口令测试或编造不存在的证据。\n"
-            "请输出资产画像、资产类型、服务说明、疑似风险、证据和处置建议。\n"
+            "请输出面向普通用户的摘要、资产类型、疑似风险、证据和处置建议。\n"
+            "IP、扫描批次、扫描时间、服务列表和模型元信息由程序生成，不要在结果中重复这些字段。\n"
             "风险只能表达为疑似风险；证据不足时必须写‘信息不足，无法判断’。\n"
             "当前扫描只覆盖指定常用端口，报告必须说明这一限制。\n\n"
             "待分析数据：\n"
@@ -66,20 +73,10 @@ class SingleIPAnalysisService:
 
     def finalize_result(
         self,
-        result: AnalysisResult,
+        payload: ModelAnalysisPayload,
         asset: AssetAnalysisInput,
     ) -> AnalysisResult:
-        """校验模型结果与输入目标一致，并统一写入 Provider 元信息。"""
-
-        if result.ip != asset.ip:
-            raise ValueError(
-                f"model result IP mismatch: expected {asset.ip}, got {result.ip}"
-            )
-        if result.scan_round != asset.scan_round:
-            raise ValueError(
-                "model result scan_round mismatch: "
-                f"expected {asset.scan_round}, got {result.scan_round}"
-            )
+        """把模型判断与程序掌握的扫描事实组合为标准结果。"""
 
         info = self.model_provider.info
         metadata = AnalysisMetadata(
@@ -88,7 +85,41 @@ class SingleIPAnalysisService:
             model_version=info.version,
             prompt_version=self.prompt_version,
         )
-        return result.model_copy(update={"metadata": metadata})
+        services = [
+            ServiceFingerprint(
+                service_instance_id=service.service_instance_id,
+                port=service.port,
+                transport_protocol=service.transport_protocol,
+                service_type=service.service_type,
+                application_protocol=service.application_protocol,
+                product=service.product,
+                banner=service.banner,
+                fields=dict(service.detail),
+            )
+            for service in asset.services
+        ]
+        limitations = list(
+            dict.fromkeys([*asset.limitations, *payload.limitations])
+        )
+        scan_time = (
+            asset.last_seen
+            or asset.first_seen
+            or datetime.now(timezone.utc)
+        )
+        return AnalysisResult(
+            analysis_id=f"analysis-{uuid4().hex}",
+            ip=asset.ip,
+            scan_round=asset.scan_round,
+            scan_time=scan_time,
+            summary=payload.summary,
+            asset_types=payload.asset_types,
+            services=services,
+            risks=payload.risks,
+            evidence=payload.evidence,
+            recommendations=payload.recommendations,
+            limitations=limitations,
+            metadata=metadata,
+        )
 
     async def analyze(
         self,
@@ -111,6 +142,8 @@ class SingleIPAnalysisService:
         """分析已由编排层加载的资产，避免重复查询 L3 数据。"""
 
         prompt = self.build_prompt(asset)
-        result = await self.model_provider.generate_structured(prompt, AnalysisResult)
-        return self.finalize_result(result, asset)
+        payload = await self.model_provider.generate_structured(
+            prompt, ModelAnalysisPayload
+        )
+        return self.finalize_result(payload, asset)
 
