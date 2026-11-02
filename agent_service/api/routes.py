@@ -9,6 +9,8 @@ from agent_service.services.ip_analysis import AssetNotFoundError, UnsupportedAd
 from agent_service.services.task_orchestrator import SingleIPExecution, SingleIPTaskOrchestrator
 
 from .schemas import IPAnalysisRequest, IPAnalysisResponse
+from agent_service.providers.base import ModelProviderError
+from agent_service.services.task_orchestrator import CachedModelConflictError
 
 
 def create_single_ip_router(orchestrator: SingleIPTaskOrchestrator) -> APIRouter:
@@ -24,6 +26,10 @@ def create_single_ip_router(orchestrator: SingleIPTaskOrchestrator) -> APIRouter
                 scan_round=request.scan_round,
                 save_result=request.save_result,
             )
+        except CachedModelConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ModelProviderError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
         except AssetNotFoundError as exc:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
         except UnsupportedAddressError as exc:

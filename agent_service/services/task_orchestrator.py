@@ -16,6 +16,10 @@ from agent_service.services.ip_analysis import (
 )
 
 
+class CachedModelConflictError(ValueError):
+    """现有结果与当前模型配置不一致，不能静默复用或覆盖。"""
+
+
 @dataclass(frozen=True)
 class SingleIPExecution:
     """一次编排执行的返回值；reused 表示命中了已有分析结果。"""
@@ -86,6 +90,13 @@ class SingleIPTaskOrchestrator:
             ip=asset.ip, scan_round=asset.scan_round
         )
         if cached is not None:
+            info = self.analysis_service.model_provider.info
+            if (cached.model_provider != info.provider or cached.model_name != info.name
+                    or cached.prompt_version != self.analysis_service.prompt_version):
+                raise CachedModelConflictError(
+                    "该 IP/扫描批次已有其他模型或 Prompt 的结果。当前数据库仅允许一份结果，"
+                    "请选择尚未分析的 IP；历史结果已保留。"
+                )
             return SingleIPExecution(None, None, True, cached)
 
         task = await self.task_repository.create_task(

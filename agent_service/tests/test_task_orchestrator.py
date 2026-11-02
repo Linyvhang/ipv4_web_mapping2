@@ -11,6 +11,8 @@ from agent_service.models.analysis_schema import (
     Confidence,
 )
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
+from agent_service.services.task_orchestrator import CachedModelConflictError
+from agent_service.providers.base import ModelInfo
 
 
 class TransactionTaskRepository:
@@ -152,3 +154,26 @@ def test_execute_rolls_back_then_commits_failed_status() -> None:
     assert task_repo.rollbacks == 1
     assert task_repo.task_statuses == [TaskStatus.RUNNING, TaskStatus.FAILED]
     assert task_repo.item_statuses == [TaskStatus.RUNNING, TaskStatus.FAILED]
+
+
+@pytest.mark.parametrize("provider,expected_conflict", [("mock", True), ("deepseek", False)])
+def test_cached_results_require_matching_model(provider, expected_conflict):
+    cached = SimpleNamespace(model_provider=provider, model_name="test-model", prompt_version="1.0")
+
+    class CachedRepository:
+        async def get_cached_result(self, **kwargs):
+            return cached
+
+    service = SimpleNamespace(model_provider=SimpleNamespace(info=ModelInfo("deepseek", "test-model")),
+                              prompt_version="1.0")
+    task_repo = TransactionTaskRepository()
+    orchestrator = SingleIPTaskOrchestrator(task_repository=task_repo,
+        analysis_repository=CachedRepository(), data_provider=TransactionDataProvider(),
+        analysis_service=service)
+    if expected_conflict:
+        with pytest.raises(CachedModelConflictError):
+            run_immediate(orchestrator.execute("192.0.2.1"))
+    else:
+        execution = run_immediate(orchestrator.execute("192.0.2.1"))
+        assert execution.reused and execution.result is cached
+    assert task_repo.commits == 0
