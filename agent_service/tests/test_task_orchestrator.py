@@ -97,6 +97,21 @@ def test_task_request_is_serializable_and_auditable() -> None:
     assert request == {"ip": "192.0.2.1", "scan_round": 3, "save_result": True}
 
 
+def test_load_asset_uses_latest_scan_when_round_is_omitted() -> None:
+    data_provider = TransactionDataProvider()
+    orchestrator = SingleIPTaskOrchestrator(
+        task_repository=TransactionTaskRepository(),
+        analysis_repository=TransactionAnalysisRepository(),
+        data_provider=data_provider,
+        analysis_service=SuccessfulAnalysisService(),
+    )
+
+    asset = run_immediate(orchestrator.load_asset("192.0.2.1"))
+
+    assert asset.ip == "192.0.2.1"
+    assert asset.scan_round == 1
+
+
 def test_result_record_kwargs_preserves_standard_result_and_metadata() -> None:
     result = AnalysisResult(
         analysis_id="a-1",

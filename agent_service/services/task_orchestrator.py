@@ -9,6 +9,7 @@ from typing import Any
 from agent_service.db.models import AgentAnalysisResult, TaskStatus, TaskType
 from agent_service.db.repositories import AgentAnalysisRepository, AgentTaskRepository
 from agent_service.models.analysis_schema import AnalysisResult
+from agent_service.models.input_schema import AssetAnalysisInput
 from agent_service.services.ip_analysis import (
     AssetNotFoundError,
     SingleIPAnalysisService,
@@ -79,25 +80,10 @@ class SingleIPTaskOrchestrator:
     ) -> SingleIPExecution:
         """执行一次单 IP 分析；相同 IP/扫描轮次已有结果时直接复用。"""
 
-        ip_value = ipv4_to_uint32(ip)
-        asset = await self.data_provider.fetch_asset(
-            ip_value=ip_value, scan_round=scan_round
-        )
-        if asset is None:
-            raise AssetNotFoundError(f"未找到 IP {ip} 的扫描数据")
-
-        cached = await self.analysis_repository.get_cached_result(
-            ip=asset.ip, scan_round=asset.scan_round
-        )
-        if cached is not None:
-            info = self.analysis_service.model_provider.info
-            if (cached.model_provider != info.provider or cached.model_name != info.name
-                    or cached.prompt_version != self.analysis_service.prompt_version):
-                raise CachedModelConflictError(
-                    "该 IP/扫描批次已有其他模型或 Prompt 的结果。当前数据库仅允许一份结果，"
-                    "请选择尚未分析的 IP；历史结果已保留。"
-                )
-            return SingleIPExecution(None, None, True, cached)
+        asset = await self.load_asset(ip, scan_round=scan_round)
+        cached_execution = await self.get_cached_execution(asset)
+        if cached_execution is not None:
+            return cached_execution
 
         task = await self.task_repository.create_task(
             task_type=TaskType.IP_ANALYSIS,
@@ -155,3 +141,42 @@ class SingleIPTaskOrchestrator:
             )
             await self.task_repository.commit()
             raise
+
+    async def load_asset(
+        self,
+        ip: str,
+        *,
+        scan_round: int | None = None,
+    ) -> AssetAnalysisInput:
+        """校验 IP 并读取指定批次或最近一次扫描资产。"""
+
+        asset = await self.data_provider.fetch_asset(
+            ip_value=ipv4_to_uint32(ip), scan_round=scan_round
+        )
+        if asset is None:
+            raise AssetNotFoundError(f"未找到 IP {ip} 的扫描数据")
+        return asset
+
+    async def get_cached_execution(
+        self,
+        asset: AssetAnalysisInput,
+    ) -> SingleIPExecution | None:
+        """返回模型配置一致的缓存结果；没有缓存时返回 ``None``。"""
+
+        cached = await self.analysis_repository.get_cached_result(
+            ip=asset.ip, scan_round=asset.scan_round
+        )
+        if cached is None:
+            return None
+
+        info = self.analysis_service.model_provider.info
+        if (
+            cached.model_provider != info.provider
+            or cached.model_name != info.name
+            or cached.prompt_version != self.analysis_service.prompt_version
+        ):
+            raise CachedModelConflictError(
+                "该 IP/扫描批次已有其他模型或 Prompt 的结果。当前数据库仅允许一份结果，"
+                "请选择尚未分析的 IP；历史结果已保留。"
+            )
+        return SingleIPExecution(None, None, True, cached)
