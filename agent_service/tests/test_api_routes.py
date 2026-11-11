@@ -26,19 +26,39 @@ def make_result() -> AnalysisResult:
     )
 
 
-class FakeOrchestrator:
-    async def execute(self, ip: str, *, scan_round: int | None, save_result: bool):
-        assert ip == "192.0.2.10"
-        assert scan_round == 1
-        assert save_result is True
-        return SingleIPExecution(10, 11, False, make_result())
+class FakeGraph:
+    async def ainvoke(self, state):
+        assert state == {
+            "ip": "192.0.2.10",
+            "scan_round": 1,
+            "save_result": True,
+        }
+        return {
+            **state,
+            "execution": SingleIPExecution(10, 11, False, make_result()),
+        }
 
 
 def test_single_ip_route_returns_standard_result() -> None:
-    router = create_single_ip_router(FakeOrchestrator())
+    router = create_single_ip_router(FakeGraph())
     route = next(route for route in router.routes if route.path == "/analysis/ip")
     assert "POST" in route.methods
     assert route.response_model is not None
+
+
+@pytest.mark.asyncio
+async def test_single_ip_route_executes_langgraph() -> None:
+    router = create_single_ip_router(FakeGraph())
+    route = next(route for route in router.routes if route.path == "/analysis/ip")
+
+    response = await route.endpoint(
+        IPAnalysisRequest.model_validate(
+            {"ip": "192.0.2.10", "scan_round": 1, "save_result": True}
+        )
+    )
+
+    assert response.task_id == 10
+    assert response.result["analysis_id"] == "api-001"
 
 
 def test_request_schema_accepts_ipv4_and_defaults_save() -> None:

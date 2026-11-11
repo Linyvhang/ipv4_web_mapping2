@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any, TypedDict
 
+from agent_service.models.analysis_schema import AnalysisResult
 from agent_service.models.input_schema import AssetAnalysisInput
 
 from .task_orchestrator import SingleIPExecution, SingleIPTaskOrchestrator
@@ -21,6 +22,9 @@ class SingleIPGraphState(TypedDict, total=False):
     save_result: bool
     asset: AssetAnalysisInput
     cached_execution: SingleIPExecution | None
+    task_id: int
+    task_item_id: int
+    analysis_result: AnalysisResult
     execution: SingleIPExecution
 
 
@@ -78,27 +82,67 @@ def build_single_ip_graph(orchestrator: SingleIPTaskOrchestrator) -> Any:
             raise RuntimeError("缓存分支缺少 cached_execution")
         return {"execution": execution}
 
-    async def analyze_node(state: SingleIPGraphState) -> dict[str, SingleIPExecution]:
-        execution = await orchestrator.execute(
-            state["ip"],
-            scan_round=state.get("scan_round"),
+    async def create_task_node(
+        state: SingleIPGraphState,
+    ) -> dict[str, int]:
+        task_id, item_id = await orchestrator.start_task(
+            state["asset"],
+            requested_ip=state["ip"],
+            requested_scan_round=state.get("scan_round"),
             save_result=state.get("save_result", True),
         )
+        return {"task_id": task_id, "task_item_id": item_id}
+
+    async def analyze_asset_node(
+        state: SingleIPGraphState,
+    ) -> dict[str, AnalysisResult]:
+        try:
+            result = await orchestrator.analyze_asset(state["asset"])
+        except Exception as exc:
+            await orchestrator.fail_task(
+                task_id=state["task_id"],
+                item_id=state["task_item_id"],
+                error=exc,
+            )
+            raise
+        return {"analysis_result": result}
+
+    async def persist_result_node(
+        state: SingleIPGraphState,
+    ) -> dict[str, SingleIPExecution]:
+        try:
+            execution = await orchestrator.complete_task(
+                task_id=state["task_id"],
+                item_id=state["task_item_id"],
+                result=state["analysis_result"],
+                save_result=state.get("save_result", True),
+            )
+        except Exception as exc:
+            await orchestrator.fail_task(
+                task_id=state["task_id"],
+                item_id=state["task_item_id"],
+                error=exc,
+            )
+            raise
         return {"execution": execution}
 
     graph = StateGraph(SingleIPGraphState)
     graph.add_node("load_asset", load_asset_node)
     graph.add_node("check_cache", check_cache_node)
     graph.add_node("return_cached", return_cached_node)
-    graph.add_node("analyze", analyze_node)
+    graph.add_node("create_task", create_task_node)
+    graph.add_node("analyze_asset", analyze_asset_node)
+    graph.add_node("persist_result", persist_result_node)
     graph.add_edge(START, "load_asset")
     graph.add_edge("load_asset", "check_cache")
     graph.add_conditional_edges(
         "check_cache",
         route_after_cache,
-        {"cached": "return_cached", "miss": "analyze"},
+        {"cached": "return_cached", "miss": "create_task"},
     )
     graph.add_edge("return_cached", END)
-    graph.add_edge("analyze", END)
+    graph.add_edge("create_task", "analyze_asset")
+    graph.add_edge("analyze_asset", "persist_result")
+    graph.add_edge("persist_result", END)
     return graph.compile()
 

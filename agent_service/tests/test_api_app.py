@@ -20,4 +20,5 @@ def test_create_app_mounts_single_ip_route_and_metadata() -> None:
     assert "/analysis/ip" in paths
     assert app.title == "IPv4 Web Mapping Agent API"
     assert app.version == "0.1.0"
+    assert app.state.single_ip_graph is not None
 

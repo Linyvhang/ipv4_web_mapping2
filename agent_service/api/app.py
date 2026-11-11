@@ -9,6 +9,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
+from agent_service.services.single_ip_graph import build_single_ip_graph
 
 from .preview import create_preview_router
 from .routes import create_single_ip_router
@@ -22,7 +23,9 @@ def create_app(orchestrator: SingleIPTaskOrchestrator) -> FastAPI:
         version="0.1.0",
         description="基于已有扫描数据的被动资产分析接口",
     )
+    graph = build_single_ip_graph(orchestrator)
+    app.state.single_ip_graph = graph
     app.include_router(create_preview_router())
-    app.include_router(create_single_ip_router(orchestrator))
+    app.include_router(create_single_ip_router(graph))
     return app
 

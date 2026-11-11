@@ -85,11 +85,41 @@ class SingleIPTaskOrchestrator:
         if cached_execution is not None:
             return cached_execution
 
+        task_id, item_id = await self.start_task(
+            asset,
+            requested_ip=ip,
+            requested_scan_round=scan_round,
+            save_result=save_result,
+        )
+        try:
+            result = await self.analyze_asset(asset)
+            return await self.complete_task(
+                task_id=task_id,
+                item_id=item_id,
+                result=result,
+                save_result=save_result,
+            )
+        except Exception as exc:
+            await self.fail_task(task_id=task_id, item_id=item_id, error=exc)
+            raise
+
+    async def start_task(
+        self,
+        asset: AssetAnalysisInput,
+        *,
+        requested_ip: str,
+        requested_scan_round: int | None,
+        save_result: bool,
+    ) -> tuple[int, int]:
+        """创建任务和任务条目，并持久化 running 状态。"""
+
         task = await self.task_repository.create_task(
             task_type=TaskType.IP_ANALYSIS,
             target_count=1,
             save_result=save_result,
-            request_json=self.build_task_request(ip, scan_round, save_result),
+            request_json=self.build_task_request(
+                requested_ip, requested_scan_round, save_result
+            ),
         )
         items = await self.task_repository.create_items(
             task_id=task.id, targets=[(asset.ip, asset.scan_round)]
@@ -104,43 +134,64 @@ class SingleIPTaskOrchestrator:
         )
         # 先持久化任务和 running 状态。模型调用失败时仍能保留可追踪的任务。
         await self.task_repository.commit()
-        try:
-            result = await self.analysis_service.analyze_asset(asset)
-            returned: AnalysisResult | AgentAnalysisResult = result
-            if save_result:
-                returned = await self.analysis_repository.create_result(
-                    **self.result_record_kwargs(result, item.id)
-                )
-            completed_at = datetime.utcnow()
-            await self.task_repository.update_item_status(
-                item.id, TaskStatus.SUCCESS, completed_at=completed_at
+        return task.id, item.id
+
+    async def analyze_asset(self, asset: AssetAnalysisInput) -> AnalysisResult:
+        """调用单 IP 分析 Service，不重复查询扫描数据。"""
+
+        return await self.analysis_service.analyze_asset(asset)
+
+    async def complete_task(
+        self,
+        *,
+        task_id: int,
+        item_id: int,
+        result: AnalysisResult,
+        save_result: bool,
+    ) -> SingleIPExecution:
+        """按保存策略持久化结果，并完成任务状态。"""
+
+        returned: AnalysisResult | AgentAnalysisResult = result
+        if save_result:
+            returned = await self.analysis_repository.create_result(
+                **self.result_record_kwargs(result, item_id)
             )
-            await self.task_repository.update_task_status(
-                task.id, TaskStatus.SUCCESS, completed_at=completed_at
-            )
-            # Task、Item 和 AnalysisRepository 共用同一个 Session；一次提交即可
-            # 原子地保存分析结果和最终成功状态。
-            await self.task_repository.commit()
-            return SingleIPExecution(task.id, item.id, False, returned)
-        except Exception as exc:
-            # 模型校验或结果入库失败可能使事务不可继续使用，先回滚再单独保存
-            # failed 状态。
-            await self.task_repository.rollback()
-            completed_at = datetime.utcnow()
-            await self.task_repository.update_item_status(
-                item.id,
-                TaskStatus.FAILED,
-                error_message=str(exc),
-                completed_at=completed_at,
-            )
-            await self.task_repository.update_task_status(
-                task.id,
-                TaskStatus.FAILED,
-                error_message=str(exc),
-                completed_at=completed_at,
-            )
-            await self.task_repository.commit()
-            raise
+        completed_at = datetime.utcnow()
+        await self.task_repository.update_item_status(
+            item_id, TaskStatus.SUCCESS, completed_at=completed_at
+        )
+        await self.task_repository.update_task_status(
+            task_id, TaskStatus.SUCCESS, completed_at=completed_at
+        )
+        # Task、Item 和 AnalysisRepository 共用同一个 Session；一次提交即可
+        # 原子地保存分析结果和最终成功状态。
+        await self.task_repository.commit()
+        return SingleIPExecution(task_id, item_id, False, returned)
+
+    async def fail_task(
+        self,
+        *,
+        task_id: int,
+        item_id: int,
+        error: Exception,
+    ) -> None:
+        """回滚失败事务并单独保存失败状态。"""
+
+        await self.task_repository.rollback()
+        completed_at = datetime.utcnow()
+        await self.task_repository.update_item_status(
+            item_id,
+            TaskStatus.FAILED,
+            error_message=str(error),
+            completed_at=completed_at,
+        )
+        await self.task_repository.update_task_status(
+            task_id,
+            TaskStatus.FAILED,
+            error_message=str(error),
+            completed_at=completed_at,
+        )
+        await self.task_repository.commit()
 
     async def load_asset(
         self,
