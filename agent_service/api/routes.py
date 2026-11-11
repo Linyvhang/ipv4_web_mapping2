@@ -27,6 +27,9 @@ GRAPH_NODE_LABELS = {
     "return_cached": "复用已有结果",
     "create_task": "创建分析任务",
     "analyze_asset": "模型分析资产",
+    "validate_analysis": "校验分析证据",
+    "prepare_retry": "准备重新分析",
+    "build_fallback": "生成安全降级结果",
     "persist_result": "保存分析结果",
 }
 

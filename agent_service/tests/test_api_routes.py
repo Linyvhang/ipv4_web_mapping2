@@ -34,6 +34,9 @@ class FakeGraph:
             "ip": "192.0.2.10",
             "scan_round": 1,
             "save_result": True,
+            "retry_count": 0,
+            "max_retries": 1,
+            "fallback_used": False,
         }
         return {
             **state,

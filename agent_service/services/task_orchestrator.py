@@ -136,9 +136,15 @@ class SingleIPTaskOrchestrator:
         await self.task_repository.commit()
         return task.id, item.id
 
-    async def analyze_asset(self, asset: AssetAnalysisInput) -> AnalysisResult:
+    async def analyze_asset(
+        self,
+        asset: AssetAnalysisInput,
+        validation_errors: list[str] | tuple[str, ...] | None = None,
+    ) -> AnalysisResult:
         """调用单 IP 分析 Service，不重复查询扫描数据。"""
 
+        if validation_errors:
+            return await self.analysis_service.analyze_asset(asset, validation_errors)
         return await self.analysis_service.analyze_asset(asset)
 
     async def complete_task(

@@ -14,6 +14,9 @@ def test_preview_page_is_available_from_root_and_preview_path() -> None:
         assert "IPv4 资产分析预览" in html
         assert "fetch('/analysis/ip/stream'" in html
         assert "LangGraph 分析进度" in html
+        assert "校验分析证据" in html
+        assert "校验未通过，重试" in html
+        assert "已生成安全降级结果" in html
 
 
 def test_preview_page_escapes_model_values_via_text_content() -> None:

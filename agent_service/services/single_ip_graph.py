@@ -11,6 +11,10 @@ from typing import Any, TypedDict
 from agent_service.models.analysis_schema import AnalysisResult
 from agent_service.models.input_schema import AssetAnalysisInput
 
+from .analysis_validation import (
+    build_safe_fallback_result,
+    validate_analysis_result,
+)
 from .task_orchestrator import SingleIPExecution, SingleIPTaskOrchestrator
 
 
@@ -25,6 +29,10 @@ class SingleIPGraphState(TypedDict, total=False):
     task_id: int
     task_item_id: int
     analysis_result: AnalysisResult
+    validation_errors: list[str]
+    retry_count: int
+    max_retries: int
+    fallback_used: bool
     execution: SingleIPExecution
 
 
@@ -40,6 +48,9 @@ def initial_state(
         "ip": ip,
         "scan_round": scan_round,
         "save_result": save_result,
+        "retry_count": 0,
+        "max_retries": 1,
+        "fallback_used": False,
     }
 
 
@@ -97,7 +108,9 @@ def build_single_ip_graph(orchestrator: SingleIPTaskOrchestrator) -> Any:
         state: SingleIPGraphState,
     ) -> dict[str, AnalysisResult]:
         try:
-            result = await orchestrator.analyze_asset(state["asset"])
+            result = await orchestrator.analyze_asset(
+                state["asset"], state.get("validation_errors")
+            )
         except Exception as exc:
             await orchestrator.fail_task(
                 task_id=state["task_id"],
@@ -106,6 +119,32 @@ def build_single_ip_graph(orchestrator: SingleIPTaskOrchestrator) -> Any:
             )
             raise
         return {"analysis_result": result}
+
+    def validate_analysis_node(
+        state: SingleIPGraphState,
+    ) -> dict[str, list[str]]:
+        validation = validate_analysis_result(
+            state["analysis_result"], state["asset"]
+        )
+        return {"validation_errors": list(validation.errors)}
+
+    def route_after_validation(state: SingleIPGraphState) -> str:
+        if not state.get("validation_errors"):
+            return "valid"
+        if state.get("retry_count", 0) < state.get("max_retries", 1):
+            return "retry"
+        return "fallback"
+
+    def prepare_retry_node(state: SingleIPGraphState) -> dict[str, int]:
+        return {"retry_count": state.get("retry_count", 0) + 1}
+
+    def build_fallback_node(
+        state: SingleIPGraphState,
+    ) -> dict[str, AnalysisResult | bool]:
+        result = build_safe_fallback_result(
+            state["analysis_result"], state.get("validation_errors", [])
+        )
+        return {"analysis_result": result, "fallback_used": True}
 
     async def persist_result_node(
         state: SingleIPGraphState,
@@ -132,6 +171,9 @@ def build_single_ip_graph(orchestrator: SingleIPTaskOrchestrator) -> Any:
     graph.add_node("return_cached", return_cached_node)
     graph.add_node("create_task", create_task_node)
     graph.add_node("analyze_asset", analyze_asset_node)
+    graph.add_node("validate_analysis", validate_analysis_node)
+    graph.add_node("prepare_retry", prepare_retry_node)
+    graph.add_node("build_fallback", build_fallback_node)
     graph.add_node("persist_result", persist_result_node)
     graph.add_edge(START, "load_asset")
     graph.add_edge("load_asset", "check_cache")
@@ -142,7 +184,18 @@ def build_single_ip_graph(orchestrator: SingleIPTaskOrchestrator) -> Any:
     )
     graph.add_edge("return_cached", END)
     graph.add_edge("create_task", "analyze_asset")
-    graph.add_edge("analyze_asset", "persist_result")
+    graph.add_edge("analyze_asset", "validate_analysis")
+    graph.add_conditional_edges(
+        "validate_analysis",
+        route_after_validation,
+        {
+            "valid": "persist_result",
+            "retry": "prepare_retry",
+            "fallback": "build_fallback",
+        },
+    )
+    graph.add_edge("prepare_retry", "analyze_asset")
+    graph.add_edge("build_fallback", "persist_result")
     graph.add_edge("persist_result", END)
     return graph.compile()
 

@@ -82,6 +82,15 @@ def test_build_prompt_contains_scope_and_serialized_asset() -> None:
     assert "只覆盖指定常用端口" in prompt
 
 
+def test_build_prompt_includes_validation_feedback_on_retry() -> None:
+    prompt = SingleIPAnalysisService.build_prompt(
+        make_asset(), ["风险 risk-1 缺少证据引用"]
+    )
+
+    assert "上一次输出未通过" in prompt
+    assert "风险 risk-1 缺少证据引用" in prompt
+
+
 def test_finalize_result_combines_program_facts_and_model_analysis() -> None:
     provider = MockModelProvider(
         make_payload(),

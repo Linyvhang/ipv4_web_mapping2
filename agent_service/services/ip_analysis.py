@@ -51,7 +51,10 @@ class SingleIPAnalysisService:
         self.prompt_version = prompt_version
 
     @staticmethod
-    def build_prompt(asset: AssetAnalysisInput) -> str:
+    def build_prompt(
+        asset: AssetAnalysisInput,
+        validation_errors: list[str] | tuple[str, ...] | None = None,
+    ) -> str:
         """生成只允许基于已有扫描证据分析的 Prompt。"""
 
         payload = json.dumps(
@@ -59,6 +62,13 @@ class SingleIPAnalysisService:
             ensure_ascii=False,
             sort_keys=True,
         )
+        retry_instruction = ""
+        if validation_errors:
+            retry_instruction = (
+                "\n上一次输出未通过以下校验，请重新生成并逐项修正：\n- "
+                + "\n- ".join(validation_errors)
+                + "\n"
+            )
         return (
             "你是 IPv4 网络资产分析助手。\n"
             "请只根据下面已有的 L1/L2/L3 被动测绘数据进行分析。\n"
@@ -67,6 +77,7 @@ class SingleIPAnalysisService:
             "IP、扫描批次、扫描时间、服务列表和模型元信息由程序生成，不要在结果中重复这些字段。\n"
             "风险只能表达为疑似风险；证据不足时必须写‘信息不足，无法判断’。\n"
             "当前扫描只覆盖指定常用端口，报告必须说明这一限制。\n\n"
+            f"{retry_instruction}"
             "待分析数据：\n"
             f"{payload}"
         )
@@ -138,10 +149,14 @@ class SingleIPAnalysisService:
 
         return await self.analyze_asset(asset)
 
-    async def analyze_asset(self, asset: AssetAnalysisInput) -> AnalysisResult:
+    async def analyze_asset(
+        self,
+        asset: AssetAnalysisInput,
+        validation_errors: list[str] | tuple[str, ...] | None = None,
+    ) -> AnalysisResult:
         """分析已由编排层加载的资产，避免重复查询 L3 数据。"""
 
-        prompt = self.build_prompt(asset)
+        prompt = self.build_prompt(asset, validation_errors)
         payload = await self.model_provider.generate_structured(
             prompt, ModelAnalysisPayload
         )

@@ -39,7 +39,7 @@ PREVIEW_HTML = """<!doctype html>
       align-items:flex-start; margin-bottom:18px; }
     .workflow-badge { padding:4px 10px; border-radius:999px; color:#1647a8;
       background:var(--brand-soft); font-size:13px; font-weight:700; white-space:nowrap; }
-    .steps { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
+    .steps { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; }
     .step { position:relative; min-height:108px; padding:14px 12px; border:1px solid var(--line);
       border-radius:12px; background:#f8fafc; transition:.2s ease; }
     .step-number { display:grid; place-items:center; width:28px; height:28px; margin-bottom:10px;
@@ -54,6 +54,8 @@ PREVIEW_HTML = """<!doctype html>
     .step.skipped { opacity:.55; }
     .step.failed { border-color:#f1b5ae; background:var(--danger-soft); }
     .step.failed .step-number { background:var(--danger); color:white; }
+    .step.fallback { border-color:#f0cc82; background:#fff8e8; }
+    .step.fallback .step-number { background:#b7791f; color:white; }
     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
     .metric { padding:14px; border-radius:10px; background:#f7f9fc; }
     .metric small { display:block; color:var(--muted); }
@@ -106,7 +108,9 @@ PREVIEW_HTML = """<!doctype html>
         <strong>创建分析任务</strong><small>记录任务和运行状态</small></div>
       <div class="step" data-node="analyze_asset"><span class="step-number">4</span>
         <strong>模型分析资产</strong><small>生成画像、风险和建议</small></div>
-      <div class="step" data-node="persist_result"><span class="step-number">5</span>
+      <div class="step" data-node="validate_analysis"><span class="step-number">5</span>
+        <strong>校验分析证据</strong><small>检查事实、证据和风险表述</small></div>
+      <div class="step" data-node="persist_result"><span class="step-number">6</span>
         <strong>保存分析结果</strong><small>持久化标准 JSON 报告</small></div>
     </div>
   </section>
@@ -143,8 +147,9 @@ PREVIEW_HTML = """<!doctype html>
   const submitButton = document.querySelector('#submit');
   const workflowBox = document.querySelector('#workflow');
   const workflowBadge = document.querySelector('#workflow-badge');
-  const orderedNodes = ['load_asset', 'check_cache', 'create_task', 'analyze_asset', 'persist_result'];
+  const orderedNodes = ['load_asset', 'check_cache', 'create_task', 'analyze_asset', 'validate_analysis', 'persist_result'];
   let activeNode = null;
+  let retryCount = 0;
 
   function clearAndText(element, text) {
     element.replaceChildren(document.createTextNode(text));
@@ -160,6 +165,7 @@ PREVIEW_HTML = """<!doctype html>
   function resetWorkflow() {
     workflowBox.classList.remove('hidden'); workflowBadge.textContent = '正在启动';
     activeNode = 'load_asset';
+    retryCount = 0;
     for (const node of orderedNodes) stepElement(node).className = 'step';
     stepElement(activeNode).classList.add('active');
   }
@@ -172,6 +178,18 @@ PREVIEW_HTML = """<!doctype html>
     if (node === 'return_cached') {
       for (const skipped of orderedNodes.slice(2)) stepElement(skipped).className = 'step skipped';
       activeNode = null; workflowBadge.textContent = '已复用结果'; return;
+    }
+    if (node === 'prepare_retry') {
+      retryCount += 1;
+      stepElement('analyze_asset').className = 'step active';
+      stepElement('validate_analysis').className = 'step';
+      stepElement('persist_result').className = 'step';
+      activeNode = 'analyze_asset'; workflowBadge.textContent = `校验未通过，重试 ${retryCount}/1`;
+      return;
+    }
+    if (node === 'build_fallback') {
+      stepElement('validate_analysis').className = 'step fallback';
+      workflowBadge.textContent = '已生成安全降级结果'; return;
     }
     const step = stepElement(node); if (!step) return;
     step.className = 'step completed'; workflowBadge.textContent = step.querySelector('strong').textContent;
