@@ -13,8 +13,9 @@ PREVIEW_HTML = """<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>IPv4 资产分析预览</title>
   <style>
-    :root { color-scheme: light; --bg:#f4f7fb; --card:#fff; --ink:#172033;
-      --muted:#687386; --line:#dce3ee; --brand:#2563eb; --danger:#b42318; }
+    :root { color-scheme: light; --bg:#f3f6fb; --card:#fff; --ink:#142033;
+      --muted:#687386; --line:#dce3ee; --brand:#2563eb; --brand-soft:#eaf1ff;
+      --success:#15803d; --success-soft:#eaf8ef; --danger:#b42318; --danger-soft:#fff0ee; }
     * { box-sizing: border-box; }
     body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.6 system-ui,
       -apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
@@ -34,6 +35,25 @@ PREVIEW_HTML = """<!doctype html>
     button:disabled { opacity:.58; cursor:wait; }
     #status { min-height:25px; margin-top:12px; }
     .error { color:var(--danger); }
+    .workflow-head { display:flex; justify-content:space-between; gap:16px;
+      align-items:flex-start; margin-bottom:18px; }
+    .workflow-badge { padding:4px 10px; border-radius:999px; color:#1647a8;
+      background:var(--brand-soft); font-size:13px; font-weight:700; white-space:nowrap; }
+    .steps { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
+    .step { position:relative; min-height:108px; padding:14px 12px; border:1px solid var(--line);
+      border-radius:12px; background:#f8fafc; transition:.2s ease; }
+    .step-number { display:grid; place-items:center; width:28px; height:28px; margin-bottom:10px;
+      border-radius:50%; background:#e5eaf2; color:#5f6c80; font-weight:800; font-size:13px; }
+    .step strong { display:block; font-size:14px; }
+    .step small { color:var(--muted); }
+    .step.active { border-color:#7aa2f7; background:var(--brand-soft);
+      box-shadow:0 0 0 3px rgba(37,99,235,.09); transform:translateY(-2px); }
+    .step.active .step-number { background:var(--brand); color:white; }
+    .step.completed { border-color:#b9dfc6; background:var(--success-soft); }
+    .step.completed .step-number { background:var(--success); color:white; }
+    .step.skipped { opacity:.55; }
+    .step.failed { border-color:#f1b5ae; background:var(--danger-soft); }
+    .step.failed .step-number { background:var(--danger); color:white; }
     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
     .metric { padding:14px; border-radius:10px; background:#f7f9fc; }
     .metric small { display:block; color:var(--muted); }
@@ -47,7 +67,10 @@ PREVIEW_HTML = """<!doctype html>
     pre { max-height:460px; overflow:auto; margin:0; padding:16px; border-radius:10px;
       background:#111827; color:#dbeafe; font:13px/1.5 ui-monospace,Consolas,monospace; }
     .hidden { display:none; }
-    @media (max-width:700px) { form { grid-template-columns:1fr; } main { margin-top:22px; } }
+    @media (max-width:850px) { .steps { grid-template-columns:1fr 1fr; } }
+    @media (max-width:700px) { form { grid-template-columns:1fr; } main { margin-top:22px; }
+      .steps { grid-template-columns:1fr; } .workflow-head { display:block; }
+      .workflow-badge { display:inline-block; margin-top:8px; } }
   </style>
 </head>
 <body>
@@ -64,6 +87,28 @@ PREVIEW_HTML = """<!doctype html>
       <button id="submit" type="submit">开始分析</button>
     </form>
     <div id="status" class="muted" aria-live="polite">等待提交分析任务</div>
+  </section>
+
+  <section id="workflow" class="card hidden" aria-label="LangGraph 执行进度">
+    <div class="workflow-head">
+      <div>
+        <h2>LangGraph 分析进度</h2>
+        <p class="muted">页面根据后端节点事件实时更新，不使用模拟进度。</p>
+      </div>
+      <span id="workflow-badge" class="workflow-badge">准备执行</span>
+    </div>
+    <div class="steps" id="workflow-steps">
+      <div class="step" data-node="load_asset"><span class="step-number">1</span>
+        <strong>读取扫描数据</strong><small>读取指定 IP 的最新指纹</small></div>
+      <div class="step" data-node="check_cache"><span class="step-number">2</span>
+        <strong>检查已有结果</strong><small>避免重复调用模型</small></div>
+      <div class="step" data-node="create_task"><span class="step-number">3</span>
+        <strong>创建分析任务</strong><small>记录任务和运行状态</small></div>
+      <div class="step" data-node="analyze_asset"><span class="step-number">4</span>
+        <strong>模型分析资产</strong><small>生成画像、风险和建议</small></div>
+      <div class="step" data-node="persist_result"><span class="step-number">5</span>
+        <strong>保存分析结果</strong><small>持久化标准 JSON 报告</small></div>
+    </div>
   </section>
 
   <div id="result" class="hidden">
@@ -96,6 +141,10 @@ PREVIEW_HTML = """<!doctype html>
   const statusBox = document.querySelector('#status');
   const resultBox = document.querySelector('#result');
   const submitButton = document.querySelector('#submit');
+  const workflowBox = document.querySelector('#workflow');
+  const workflowBadge = document.querySelector('#workflow-badge');
+  const orderedNodes = ['load_asset', 'check_cache', 'create_task', 'analyze_asset', 'persist_result'];
+  let activeNode = null;
 
   function clearAndText(element, text) {
     element.replaceChildren(document.createTextNode(text));
@@ -107,6 +156,31 @@ PREVIEW_HTML = """<!doctype html>
     box.append(small, strong); return box;
   }
   function showEmpty(element, text) { clearAndText(element, text); element.className = 'muted'; }
+  function stepElement(node) { return document.querySelector(`.step[data-node="${node}"]`); }
+  function resetWorkflow() {
+    workflowBox.classList.remove('hidden'); workflowBadge.textContent = '正在启动';
+    activeNode = 'load_asset';
+    for (const node of orderedNodes) stepElement(node).className = 'step';
+    stepElement(activeNode).classList.add('active');
+  }
+  function setNextActive(node) {
+    const index = orderedNodes.indexOf(node);
+    activeNode = index >= 0 && index + 1 < orderedNodes.length ? orderedNodes[index + 1] : null;
+    if (activeNode) stepElement(activeNode).classList.add('active');
+  }
+  function completeNode(node) {
+    if (node === 'return_cached') {
+      for (const skipped of orderedNodes.slice(2)) stepElement(skipped).className = 'step skipped';
+      activeNode = null; workflowBadge.textContent = '已复用结果'; return;
+    }
+    const step = stepElement(node); if (!step) return;
+    step.className = 'step completed'; workflowBadge.textContent = step.querySelector('strong').textContent;
+    setNextActive(node);
+  }
+  function failActiveStep() {
+    if (activeNode && stepElement(activeNode)) stepElement(activeNode).className = 'step failed';
+    workflowBadge.textContent = '执行失败';
+  }
   function render(response) {
     const data = response.result || {};
     const summary = data.summary || {};
@@ -154,18 +228,37 @@ PREVIEW_HTML = """<!doctype html>
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault(); submitButton.disabled = true; resultBox.classList.add('hidden');
-    statusBox.className = 'muted'; statusBox.textContent = '正在读取扫描数据并分析…';
+    resetWorkflow(); statusBox.className = 'muted'; statusBox.textContent = '正在启动 LangGraph 分析流程…';
     const roundValue = document.querySelector('#scan-round').value.trim();
     const payload = { ip: document.querySelector('#ip').value.trim(),
       scan_round: roundValue ? Number(roundValue) : null, save_result: true };
     try {
-      const response = await fetch('/analysis/ip', { method:'POST',
+      const response = await fetch('/analysis/ip/stream', { method:'POST',
         headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.detail || `请求失败（HTTP ${response.status}）`);
-      render(body); statusBox.textContent = body.reused ? '已加载保存过的分析结果。' : '分析完成，结果已保存。';
+      if (!response.ok || !response.body) throw new Error(`请求失败（HTTP ${response.status}）`);
+      const reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = '';
+      let finalResponse = null;
+      while (true) {
+        const {value, done} = await reader.read(); buffer += decoder.decode(value || new Uint8Array(), {stream: !done});
+        const lines = buffer.split('\\n'); buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const message = JSON.parse(line);
+          if (message.type === 'node') {
+            completeNode(message.node); statusBox.textContent = `${message.label}已完成`;
+          } else if (message.type === 'result') {
+            finalResponse = message.data;
+          } else if (message.type === 'error') {
+            throw new Error(message.detail || `分析失败（${message.status_code}）`);
+          }
+        }
+        if (done) break;
+      }
+      if (!finalResponse) throw new Error('分析流程没有返回结果');
+      render(finalResponse); workflowBadge.textContent = finalResponse.reused ? '已复用结果' : '分析完成';
+      statusBox.textContent = finalResponse.reused ? '已加载保存过的分析结果。' : '分析完成，结果已保存。';
     } catch (error) {
-      statusBox.className = 'error'; statusBox.textContent = error.message || '分析失败';
+      failActiveStep(); statusBox.className = 'error'; statusBox.textContent = error.message || '分析失败';
     } finally { submitButton.disabled = false; }
   });
 </script>
