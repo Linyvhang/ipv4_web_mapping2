@@ -16,11 +16,10 @@ LangGraph 和大模型生成单 IP 资产画像、疑似风险、证据与处置
 - Agent 任务和分析结果持久化。
 - 白名单 Agent 工具层：扫描数据查询、已保存结果查询和受控分析任务创建。
 
-当前三个工具已完成代码与测试，但尚未暴露为自然语言问答 API；后续将由新的
-LangGraph 对话工作流根据用户问题选择调用。
 自然语言问答的意图、工具轨迹、证据、响应 Schema 和 LangGraph 初始 State 已完成。
-规则型 Mock 问题理解器和程序安全校验已完成，可识别查询、解释、创建分析及禁止请求。
-自然语言 Agent 第一版 LangGraph 已完成，可在测试中自主选择白名单工具并生成模板回答。
+自然语言 Agent 第一版 LangGraph 已完成，支持规则模式和 DeepSeek 模式。DeepSeek 负责
+问题理解、从三个白名单工具中选择工具，以及根据工具事实生成回答；程序始终负责 IP
+校验、创建权限、工具白名单和最多两次调用。模型失败时自动降级为规则理解和模板回答。
 
 自然语言 Agent 的角色、权限、工作流和返回契约见
 [自然语言 Agent 设计方案](docs/自然语言Agent设计方案.md)。
@@ -94,6 +93,7 @@ AGENT_DB_PASSWORD=数据库密码
 
 # 先使用 Mock 模型分析真实数据库数据
 AGENT_MODEL_PROVIDER=mock
+AGENT_CHAT_PROVIDER=rules
 ```
 
 `.env` 已被 `.gitignore` 忽略，不要把密码或 API Key 提交到 Git。
@@ -141,8 +141,8 @@ python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8001
 }
 ```
 
-当前接口使用规则型问题理解和模板回答，返回识别意图、白名单工具轨迹、结构化证据
-和数据限制。创建分析任务必须使用“帮我分析 1.2.3.4”等明确表达。
+接口返回识别意图、模型来源、是否发生安全降级、白名单工具轨迹、结构化证据和数据限制。
+创建分析任务必须使用“帮我分析 1.2.3.4”等明确表达。
 也可以打开 `/chat` 使用简洁对话页面，并在右侧查看本轮工具调用和证据。
 
 ## 6. 切换到 DeepSeek
@@ -151,12 +151,17 @@ python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8001
 
 ```dotenv
 AGENT_MODEL_PROVIDER=deepseek
+AGENT_CHAT_PROVIDER=deepseek
 DEEPSEEK_API_KEY=你的API密钥
 DEEPSEEK_MODEL=deepseek-flash
 ```
 
 保存后必须停止并重新启动 Uvicorn。真实模型调用会发送目标 IP 的已有指纹数据，
 并消耗模型账户额度。更完整的说明见 [DeepSeek 接入说明](docs/DeepSeek接入说明.md)。
+
+`AGENT_MODEL_PROVIDER` 控制资产分析模型，`AGENT_CHAT_PROVIDER` 控制自然语言问答；两者
+可以独立配置。`AGENT_CHAT_PROVIDER` 未设置时会跟随前者，设置为 `rules` 可只使用规则
+理解器和模板回答。
 
 ## 7. 运行测试
 

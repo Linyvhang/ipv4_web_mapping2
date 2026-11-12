@@ -22,6 +22,8 @@ def test_chat_preview_calls_agent_api_and_uses_safe_text_rendering() -> None:
     assert "fetch('/agent/chat'" in CHAT_PREVIEW_HTML
     assert "data.tools_used" in CHAT_PREVIEW_HTML
     assert "data.evidence" in CHAT_PREVIEW_HTML
+    assert "data.model_provider" in CHAT_PREVIEW_HTML
+    assert "data.fallback_used" in CHAT_PREVIEW_HTML
     assert "textContent" in CHAT_PREVIEW_HTML
     assert "innerHTML" not in CHAT_PREVIEW_HTML
 

@@ -31,6 +31,9 @@ def test_initial_chat_state_contains_safe_defaults() -> None:
             "当前扫描只覆盖指定常用端口",
         ],
         "status": "pending",
+        "model_provider": "rules",
+        "fallback_used": False,
+        "fallback_steps": [],
     }
 
 

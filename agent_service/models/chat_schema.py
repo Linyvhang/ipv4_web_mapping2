@@ -84,6 +84,13 @@ class RequestValidation(SchemaModel):
     error: str | None = None
 
 
+class AgentToolSelection(SchemaModel):
+    """模型只能选择白名单工具；实际参数由程序重新构造。"""
+
+    name: AgentToolName
+    arguments: dict[str, Any] = Field(default_factory=dict)
+
+
 class ToolCallRecord(SchemaModel):
     """一次可审计的白名单工具调用记录。"""
 
@@ -123,6 +130,8 @@ class AgentChatResponse(SchemaModel):
     intent: AgentIntent
     target_ip: str | None = None
     status: AgentChatStatus
+    model_provider: str = "rules"
+    fallback_used: bool = False
     tools_used: list[ToolUseSummary] = Field(default_factory=list)
     evidence: list[AgentEvidence] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)

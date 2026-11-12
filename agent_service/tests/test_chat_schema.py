@@ -101,6 +101,8 @@ def test_chat_response_serializes_tool_trace_and_evidence() -> None:
     assert payload["schema_version"] == "1.0"
     assert payload["tools_used"][0]["name"] == "get_ip_scan_data"
     assert payload["evidence"][0]["port"] == 22
+    assert payload["model_provider"] == "rules"
+    assert payload["fallback_used"] is False
 
 
 def test_chat_models_forbid_unknown_fields() -> None:

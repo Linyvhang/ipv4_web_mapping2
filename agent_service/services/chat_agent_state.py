@@ -41,6 +41,9 @@ class ChatAgentState(TypedDict):
     evidence: list[AgentEvidence]
     limitations: list[str]
     status: AgentChatStatus
+    model_provider: str
+    fallback_used: bool
+    fallback_steps: list[str]
 
 
 def initial_chat_state(
@@ -69,4 +72,7 @@ def initial_chat_state(
         "evidence": [],
         "limitations": list(DEFAULT_CHAT_LIMITATIONS),
         "status": "pending",
+        "model_provider": "rules",
+        "fallback_used": False,
+        "fallback_steps": [],
     }

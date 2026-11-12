@@ -151,6 +151,8 @@ CHAT_PREVIEW_HTML = """<!doctype html>
     meta.append(textElement('span', data.status, `badge ${data.status}`));
     meta.append(textElement('span', data.intent, 'badge'));
     if (data.target_ip) meta.append(textElement('span', data.target_ip, 'badge'));
+    meta.append(textElement('span', `模型：${data.model_provider || 'rules'}`, 'badge'));
+    if (data.fallback_used) meta.append(textElement('span', '已安全降级', 'badge not_found'));
   }
   function showTools(items) {
     tools.replaceChildren(); tools.className = '';

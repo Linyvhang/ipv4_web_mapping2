@@ -9,6 +9,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
+from agent_service.services.chat_ai import NaturalLanguageAgentProvider
 from agent_service.services.single_ip_graph import build_single_ip_graph
 from agent_service.services.chat_agent_graph import build_chat_agent_graph
 from agent_service.services.chat_understanding import (
@@ -28,6 +29,7 @@ def create_app(
     orchestrator: SingleIPTaskOrchestrator,
     *,
     understanding_provider: QuestionUnderstandingProvider | None = None,
+    chat_ai_provider: NaturalLanguageAgentProvider | None = None,
 ) -> FastAPI:
     """创建已连接单 IP 编排 Service 的 FastAPI 应用。"""
 
@@ -38,10 +40,13 @@ def create_app(
     )
     graph = build_single_ip_graph(orchestrator)
     tool_registry = AssetAgentToolRegistry(orchestrator=orchestrator, graph=graph)
+    rules = RuleBasedQuestionUnderstandingProvider()
+    primary_understanding = chat_ai_provider or understanding_provider or rules
     chat_graph = build_chat_agent_graph(
-        understanding_provider=(
-            understanding_provider or RuleBasedQuestionUnderstandingProvider()
-        ),
+        understanding_provider=primary_understanding,
+        fallback_understanding_provider=(rules if chat_ai_provider is not None else None),
+        tool_selection_provider=chat_ai_provider,
+        answer_provider=chat_ai_provider,
         request_validator=ChatRequestValidator(),
         tool_registry=tool_registry,
     )

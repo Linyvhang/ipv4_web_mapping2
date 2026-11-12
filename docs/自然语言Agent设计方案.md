@@ -5,7 +5,8 @@
 本文档确定自然语言 Agent 第一版的角色、权限、工作流、数据契约和验收标准，
 作为后续数据模型、LangGraph、API 与可视化开发的共同依据。
 
-当前状态：**设计、数据模型、安全校验、第一版 LangGraph、`POST /agent/chat` API 和工具轨迹预览页已完成；真实模型问答尚未实现**。
+当前状态：**设计、数据模型、安全校验、多节点 LangGraph、`POST /agent/chat` API、
+工具轨迹预览页和 DeepSeek 自然语言能力均已完成**。
 
 ## 2. 角色定位
 
@@ -224,7 +225,8 @@ State 保存原始事实和结构化结果，不保存已经拼接完成的 Prom
 - 把工具事实组织成面向用户的回答；
 - 解释已有分析结果中的风险和证据。
 
-第一轮实现使用可预测的 Mock 决策器跑通流程，再接入 DeepSeek 工具调用。
+规则模式用于离线开发和安全降级；DeepSeek 模式负责灵活理解、原生工具选择和自然回答。
+只要模型任一步失败，本轮后续步骤就停止调用模型并切换到规则和模板，避免重复消耗。
 
 ## 10. 返回数据契约
 
@@ -236,6 +238,8 @@ State 保存原始事实和结构化结果，不保存已经拼接完成的 Prom
   "intent": "query_scan_data",
   "target_ip": "1.2.3.4",
   "status": "success",
+  "model_provider": "deepseek",
+  "fallback_used": false,
   "tools_used": [
     {
       "name": "get_ip_scan_data",

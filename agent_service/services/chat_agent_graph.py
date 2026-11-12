@@ -13,6 +13,8 @@ from agent_service.models.chat_schema import (
     ToolCallRecord,
     ToolUseSummary,
 )
+from agent_service.providers.base import ModelProviderError
+from agent_service.services.chat_ai import AgentAnswerProvider, AgentToolSelectionProvider
 from agent_service.tools.asset_tools import (
     AgentToolPermissionError,
     AssetAgentToolRegistry,
@@ -129,6 +131,8 @@ def chat_response_from_state(state: ChatAgentState) -> AgentChatResponse:
         intent=intent,
         target_ip=state.get("target_ip"),
         status=state.get("status", "failed"),
+        model_provider=state.get("model_provider", "rules"),
+        fallback_used=state.get("fallback_used", False),
         tools_used=[
             ToolUseSummary(name=record.name, status=record.status, message=record.message)
             for record in state.get("tool_history", [])
@@ -141,6 +145,9 @@ def chat_response_from_state(state: ChatAgentState) -> AgentChatResponse:
 def build_chat_agent_graph(
     *,
     understanding_provider: QuestionUnderstandingProvider,
+    fallback_understanding_provider: QuestionUnderstandingProvider | None = None,
+    tool_selection_provider: AgentToolSelectionProvider | None = None,
+    answer_provider: AgentAnswerProvider | None = None,
     request_validator: ChatRequestValidator,
     tool_registry: AssetAgentToolRegistry,
 ) -> Any:
@@ -151,22 +158,57 @@ def build_chat_agent_graph(
     except ImportError as exc:  # pragma: no cover
         raise RuntimeError("运行自然语言 Agent 前请安装 langgraph") from exc
 
-    async def understand_question_node(state: ChatAgentState) -> dict[str, Any]:
-        understanding = await understanding_provider.understand(state["question"])
+    def fallback_update(state: ChatAgentState, step: str) -> dict[str, Any]:
         return {
+            "fallback_used": True,
+            "fallback_steps": [*state.get("fallback_steps", []), step],
+        }
+
+    async def understand_question_node(state: ChatAgentState) -> dict[str, Any]:
+        update: dict[str, Any] = {
+            "model_provider": understanding_provider.provider_name,
+        }
+        try:
+            understanding = await understanding_provider.understand(state["question"])
+        except ModelProviderError:
+            if fallback_understanding_provider is None:
+                raise
+            understanding = await fallback_understanding_provider.understand(
+                state["question"]
+            )
+            update.update(fallback_update(state, "understand_question"))
+        return {
+            **update,
             "understanding": understanding,
             "intent": understanding.intent,
             "target_ip": understanding.target_ip,
             "explicit_analysis_request": understanding.explicit_analysis_request,
         }
 
-    def validate_request_node(state: ChatAgentState) -> dict[str, Any]:
+    async def validate_request_node(state: ChatAgentState) -> dict[str, Any]:
         understanding = state.get("understanding")
         if understanding is None:  # pragma: no cover - 固定边保证
             return {"request_error": "问题理解结果缺失", "status": "failed"}
         validation = request_validator.validate(state["question"], understanding)
         if validation.valid:
             return {"request_error": None, "status": "pending"}
+        if fallback_understanding_provider is not None and not state.get("fallback_used"):
+            fallback = await fallback_understanding_provider.understand(state["question"])
+            fallback_validation = request_validator.validate(state["question"], fallback)
+            update = {
+                **fallback_update(state, "validate_request"),
+                "understanding": fallback,
+                "intent": fallback.intent,
+                "target_ip": fallback.target_ip,
+                "explicit_analysis_request": fallback.explicit_analysis_request,
+            }
+            if fallback_validation.valid:
+                return {**update, "request_error": None, "status": "pending"}
+            return {
+                **update,
+                "request_error": fallback_validation.error,
+                "status": fallback_validation.status,
+            }
         return {
             "request_error": validation.error,
             "status": validation.status,
@@ -187,33 +229,64 @@ def build_chat_agent_graph(
             "evidence": [],
         }
 
-    def select_tool_node(state: ChatAgentState) -> dict[str, Any]:
-        if state["tool_call_count"] >= state["max_tool_calls"]:
-            return {
-                "selected_tool": None,
-                "request_error": "已达到最大工具调用次数",
-                "continue_tool_loop": False,
-            }
+    def deterministic_tool(state: ChatAgentState) -> str:
         intent = state.get("intent")
         used_tools = {record.name for record in state["tool_history"]}
         if intent == "create_analysis":
-            selected = "create_ip_analysis"
-        elif intent == "explain_result" and "get_ip_analysis_result" in used_tools:
-            selected = "get_ip_scan_data"
-        elif intent in {"query_analysis_result", "explain_result"}:
-            selected = "get_ip_analysis_result"
-        else:
-            selected = "get_ip_scan_data"
+            return "create_ip_analysis"
+        if intent == "explain_result" and "get_ip_analysis_result" in used_tools:
+            return "get_ip_scan_data"
+        if intent in {"query_analysis_result", "explain_result"}:
+            return "get_ip_analysis_result"
+        return "get_ip_scan_data"
 
+    def canonical_arguments(state: ChatAgentState, selected: str) -> dict[str, Any]:
         arguments: dict[str, Any] = {
             "ip": state["target_ip"],
             "scan_round": state.get("scan_round"),
         }
         if selected == "create_ip_analysis":
             arguments["save_result"] = True
+        return arguments
+
+    async def select_tool_node(state: ChatAgentState) -> dict[str, Any]:
+        if state["tool_call_count"] >= state["max_tool_calls"]:
+            return {
+                "selected_tool": None,
+                "request_error": "已达到最大工具调用次数",
+                "continue_tool_loop": False,
+            }
+        used_tools = {record.name for record in state["tool_history"]}
+        update: dict[str, Any] = {}
+        selected = deterministic_tool(state)
+        if tool_selection_provider is not None and not state.get("fallback_used"):
+            try:
+                choice = await tool_selection_provider.select_tool(
+                    question=state["question"],
+                    intent=state["intent"],
+                    target_ip=state["target_ip"],
+                    scan_round=state.get("scan_round"),
+                    used_tools=sorted(used_tools),
+                    definitions=tool_registry.definitions,
+                )
+                if choice.name in used_tools:
+                    raise ValueError("模型选择了已使用的工具")
+                if choice.name == "create_ip_analysis" and (
+                    state.get("intent") != "create_analysis"
+                    or not state.get("explicit_analysis_request")
+                ):
+                    raise ValueError("模型尝试在未授权时创建分析任务")
+                model_ip = choice.arguments.get("ip")
+                if model_ip is not None and model_ip != state.get("target_ip"):
+                    raise ValueError("模型工具参数中的 IP 与已校验 IP 不一致")
+                selected = choice.name
+            except (ModelProviderError, ValidationError, ValueError):
+                selected = deterministic_tool(state)
+                update.update(fallback_update(state, "select_tool"))
         return {
+            **update,
             "selected_tool": selected,
-            "tool_arguments": arguments,
+            "tool_arguments": canonical_arguments(state, selected),
             "continue_tool_loop": False,
         }
 
@@ -270,9 +343,10 @@ def build_chat_agent_graph(
     def evaluate_result_node(state: ChatAgentState) -> dict[str, Any]:
         last = state["tool_history"][-1]
         if last.status == "success":
+            used_tools = {record.name for record in state["tool_history"]}
             should_continue = (
                 state.get("intent") == "explain_result"
-                and last.name == "get_ip_analysis_result"
+                and not {"get_ip_analysis_result", "get_ip_scan_data"}.issubset(used_tools)
                 and state["tool_call_count"] < state["max_tool_calls"]
             )
             return {
@@ -286,7 +360,7 @@ def build_chat_agent_graph(
     def route_after_evaluation(state: ChatAgentState) -> str:
         return "continue" if state.get("continue_tool_loop") else "answer"
 
-    def compose_answer_node(state: ChatAgentState) -> dict[str, Any]:
+    async def compose_answer_node(state: ChatAgentState) -> dict[str, Any]:
         if state.get("request_error") and not state["tool_history"]:
             return {
                 "answer": state["request_error"],
@@ -312,7 +386,26 @@ def build_chat_agent_graph(
                 "status": "failed",
             }
         answer, evidence = _compose_success_answer(state)
-        return {"answer": answer, "evidence": evidence, "status": "success"}
+        update: dict[str, Any] = {}
+        if answer_provider is not None and not state.get("fallback_used"):
+            try:
+                answer = await answer_provider.generate_answer(
+                    question=state["question"],
+                    intent=state["intent"],
+                    target_ip=state["target_ip"],
+                    tool_history=state["tool_history"],
+                    evidence=evidence,
+                    limitations=state["limitations"],
+                    template_answer=answer,
+                )
+            except ModelProviderError:
+                update.update(fallback_update(state, "compose_answer"))
+        return {
+            **update,
+            "answer": answer,
+            "evidence": evidence,
+            "status": "success",
+        }
 
     graph = StateGraph(ChatAgentState)
     graph.add_node("understand_question", understand_question_node)

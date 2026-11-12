@@ -8,6 +8,7 @@
     AGENT_DB_PASSWORD=从本地环境读取
 
 AGENT_MODEL_PROVIDER=mock 或 deepseek，DeepSeek 密钥使用 DEEPSEEK_API_KEY。
+AGENT_CHAT_PROVIDER=rules 或 deepseek；未设置时跟随 AGENT_MODEL_PROVIDER。
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from agent_service.db.session import create_session_factory
 from agent_service.models.analysis_schema import ModelAnalysisPayload
 from agent_service.providers.mock import MockModelProvider
 from agent_service.providers.deepseek import DeepSeekModelProvider
+from agent_service.providers.deepseek_chat import DeepSeekNaturalLanguageProvider
 from agent_service.providers.base import ModelProvider
 from agent_service.services.ip_analysis import SingleIPAnalysisService
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
@@ -71,9 +73,22 @@ def _build_orchestrator():
     ), engine
 
 
+def _build_chat_ai_provider():
+    """自然语言能力可独立切换；rules 表示完全使用本地规则和模板。"""
+
+    provider = os.environ.get(
+        "AGENT_CHAT_PROVIDER", os.environ.get("AGENT_MODEL_PROVIDER", "mock")
+    ).lower()
+    if provider == "deepseek":
+        return DeepSeekNaturalLanguageProvider.from_env()
+    if provider in {"rules", "mock"}:
+        return None
+    raise ValueError("AGENT_CHAT_PROVIDER 仅支持 rules、mock 或 deepseek")
+
+
 def _make_app() -> FastAPI:
     orchestrator, engine = _build_orchestrator()
-    app = create_app(orchestrator)
+    app = create_app(orchestrator, chat_ai_provider=_build_chat_ai_provider())
 
     original_lifespan = app.router.lifespan_context
 

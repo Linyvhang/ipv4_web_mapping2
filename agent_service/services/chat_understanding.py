@@ -40,6 +40,10 @@ SCAN_QUERY_PATTERNS = re.compile(
 class QuestionUnderstandingProvider(Protocol):
     """问题理解器接口；后续 DeepSeek 实现遵守同一契约。"""
 
+    @property
+    def provider_name(self) -> str:
+        ...
+
     async def understand(self, question: str) -> QuestionUnderstanding:
         """把自然语言问题转换成结构化意图。"""
 
@@ -77,6 +81,10 @@ def prohibited_operation(question: str) -> str | None:
 
 class RuleBasedQuestionUnderstandingProvider:
     """不调用模型的可预测 Mock 问题理解器。"""
+
+    @property
+    def provider_name(self) -> str:
+        return "rules"
 
     async def understand(self, question: str) -> QuestionUnderstanding:
         normalized = question.strip()
