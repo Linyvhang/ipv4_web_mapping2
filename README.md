@@ -54,6 +54,7 @@ python -m uvicorn agent_service.api.mock_main:app --host 127.0.0.1 --port 8001
 
 - 分析预览页：<http://127.0.0.1:8001/>
 - Swagger API：<http://127.0.0.1:8001/docs>
+- 自然语言问答页：<http://127.0.0.1:8001/chat>
 - OpenAPI JSON：<http://127.0.0.1:8001/openapi.json>
 
 停止程序：回到运行 Uvicorn 的终端，按 `Ctrl+C`。
@@ -117,6 +118,7 @@ python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8001
 
 - 分析预览页：<http://127.0.0.1:8001/>
 - Swagger API：<http://127.0.0.1:8001/docs>
+- 自然语言问答页：<http://127.0.0.1:8001/chat>
 
 在 Swagger 中可以使用 `POST /analysis/ip`，请求示例：
 
@@ -141,6 +143,7 @@ python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8001
 
 当前接口使用规则型问题理解和模板回答，返回识别意图、白名单工具轨迹、结构化证据
 和数据限制。创建分析任务必须使用“帮我分析 1.2.3.4”等明确表达。
+也可以打开 `/chat` 使用简洁对话页面，并在右侧查看本轮工具调用和证据。
 
 ## 6. 切换到 DeepSeek
 

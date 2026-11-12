@@ -14,6 +14,7 @@ def test_readme_contains_current_startup_and_test_commands() -> None:
     assert "http://127.0.0.1:8001/docs" in content
     assert "白名单 Agent 工具层" in content
     assert "POST /agent/chat" in content
+    assert "http://127.0.0.1:8001/chat" in content
 
 
 def test_readme_uses_placeholders_instead_of_credentials() -> None:

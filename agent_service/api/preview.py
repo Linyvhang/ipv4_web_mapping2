@@ -77,6 +77,7 @@ PREVIEW_HTML = """<!doctype html>
 </head>
 <body>
 <main>
+  <p><a href="/chat">进入自然语言智能问答 →</a></p>
   <h1>IPv4 资产分析预览</h1>
   <p class="muted">读取已有扫描数据并展示标准 JSON 分析结果。当前模型类型以返回结果为准。</p>
 
