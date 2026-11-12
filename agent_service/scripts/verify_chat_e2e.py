@@ -32,6 +32,11 @@ def verify_chat_response(
         raise RuntimeError("Agent 在验收过程中发生了安全降级")
     if not response.tools_used:
         raise RuntimeError("Agent 没有调用任何白名单工具")
+    if not response.workflow_trace:
+        raise RuntimeError("Agent 没有返回 LangGraph 工作流轨迹")
+    sequences = [step.sequence for step in response.workflow_trace]
+    if sequences != list(range(1, len(sequences) + 1)):
+        raise RuntimeError("LangGraph 工作流轨迹顺序不连续")
 
 
 def run_acceptance(

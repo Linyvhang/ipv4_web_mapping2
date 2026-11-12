@@ -368,6 +368,9 @@ async def test_model_tool_arguments_cannot_replace_verified_ip() -> None:
     assert state["fallback_steps"] == ["select_tool"]
     assert registry.calls[0][1]["ip"] == "192.0.2.10"
     assert "generate_answer" not in provider.calls
+    select_step = next(step for step in response.workflow_trace if step.node == "select_tool")
+    assert select_step.status == "fallback"
+    assert select_step.tool_name == "get_ip_scan_data"
 
 
 @pytest.mark.asyncio

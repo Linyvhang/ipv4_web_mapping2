@@ -12,6 +12,15 @@ def payload(*, fallback_used=False, target_ip="192.0.2.10"):
         "status": "success",
         "model_provider": "deepseek",
         "fallback_used": fallback_used,
+        "workflow_trace": [
+            {
+                "sequence": 1,
+                "node": "understand_question",
+                "status": "success",
+                "detail": "识别意图",
+                "duration_ms": 5.2,
+            }
+        ],
         "tools_used": [
             {"name": "get_ip_scan_data", "status": "success", "message": "已读取"}
         ],
@@ -54,3 +63,11 @@ def test_acceptance_rejects_fallback_and_wrong_target(data, error):
 def test_acceptance_rejects_ipv6():
     with pytest.raises(ValueError, match="IPv4"):
         run_acceptance(base_url="http://test", ip="2001:db8::1")
+
+
+def test_acceptance_requires_workflow_trace():
+    data = payload()
+    data["workflow_trace"] = []
+    with client_for(data) as client:
+        with pytest.raises(RuntimeError, match="工作流轨迹"):
+            run_acceptance(base_url="http://test", ip="192.0.2.10", client=client)

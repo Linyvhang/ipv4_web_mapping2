@@ -113,6 +113,7 @@ def test_chat_response_serializes_tool_trace_and_evidence() -> None:
     assert payload["evidence"][0]["port"] == 22
     assert payload["model_provider"] == "rules"
     assert payload["fallback_used"] is False
+    assert payload["workflow_trace"][0]["node"] == "understand_question"
     assert payload["workflow_trace"][0]["duration_ms"] == 12.5
 
 
