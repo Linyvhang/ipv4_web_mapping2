@@ -12,6 +12,11 @@ from .single_ip_graph import (
     initial_state,
 )
 from .chat_agent_state import ChatAgentState, initial_chat_state
+from .chat_understanding import (
+    ChatRequestValidator,
+    QuestionUnderstandingProvider,
+    RuleBasedQuestionUnderstandingProvider,
+)
 
 __all__ = [
     "AssetNotFoundError",
@@ -24,5 +29,8 @@ __all__ = [
     "initial_state",
     "ChatAgentState",
     "initial_chat_state",
+    "ChatRequestValidator",
+    "QuestionUnderstandingProvider",
+    "RuleBasedQuestionUnderstandingProvider",
 ]
 

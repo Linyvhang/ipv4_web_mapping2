@@ -32,6 +32,7 @@ AgentChatStatus = Literal[
     "failed",
 ]
 ToolCallStatus = Literal["pending", "success", "not_found", "failed", "denied"]
+RequestValidationStatus = Literal["valid", "invalid_request", "unsupported"]
 
 
 def validate_optional_ipv4(value: str | None) -> str | None:
@@ -73,6 +74,14 @@ class QuestionUnderstanding(SchemaModel):
     reason: str
 
     _validate_target_ip = field_validator("target_ip")(validate_optional_ipv4)
+
+
+class RequestValidation(SchemaModel):
+    """程序安全规则对问题理解结果的校验结论。"""
+
+    valid: bool
+    status: RequestValidationStatus
+    error: str | None = None
 
 
 class ToolCallRecord(SchemaModel):
