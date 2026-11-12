@@ -30,6 +30,21 @@ HTTP 错误、超时、空输出、截断和结构校验失败会显示可读错
 DeepSeek 任一步出现网络、结构或安全校验错误后，本轮剩余步骤使用规则理解器和模板回答，
 API 响应中的 `fallback_used` 会变为 `true`，页面显示“已安全降级”。
 
+## 真实端到端验收
+
+保持数据库隧道和真实 API 运行后，可使用下面的命令重复验收：
+
+```powershell
+python -m agent_service.scripts.verify_chat_e2e --base-url http://127.0.0.1:8002 --ip 1.2.163.154
+```
+
+脚本会校验目标 IP、响应状态、模型来源、降级状态和白名单工具轨迹；不会读取或输出
+`.env` 中的数据库密码和 API Key。真实请求会消耗少量模型 Token。
+
+2026-11-12 已使用真实扫描数据完成一次验收：DeepSeek 识别为扫描数据查询，选择
+`get_ip_scan_data`，返回 22/SSH 和 80/Web 两项服务证据；响应中
+`model_provider=deepseek`、`fallback_used=false`。
+
 当前数据库对 IP + scan_round 有唯一约束：匹配模型/Prompt 的结果继续复用；
 模型或 Prompt 不匹配返回 HTTP 409，不覆盖历史 Mock 结果。
 多模型并存需要后续迁移表约束；当前验收使用新 IP。

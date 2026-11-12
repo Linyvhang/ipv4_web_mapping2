@@ -175,6 +175,12 @@ python -m pytest agent_service/tests/test_analysis_validation.py -v
 python -m pytest agent_service/tests -q
 ```
 
+真实数据库 API 启动后，可以重复执行自然语言 Agent 端到端验收：
+
+```powershell
+python -m agent_service.scripts.verify_chat_e2e --base-url http://127.0.0.1:8002 --ip 数据库中已有的IP
+```
+
 错误示例：
 
 ```powershell
