@@ -17,6 +17,7 @@ from .chat_understanding import (
     QuestionUnderstandingProvider,
     RuleBasedQuestionUnderstandingProvider,
 )
+from .chat_agent_graph import build_chat_agent_graph, chat_response_from_state
 
 __all__ = [
     "AssetNotFoundError",
@@ -32,5 +33,7 @@ __all__ = [
     "ChatRequestValidator",
     "QuestionUnderstandingProvider",
     "RuleBasedQuestionUnderstandingProvider",
+    "build_chat_agent_graph",
+    "chat_response_from_state",
 ]
 

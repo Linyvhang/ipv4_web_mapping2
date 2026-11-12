@@ -14,6 +14,7 @@ def test_initial_chat_state_contains_safe_defaults() -> None:
         "question": "查询 192.0.2.10 的服务",
         "scan_round": 3,
         "intent": None,
+        "understanding": None,
         "target_ip": None,
         "explicit_analysis_request": False,
         "request_error": None,
@@ -22,6 +23,7 @@ def test_initial_chat_state_contains_safe_defaults() -> None:
         "tool_history": [],
         "tool_call_count": 0,
         "max_tool_calls": 2,
+        "continue_tool_loop": False,
         "answer": None,
         "evidence": [],
         "limitations": [

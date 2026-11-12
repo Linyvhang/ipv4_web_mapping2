@@ -10,6 +10,7 @@ from agent_service.models.chat_schema import (
     AgentEvidence,
     AgentIntent,
     AgentToolName,
+    QuestionUnderstanding,
     ToolCallRecord,
 )
 
@@ -26,6 +27,7 @@ class ChatAgentState(TypedDict):
     question: str
     scan_round: int | None
     intent: AgentIntent | None
+    understanding: QuestionUnderstanding | None
     target_ip: str | None
     explicit_analysis_request: bool
     request_error: str | None
@@ -34,6 +36,7 @@ class ChatAgentState(TypedDict):
     tool_history: list[ToolCallRecord]
     tool_call_count: int
     max_tool_calls: int
+    continue_tool_loop: bool
     answer: str | None
     evidence: list[AgentEvidence]
     limitations: list[str]
@@ -52,6 +55,7 @@ def initial_chat_state(
         "question": request.question,
         "scan_round": request.scan_round,
         "intent": None,
+        "understanding": None,
         "target_ip": None,
         "explicit_analysis_request": False,
         "request_error": None,
@@ -60,6 +64,7 @@ def initial_chat_state(
         "tool_history": [],
         "tool_call_count": 0,
         "max_tool_calls": 2,
+        "continue_tool_loop": False,
         "answer": None,
         "evidence": [],
         "limitations": list(DEFAULT_CHAT_LIMITATIONS),
