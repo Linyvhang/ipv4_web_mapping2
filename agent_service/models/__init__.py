@@ -14,6 +14,18 @@ from .analysis_schema import (
     ServiceFingerprint,
 )
 from .input_schema import AssetAnalysisInput, L3ServiceInput
+from .chat_schema import (
+    AgentChatRequest,
+    AgentChatResponse,
+    AgentChatStatus,
+    AgentEvidence,
+    AgentIntent,
+    AgentToolName,
+    QuestionUnderstanding,
+    ToolCallRecord,
+    ToolCallStatus,
+    ToolUseSummary,
+)
 
 __all__ = [
     "AnalysisMetadata",
@@ -29,5 +41,15 @@ __all__ = [
     "ServiceFingerprint",
     "AssetAnalysisInput",
     "L3ServiceInput",
+    "AgentChatRequest",
+    "AgentChatResponse",
+    "AgentChatStatus",
+    "AgentEvidence",
+    "AgentIntent",
+    "AgentToolName",
+    "QuestionUnderstanding",
+    "ToolCallRecord",
+    "ToolCallStatus",
+    "ToolUseSummary",
 ]
 

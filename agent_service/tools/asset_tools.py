@@ -14,19 +14,13 @@ from typing import Any, Literal
 from pydantic import Field, field_validator
 
 from agent_service.models.analysis_schema import AnalysisResult, SchemaModel
+from agent_service.models.chat_schema import AgentToolName
 from agent_service.services.ip_analysis import AssetNotFoundError
 from agent_service.services.single_ip_graph import initial_state
 from agent_service.services.task_orchestrator import (
     SingleIPExecution,
     SingleIPTaskOrchestrator,
 )
-
-
-AgentToolName = Literal[
-    "get_ip_scan_data",
-    "get_ip_analysis_result",
-    "create_ip_analysis",
-]
 
 
 class IPLookupInput(SchemaModel):
