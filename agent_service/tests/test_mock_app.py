@@ -1,7 +1,7 @@
 from agent_service.api import create_mock_app
 
 
-def test_mock_app_exposes_single_ip_endpoint() -> None:
+def test_mock_app_exposes_analysis_and_chat_endpoints() -> None:
     app = create_mock_app()
     route_paths = {
         route.path
@@ -12,4 +12,5 @@ def test_mock_app_exposes_single_ip_endpoint() -> None:
         if hasattr(route, "path")
     }
     assert "/analysis/ip" in route_paths
+    assert "/agent/chat" in route_paths
 

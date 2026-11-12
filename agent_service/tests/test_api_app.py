@@ -6,7 +6,7 @@ class FakeOrchestrator:
         raise AssertionError("应用装配测试不应执行分析")
 
 
-def test_create_app_mounts_single_ip_route_and_metadata() -> None:
+def test_create_app_mounts_analysis_and_chat_routes_and_metadata() -> None:
     app = create_app(FakeOrchestrator())
     paths = {
         route.path
@@ -18,7 +18,10 @@ def test_create_app_mounts_single_ip_route_and_metadata() -> None:
     }
 
     assert "/analysis/ip" in paths
+    assert "/agent/chat" in paths
     assert app.title == "IPv4 Web Mapping Agent API"
     assert app.version == "0.1.0"
     assert app.state.single_ip_graph is not None
+    assert app.state.agent_tool_registry is not None
+    assert app.state.chat_agent_graph is not None
 

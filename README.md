@@ -130,6 +130,18 @@ python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8001
 
 `scan_round` 为 `null` 时查询该 IP 的最近扫描批次。只能分析数据库中已经存在的 IP。
 
+自然语言问答可以在 Swagger 中使用 `POST /agent/chat`：
+
+```json
+{
+  "question": "查询 1.2.3.4 开放了哪些服务",
+  "scan_round": null
+}
+```
+
+当前接口使用规则型问题理解和模板回答，返回识别意图、白名单工具轨迹、结构化证据
+和数据限制。创建分析任务必须使用“帮我分析 1.2.3.4”等明确表达。
+
 ## 6. 切换到 DeepSeek
 
 在 `.env` 中修改或增加：

@@ -10,12 +10,24 @@ from fastapi import FastAPI
 
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
 from agent_service.services.single_ip_graph import build_single_ip_graph
+from agent_service.services.chat_agent_graph import build_chat_agent_graph
+from agent_service.services.chat_understanding import (
+    ChatRequestValidator,
+    QuestionUnderstandingProvider,
+    RuleBasedQuestionUnderstandingProvider,
+)
+from agent_service.tools.asset_tools import AssetAgentToolRegistry
 
+from .chat_routes import create_chat_agent_router
 from .preview import create_preview_router
 from .routes import create_single_ip_router
 
 
-def create_app(orchestrator: SingleIPTaskOrchestrator) -> FastAPI:
+def create_app(
+    orchestrator: SingleIPTaskOrchestrator,
+    *,
+    understanding_provider: QuestionUnderstandingProvider | None = None,
+) -> FastAPI:
     """创建已连接单 IP 编排 Service 的 FastAPI 应用。"""
 
     app = FastAPI(
@@ -24,8 +36,19 @@ def create_app(orchestrator: SingleIPTaskOrchestrator) -> FastAPI:
         description="基于已有扫描数据的被动资产分析接口",
     )
     graph = build_single_ip_graph(orchestrator)
+    tool_registry = AssetAgentToolRegistry(orchestrator=orchestrator, graph=graph)
+    chat_graph = build_chat_agent_graph(
+        understanding_provider=(
+            understanding_provider or RuleBasedQuestionUnderstandingProvider()
+        ),
+        request_validator=ChatRequestValidator(),
+        tool_registry=tool_registry,
+    )
     app.state.single_ip_graph = graph
+    app.state.agent_tool_registry = tool_registry
+    app.state.chat_agent_graph = chat_graph
     app.include_router(create_preview_router())
     app.include_router(create_single_ip_router(graph))
+    app.include_router(create_chat_agent_router(chat_graph))
     return app
 
