@@ -15,6 +15,7 @@ LangGraph 和大模型生成单 IP 资产画像、疑似风险、证据与处置
 - FastAPI、Swagger 和简易分析进度页面；
 - Agent 任务和分析结果持久化。
 - 白名单 Agent 工具层：扫描数据查询、已保存结果查询和受控分析任务创建。
+- Agent 可观测性：返回 LangGraph 节点顺序、耗时、决策、工具和安全降级原因。
 
 自然语言问答的意图、工具轨迹、证据、响应 Schema 和 LangGraph 初始 State 已完成。
 自然语言 Agent 第一版 LangGraph 已完成，支持规则模式和 DeepSeek 模式。DeepSeek 负责
@@ -144,6 +145,7 @@ python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8001
 接口返回识别意图、模型来源、是否发生安全降级、白名单工具轨迹、结构化证据和数据限制。
 创建分析任务必须使用“帮我分析 1.2.3.4”等明确表达。
 也可以打开 `/chat` 使用简洁对话页面，并在右侧查看本轮工具调用和证据。
+页面中的“LangGraph 工作流”会按执行顺序展示节点状态与耗时；黄色节点表示已安全降级。
 
 ## 6. 切换到 DeepSeek
 

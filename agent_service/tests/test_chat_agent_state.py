@@ -34,6 +34,7 @@ def test_initial_chat_state_contains_safe_defaults() -> None:
         "model_provider": "rules",
         "fallback_used": False,
         "fallback_steps": [],
+        "workflow_trace": [],
     }
 
 
@@ -43,9 +44,11 @@ def test_initial_states_do_not_share_mutable_collections() -> None:
 
     first["tool_arguments"]["ip"] = "192.0.2.10"
     first["limitations"].append("额外限制")
+    first["workflow_trace"].append("trace")
 
     assert second["tool_arguments"] == {}
     assert second["limitations"] == DEFAULT_CHAT_LIMITATIONS
+    assert second["workflow_trace"] == []
 
 
 def test_initial_state_rejects_blank_question_and_invalid_round() -> None:

@@ -6,7 +6,7 @@
 作为后续数据模型、LangGraph、API 与可视化开发的共同依据。
 
 当前状态：**设计、数据模型、安全校验、多节点 LangGraph、`POST /agent/chat` API、
-工具轨迹预览页和 DeepSeek 自然语言能力均已完成**。
+工具轨迹预览页、DeepSeek 自然语言能力和节点级可观测性均已完成**。
 
 ## 2. 角色定位
 
@@ -201,6 +201,7 @@ max_tool_calls           最大工具调用次数，固定为 2
 answer                   最终自然语言回答
 evidence                 供 API/可视化使用的结构化证据
 limitations              数据和能力限制
+workflow_trace           节点顺序、状态、耗时、工具和降级原因
 ```
 
 State 保存原始事实和结构化结果，不保存已经拼接完成的 Prompt。
@@ -240,6 +241,17 @@ State 保存原始事实和结构化结果，不保存已经拼接完成的 Prom
   "status": "success",
   "model_provider": "deepseek",
   "fallback_used": false,
+  "workflow_trace": [
+    {
+      "sequence": 1,
+      "node": "understand_question",
+      "status": "success",
+      "detail": "识别意图：query_scan_data",
+      "duration_ms": 842.31,
+      "tool_name": null,
+      "fallback_reason": null
+    }
+  ],
   "tools_used": [
     {
       "name": "get_ip_scan_data",
@@ -263,6 +275,8 @@ State 保存原始事实和结构化结果，不保存已经拼接完成的 Prom
 ```
 
 自然语言回答用于阅读；`tools_used` 和 `evidence` 用于审计、测试和可视化。
+`workflow_trace` 用于观察 LangGraph 的真实执行路径与各节点耗时，不包含密钥、数据库密码
+或模型原始思维过程。
 
 ## 11. 异常与分支处理
 

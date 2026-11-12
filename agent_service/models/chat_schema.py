@@ -33,6 +33,7 @@ AgentChatStatus = Literal[
 ]
 ToolCallStatus = Literal["pending", "success", "not_found", "failed", "denied"]
 RequestValidationStatus = Literal["valid", "invalid_request", "unsupported"]
+WorkflowStepStatus = Literal["success", "fallback", "failed", "denied", "not_found"]
 
 
 def validate_optional_ipv4(value: str | None) -> str | None:
@@ -122,6 +123,18 @@ class AgentEvidence(SchemaModel):
     confidence: Confidence | None = None
 
 
+class AgentWorkflowStep(SchemaModel):
+    """一个可安全公开的 LangGraph 节点执行轨迹。"""
+
+    sequence: int = Field(ge=1)
+    node: str = Field(min_length=1, max_length=80)
+    status: WorkflowStepStatus
+    detail: str = Field(min_length=1, max_length=500)
+    duration_ms: float = Field(ge=0)
+    tool_name: AgentToolName | None = None
+    fallback_reason: str | None = Field(default=None, max_length=300)
+
+
 class AgentChatResponse(SchemaModel):
     """自然语言 Agent 的稳定输出契约。"""
 
@@ -132,6 +145,7 @@ class AgentChatResponse(SchemaModel):
     status: AgentChatStatus
     model_provider: str = "rules"
     fallback_used: bool = False
+    workflow_trace: list[AgentWorkflowStep] = Field(default_factory=list)
     tools_used: list[ToolUseSummary] = Field(default_factory=list)
     evidence: list[AgentEvidence] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)

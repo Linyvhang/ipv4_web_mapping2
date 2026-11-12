@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from time import perf_counter
 from typing import Any
 
 from pydantic import ValidationError
@@ -9,6 +10,7 @@ from pydantic import ValidationError
 from agent_service.models.chat_schema import (
     AgentChatResponse,
     AgentEvidence,
+    AgentWorkflowStep,
     QuestionUnderstanding,
     ToolCallRecord,
     ToolUseSummary,
@@ -133,6 +135,7 @@ def chat_response_from_state(state: ChatAgentState) -> AgentChatResponse:
         status=state.get("status", "failed"),
         model_provider=state.get("model_provider", "rules"),
         fallback_used=state.get("fallback_used", False),
+        workflow_trace=state.get("workflow_trace", []),
         tools_used=[
             ToolUseSummary(name=record.name, status=record.status, message=record.message)
             for record in state.get("tool_history", [])
@@ -164,10 +167,37 @@ def build_chat_agent_graph(
             "fallback_steps": [*state.get("fallback_steps", []), step],
         }
 
+    def traced(
+        state: ChatAgentState,
+        update: dict[str, Any],
+        *,
+        node: str,
+        status: str,
+        detail: str,
+        started: float,
+        tool_name: str | None = None,
+        fallback_reason: str | None = None,
+    ) -> dict[str, Any]:
+        trace = AgentWorkflowStep(
+            sequence=len(state.get("workflow_trace", [])) + 1,
+            node=node,
+            status=status,
+            detail=detail,
+            duration_ms=round(max((perf_counter() - started) * 1000, 0), 2),
+            tool_name=tool_name,
+            fallback_reason=fallback_reason,
+        )
+        return {
+            **update,
+            "workflow_trace": [*state.get("workflow_trace", []), trace],
+        }
+
     async def understand_question_node(state: ChatAgentState) -> dict[str, Any]:
+        started = perf_counter()
         update: dict[str, Any] = {
             "model_provider": understanding_provider.provider_name,
         }
+        fallback_reason = None
         try:
             understanding = await understanding_provider.understand(state["question"])
         except ModelProviderError:
@@ -177,21 +207,45 @@ def build_chat_agent_graph(
                 state["question"]
             )
             update.update(fallback_update(state, "understand_question"))
-        return {
-            **update,
-            "understanding": understanding,
-            "intent": understanding.intent,
-            "target_ip": understanding.target_ip,
-            "explicit_analysis_request": understanding.explicit_analysis_request,
-        }
+            fallback_reason = "模型问题理解失败，已改用规则理解器"
+        return traced(
+            state,
+            {
+                **update,
+                "understanding": understanding,
+                "intent": understanding.intent,
+                "target_ip": understanding.target_ip,
+                "explicit_analysis_request": understanding.explicit_analysis_request,
+            },
+            node="understand_question",
+            status="fallback" if fallback_reason else "success",
+            detail=f"识别意图：{understanding.intent}",
+            started=started,
+            fallback_reason=fallback_reason,
+        )
 
     async def validate_request_node(state: ChatAgentState) -> dict[str, Any]:
+        started = perf_counter()
         understanding = state.get("understanding")
         if understanding is None:  # pragma: no cover - 固定边保证
-            return {"request_error": "问题理解结果缺失", "status": "failed"}
+            return traced(
+                state,
+                {"request_error": "问题理解结果缺失", "status": "failed"},
+                node="validate_request",
+                status="failed",
+                detail="问题理解结果缺失",
+                started=started,
+            )
         validation = request_validator.validate(state["question"], understanding)
         if validation.valid:
-            return {"request_error": None, "status": "pending"}
+            return traced(
+                state,
+                {"request_error": None, "status": "pending"},
+                node="validate_request",
+                status="success",
+                detail="IP、权限和请求范围校验通过",
+                started=started,
+            )
         if fallback_understanding_provider is not None and not state.get("fallback_used"):
             fallback = await fallback_understanding_provider.understand(state["question"])
             fallback_validation = request_validator.validate(state["question"], fallback)
@@ -203,16 +257,36 @@ def build_chat_agent_graph(
                 "explicit_analysis_request": fallback.explicit_analysis_request,
             }
             if fallback_validation.valid:
-                return {**update, "request_error": None, "status": "pending"}
-            return {
-                **update,
-                "request_error": fallback_validation.error,
-                "status": fallback_validation.status,
-            }
-        return {
-            "request_error": validation.error,
-            "status": validation.status,
-        }
+                return traced(
+                    state,
+                    {**update, "request_error": None, "status": "pending"},
+                    node="validate_request",
+                    status="fallback",
+                    detail="规则理解结果通过程序校验",
+                    started=started,
+                    fallback_reason="模型理解结果未通过程序安全校验",
+                )
+            return traced(
+                state,
+                {
+                    **update,
+                    "request_error": fallback_validation.error,
+                    "status": fallback_validation.status,
+                },
+                node="validate_request",
+                status="fallback",
+                detail=fallback_validation.error or "请求未通过校验",
+                started=started,
+                fallback_reason="模型理解结果未通过程序安全校验",
+            )
+        return traced(
+            state,
+            {"request_error": validation.error, "status": validation.status},
+            node="validate_request",
+            status="denied" if validation.status == "unsupported" else "failed",
+            detail=validation.error or "请求未通过校验",
+            started=started,
+        )
 
     def route_after_validation(state: ChatAgentState) -> str:
         if state.get("status") == "unsupported":
@@ -222,12 +296,20 @@ def build_chat_agent_graph(
         return "valid"
 
     def reject_unsupported_node(state: ChatAgentState) -> dict[str, Any]:
-        return {
-            "answer": state.get("request_error")
-            or "该请求不在只读资产分析能力范围内。",
-            "status": "unsupported",
-            "evidence": [],
-        }
+        started = perf_counter()
+        return traced(
+            state,
+            {
+                "answer": state.get("request_error")
+                or "该请求不在只读资产分析能力范围内。",
+                "status": "unsupported",
+                "evidence": [],
+            },
+            node="reject_unsupported_request",
+            status="denied",
+            detail="已拒绝超出只读分析范围的请求",
+            started=started,
+        )
 
     def deterministic_tool(state: ChatAgentState) -> str:
         intent = state.get("intent")
@@ -250,15 +332,24 @@ def build_chat_agent_graph(
         return arguments
 
     async def select_tool_node(state: ChatAgentState) -> dict[str, Any]:
+        started = perf_counter()
         if state["tool_call_count"] >= state["max_tool_calls"]:
-            return {
-                "selected_tool": None,
-                "request_error": "已达到最大工具调用次数",
-                "continue_tool_loop": False,
-            }
+            return traced(
+                state,
+                {
+                    "selected_tool": None,
+                    "request_error": "已达到最大工具调用次数",
+                    "continue_tool_loop": False,
+                },
+                node="select_tool",
+                status="denied",
+                detail="已达到最大工具调用次数",
+                started=started,
+            )
         used_tools = {record.name for record in state["tool_history"]}
         update: dict[str, Any] = {}
         selected = deterministic_tool(state)
+        fallback_reason = None
         if tool_selection_provider is not None and not state.get("fallback_used"):
             try:
                 choice = await tool_selection_provider.select_tool(
@@ -283,14 +374,25 @@ def build_chat_agent_graph(
             except (ModelProviderError, ValidationError, ValueError):
                 selected = deterministic_tool(state)
                 update.update(fallback_update(state, "select_tool"))
-        return {
-            **update,
-            "selected_tool": selected,
-            "tool_arguments": canonical_arguments(state, selected),
-            "continue_tool_loop": False,
-        }
+                fallback_reason = "模型工具决策失败或越权，已使用程序规则"
+        return traced(
+            state,
+            {
+                **update,
+                "selected_tool": selected,
+                "tool_arguments": canonical_arguments(state, selected),
+                "continue_tool_loop": False,
+            },
+            node="select_tool",
+            status="fallback" if fallback_reason else "success",
+            detail=f"选择白名单工具：{selected}",
+            started=started,
+            tool_name=selected,
+            fallback_reason=fallback_reason,
+        )
 
     async def execute_tool_node(state: ChatAgentState) -> dict[str, Any]:
+        started = perf_counter()
         selected = state.get("selected_tool")
         sequence = state["tool_call_count"] + 1
         if selected is None:
@@ -301,10 +403,18 @@ def build_chat_agent_graph(
                 status="failed",
                 message="没有可执行的工具",
             )
-            return {
-                "tool_history": [*state["tool_history"], record],
-                "tool_call_count": sequence,
-            }
+            return traced(
+                state,
+                {
+                    "tool_history": [*state["tool_history"], record],
+                    "tool_call_count": sequence,
+                },
+                node="execute_tool",
+                status="failed",
+                detail="没有可执行的工具",
+                started=started,
+                tool_name=record.name,
+            )
         try:
             result = await tool_registry.execute(
                 selected,
@@ -335,12 +445,30 @@ def build_chat_agent_graph(
                 status="failed",
                 message=str(exc),
             )
-        return {
-            "tool_history": [*state["tool_history"], record],
-            "tool_call_count": sequence,
-        }
+        trace_status = (
+            "success"
+            if record.status == "success"
+            else "not_found"
+            if record.status == "not_found"
+            else "denied"
+            if record.status == "denied"
+            else "failed"
+        )
+        return traced(
+            state,
+            {
+                "tool_history": [*state["tool_history"], record],
+                "tool_call_count": sequence,
+            },
+            node="execute_tool",
+            status=trace_status,
+            detail=record.message or f"已执行 {record.name}",
+            started=started,
+            tool_name=record.name,
+        )
 
     def evaluate_result_node(state: ChatAgentState) -> dict[str, Any]:
+        started = perf_counter()
         last = state["tool_history"][-1]
         if last.status == "success":
             used_tools = {record.name for record in state["tool_history"]}
@@ -349,26 +477,65 @@ def build_chat_agent_graph(
                 and not {"get_ip_analysis_result", "get_ip_scan_data"}.issubset(used_tools)
                 and state["tool_call_count"] < state["max_tool_calls"]
             )
-            return {
-                "status": "pending" if should_continue else "success",
-                "continue_tool_loop": should_continue,
-            }
+            return traced(
+                state,
+                {
+                    "status": "pending" if should_continue else "success",
+                    "continue_tool_loop": should_continue,
+                },
+                node="evaluate_result",
+                status="success",
+                detail=("证据不足，继续选择工具" if should_continue else "工具结果足以回答"),
+                started=started,
+                tool_name=last.name,
+            )
         if last.status == "not_found":
-            return {"status": "not_found", "continue_tool_loop": False}
-        return {"status": "failed", "continue_tool_loop": False}
+            return traced(
+                state,
+                {"status": "not_found", "continue_tool_loop": False},
+                node="evaluate_result",
+                status="not_found",
+                detail="工具未找到对应数据",
+                started=started,
+                tool_name=last.name,
+            )
+        return traced(
+            state,
+            {"status": "failed", "continue_tool_loop": False},
+            node="evaluate_result",
+            status="failed",
+            detail="工具结果不可用于回答",
+            started=started,
+            tool_name=last.name,
+        )
 
     def route_after_evaluation(state: ChatAgentState) -> str:
         return "continue" if state.get("continue_tool_loop") else "answer"
 
     async def compose_answer_node(state: ChatAgentState) -> dict[str, Any]:
+        started = perf_counter()
         if state.get("request_error") and not state["tool_history"]:
-            return {
-                "answer": state["request_error"],
-                "evidence": [],
-                "status": state.get("status", "invalid_request"),
-            }
+            return traced(
+                state,
+                {
+                    "answer": state["request_error"],
+                    "evidence": [],
+                    "status": state.get("status", "invalid_request"),
+                },
+                node="compose_answer",
+                status="failed",
+                detail="根据请求校验结果生成说明",
+                started=started,
+            )
         if not state["tool_history"]:
-            return {"answer": "当前没有可用的工具结果。", "evidence": [], "status": "failed"}
+            return traced(
+                state,
+                {"answer": "当前没有可用的工具结果。", "evidence": [], "status": "failed"},
+                node="compose_answer",
+                status="failed",
+                detail="没有可用于回答的工具结果",
+                started=started,
+            )
         last = state["tool_history"][-1]
         if last.status == "not_found":
             if last.name == "get_ip_analysis_result":
@@ -378,15 +545,32 @@ def build_chat_agent_graph(
                 )
             else:
                 answer = f"未找到 {state.get('target_ip')} 的已有扫描数据。"
-            return {"answer": answer, "evidence": [], "status": "not_found"}
+            return traced(
+                state,
+                {"answer": answer, "evidence": [], "status": "not_found"},
+                node="compose_answer",
+                status="not_found",
+                detail="生成未找到数据的说明",
+                started=started,
+                tool_name=last.name,
+            )
         if last.status in {"failed", "denied"}:
-            return {
-                "answer": last.message or "工具执行失败。",
-                "evidence": [],
-                "status": "failed",
-            }
+            return traced(
+                state,
+                {
+                    "answer": last.message or "工具执行失败。",
+                    "evidence": [],
+                    "status": "failed",
+                },
+                node="compose_answer",
+                status="failed",
+                detail="根据工具错误生成说明",
+                started=started,
+                tool_name=last.name,
+            )
         answer, evidence = _compose_success_answer(state)
         update: dict[str, Any] = {}
+        fallback_reason = None
         if answer_provider is not None and not state.get("fallback_used"):
             try:
                 answer = await answer_provider.generate_answer(
@@ -400,12 +584,21 @@ def build_chat_agent_graph(
                 )
             except ModelProviderError:
                 update.update(fallback_update(state, "compose_answer"))
-        return {
-            **update,
-            "answer": answer,
-            "evidence": evidence,
-            "status": "success",
-        }
+                fallback_reason = "模型回答生成失败，已使用程序模板"
+        return traced(
+            state,
+            {
+                **update,
+                "answer": answer,
+                "evidence": evidence,
+                "status": "success",
+            },
+            node="compose_answer",
+            status="fallback" if fallback_reason else "success",
+            detail=f"生成回答并引用 {len(evidence)} 条证据",
+            started=started,
+            fallback_reason=fallback_reason,
+        )
 
     graph = StateGraph(ChatAgentState)
     graph.add_node("understand_question", understand_question_node)

@@ -10,6 +10,7 @@ from agent_service.models.chat_schema import (
     AgentEvidence,
     AgentIntent,
     AgentToolName,
+    AgentWorkflowStep,
     QuestionUnderstanding,
     ToolCallRecord,
 )
@@ -44,6 +45,7 @@ class ChatAgentState(TypedDict):
     model_provider: str
     fallback_used: bool
     fallback_steps: list[str]
+    workflow_trace: list[AgentWorkflowStep]
 
 
 def initial_chat_state(
@@ -75,4 +77,5 @@ def initial_chat_state(
         "model_provider": "rules",
         "fallback_used": False,
         "fallback_steps": [],
+        "workflow_trace": [],
     }

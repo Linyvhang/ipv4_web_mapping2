@@ -16,6 +16,7 @@ def test_chat_preview_page_is_served() -> None:
     assert "网络资产分析助手" in response.text
     assert "工具调用轨迹" in response.text
     assert "引用证据" in response.text
+    assert "LangGraph 工作流" in response.text
 
 
 def test_chat_preview_calls_agent_api_and_uses_safe_text_rendering() -> None:
@@ -24,6 +25,8 @@ def test_chat_preview_calls_agent_api_and_uses_safe_text_rendering() -> None:
     assert "data.evidence" in CHAT_PREVIEW_HTML
     assert "data.model_provider" in CHAT_PREVIEW_HTML
     assert "data.fallback_used" in CHAT_PREVIEW_HTML
+    assert "data.workflow_trace" in CHAT_PREVIEW_HTML
+    assert "showWorkflow" in CHAT_PREVIEW_HTML
     assert "textContent" in CHAT_PREVIEW_HTML
     assert "innerHTML" not in CHAT_PREVIEW_HTML
 

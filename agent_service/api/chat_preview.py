@@ -74,6 +74,17 @@ CHAT_PREVIEW_HTML = """<!doctype html>
       background:var(--brand); box-shadow:0 0 0 4px var(--brand-soft); }
     .tool strong { display:block; font-size:13px; overflow-wrap:anywhere; }
     .tool small { color:var(--muted); }
+    .flow-step { display:grid; grid-template-columns:30px 1fr auto; gap:10px; align-items:start;
+      position:relative; padding:10px 0; }
+    .flow-step:not(:last-child)::after { content:""; position:absolute; left:14px; top:39px; bottom:-7px;
+      width:2px; background:#dbe5f2; }
+    .step-index { display:grid; place-items:center; width:30px; height:30px; border-radius:10px;
+      color:var(--brand-dark); background:var(--brand-soft); font-size:12px; font-weight:800; z-index:1; }
+    .flow-step.fallback .step-index { color:var(--warn); background:var(--warn-soft); }
+    .flow-step.failed .step-index,.flow-step.denied .step-index { color:var(--danger); background:#fff0ee; }
+    .step-body strong,.step-body small { display:block; overflow-wrap:anywhere; }
+    .step-body small { color:var(--muted); }
+    .duration { color:#718198; font-size:11px; white-space:nowrap; }
     .evidence { padding:11px 12px; margin-bottom:9px; border:1px solid var(--line); border-radius:11px; background:#f9fbfd; }
     .evidence strong { display:block; font-size:13px; }
     .evidence small { display:block; color:var(--muted); overflow-wrap:anywhere; }
@@ -120,6 +131,7 @@ CHAT_PREVIEW_HTML = """<!doctype html>
     <aside class="side" aria-label="Agent 执行详情">
       <section class="panel"><h2>本轮状态</h2><div id="meta" class="meta"><span class="badge">等待提问</span></div>
         <div id="limitations" class="limits">回答将明确展示数据范围和能力限制。</div></section>
+      <section class="panel"><h2>LangGraph 工作流</h2><div id="workflow" class="empty">回答后显示节点执行轨迹</div></section>
       <section class="panel"><h2>工具调用轨迹</h2><div id="tools" class="empty">尚未调用工具</div></section>
       <section class="panel"><h2>引用证据</h2><div id="evidence" class="empty">回答后显示结构化证据</div></section>
     </aside>
@@ -132,6 +144,7 @@ CHAT_PREVIEW_HTML = """<!doctype html>
   const sendButton = document.querySelector('#send');
   const messages = document.querySelector('#messages');
   const meta = document.querySelector('#meta');
+  const workflow = document.querySelector('#workflow');
   const tools = document.querySelector('#tools');
   const evidence = document.querySelector('#evidence');
   const limitations = document.querySelector('#limitations');
@@ -163,6 +176,19 @@ CHAT_PREVIEW_HTML = """<!doctype html>
       tools.append(box);
     }
   }
+  function showWorkflow(items) {
+    workflow.replaceChildren(); workflow.className = '';
+    if (!items.length) { workflow.className='empty'; workflow.textContent='本轮没有工作流轨迹'; return; }
+    for (const item of items) {
+      const row = textElement('div', '', `flow-step ${item.status}`);
+      const index = textElement('span', String(item.sequence), 'step-index');
+      const body = textElement('div', '', 'step-body');
+      const detail = item.fallback_reason ? `${item.detail}；${item.fallback_reason}` : item.detail;
+      body.append(textElement('strong', item.node), textElement('small', detail));
+      row.append(index, body, textElement('span', `${item.duration_ms.toFixed(2)} ms`, 'duration'));
+      workflow.append(row);
+    }
+  }
   function showEvidence(items) {
     evidence.replaceChildren(); evidence.className = '';
     if (!items.length) { evidence.className='empty'; evidence.textContent='本轮没有可引用的结构化证据'; return; }
@@ -191,7 +217,7 @@ CHAT_PREVIEW_HTML = """<!doctype html>
         body:JSON.stringify({question, scan_round:round ? Number(round) : null})});
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || `请求失败（HTTP ${response.status}）`);
-      addMessage('assistant', data.answer); showMeta(data); showTools(data.tools_used || []);
+      addMessage('assistant', data.answer); showMeta(data); showWorkflow(data.workflow_trace || []); showTools(data.tools_used || []);
       showEvidence(data.evidence || []); showLimitations(data.limitations || []);
     } catch (error) {
       addMessage('assistant', `请求失败：${error.message || '未知错误'}`);

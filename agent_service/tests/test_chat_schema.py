@@ -5,6 +5,7 @@ from agent_service.models.chat_schema import (
     AgentChatRequest,
     AgentChatResponse,
     AgentEvidence,
+    AgentWorkflowStep,
     QuestionUnderstanding,
     ToolCallRecord,
     ToolUseSummary,
@@ -76,6 +77,15 @@ def test_chat_response_serializes_tool_trace_and_evidence() -> None:
         intent="query_scan_data",
         target_ip="192.0.2.10",
         status="success",
+        workflow_trace=[
+            AgentWorkflowStep(
+                sequence=1,
+                node="understand_question",
+                status="success",
+                detail="识别意图：query_scan_data",
+                duration_ms=12.5,
+            )
+        ],
         tools_used=[
             ToolUseSummary(
                 name="get_ip_scan_data",
@@ -103,6 +113,27 @@ def test_chat_response_serializes_tool_trace_and_evidence() -> None:
     assert payload["evidence"][0]["port"] == 22
     assert payload["model_provider"] == "rules"
     assert payload["fallback_used"] is False
+    assert payload["workflow_trace"][0]["duration_ms"] == 12.5
+
+
+def test_workflow_step_rejects_invalid_duration_and_tool() -> None:
+    with pytest.raises(ValidationError):
+        AgentWorkflowStep(
+            sequence=1,
+            node="execute_tool",
+            status="success",
+            detail="执行工具",
+            duration_ms=-1,
+        )
+    with pytest.raises(ValidationError):
+        AgentWorkflowStep(
+            sequence=1,
+            node="execute_tool",
+            status="success",
+            detail="执行工具",
+            duration_ms=1,
+            tool_name="run_sql",
+        )
 
 
 def test_chat_models_forbid_unknown_fields() -> None:

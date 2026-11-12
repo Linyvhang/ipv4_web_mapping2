@@ -204,6 +204,16 @@ async def test_scan_question_selects_scan_tool_and_returns_evidence() -> None:
     assert "22/tcp ssh" in response.answer
     assert response.evidence[0].product == "OpenSSH"
     assert [call[0] for call in registry.calls] == ["get_ip_scan_data"]
+    assert [step.node for step in response.workflow_trace] == [
+        "understand_question",
+        "validate_request",
+        "select_tool",
+        "execute_tool",
+        "evaluate_result",
+        "compose_answer",
+    ]
+    assert [step.sequence for step in response.workflow_trace] == list(range(1, 7))
+    assert all(step.duration_ms >= 0 for step in response.workflow_trace)
 
 
 @pytest.mark.asyncio
@@ -320,6 +330,11 @@ async def test_deepseek_failure_uses_rules_and_template_for_rest_of_turn() -> No
     assert response.fallback_used is True
     assert state["fallback_steps"] == ["understand_question"]
     assert provider.calls == ["understand"]
+    fallback_step = next(
+        step for step in response.workflow_trace if step.node == "understand_question"
+    )
+    assert fallback_step.status == "fallback"
+    assert "规则理解器" in fallback_step.fallback_reason
 
 
 @pytest.mark.asyncio

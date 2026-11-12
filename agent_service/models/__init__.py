@@ -22,12 +22,14 @@ from .chat_schema import (
     AgentIntent,
     AgentToolName,
     AgentToolSelection,
+    AgentWorkflowStep,
     QuestionUnderstanding,
     RequestValidation,
     RequestValidationStatus,
     ToolCallRecord,
     ToolCallStatus,
     ToolUseSummary,
+    WorkflowStepStatus,
 )
 
 __all__ = [
@@ -51,11 +53,13 @@ __all__ = [
     "AgentIntent",
     "AgentToolName",
     "AgentToolSelection",
+    "AgentWorkflowStep",
     "QuestionUnderstanding",
     "RequestValidation",
     "RequestValidationStatus",
     "ToolCallRecord",
     "ToolCallStatus",
     "ToolUseSummary",
+    "WorkflowStepStatus",
 ]
 
