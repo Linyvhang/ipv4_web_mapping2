@@ -14,6 +14,8 @@ def test_api_contract_documents_all_visualization_routes() -> None:
         "POST /analysis/batch",
         "GET /analysis/tasks/{task_id}",
         "GET /analysis/tasks/{task_id}/result",
+        "POST /analysis/tasks/{task_id}/report",
+        "GET /analysis/tasks/{task_id}/report",
         "POST /agent/chat",
     ):
         assert route in content
@@ -21,6 +23,7 @@ def test_api_contract_documents_all_visualization_routes() -> None:
     assert "application/x-ndjson" in content
     assert "2～50" in content
     assert "不接受 CIDR" in content
+    assert "不调用大模型" in content
 
 
 def test_visualization_handoff_is_directly_actionable() -> None:

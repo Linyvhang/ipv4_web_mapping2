@@ -174,7 +174,37 @@ GET /analysis/tasks/{task_id}/result
 - 任务仍为 `pending` 或 `running`：`409`；
 - 失败子项的 `result` 为 `null`，并通过 `error_message` 说明原因。
 
-## 9. 自然语言 Agent
+## 9. 生成和查询批量统计报告
+
+批量任务完成后生成并保存确定性 JSON 报告：
+
+```http
+POST /analysis/tasks/{task_id}/report
+```
+
+查询已保存报告，不会重新生成：
+
+```http
+GET /analysis/tasks/{task_id}/report
+```
+
+响应中的 `reused` 表示是否复用了已有报告。`report` 包含：
+
+- `overview`：目标、成功、失败、有效结果、服务、风险和异常数量；
+- `asset_type_distribution`：资产类型分布；
+- `asset_risk_distribution`：按资产最高风险等级统计；
+- `finding_risk_distribution`：按疑似风险条目等级统计；
+- `products`：产品、版本、服务数量、资产数量和对应 IP；
+- `ports`：端口、传输协议、服务类型、数量和对应 IP；
+- `failed_items`：失败 IP 和错误原因；
+- `attention_items`：需重点关注的高风险资产；
+- `missing_result_ips`：子任务成功但找不到保存结果的异常 IP；
+- `limitation_distribution`：数据限制出现次数。
+
+报告由程序根据已保存结果统计，不调用大模型。任务未完成时 POST 返回 `409`，非批量任务
+返回 `400`，尚未生成报告时 GET 返回 `404`。
+
+## 10. 自然语言 Agent
 
 ```http
 POST /agent/chat
@@ -189,7 +219,7 @@ POST /agent/chat
 
 响应包含自然语言回答、意图、模型来源、工具轨迹、LangGraph 节点轨迹、证据和限制。
 
-## 10. 错误处理
+## 11. 错误处理
 
 统一错误结构：
 
@@ -207,7 +237,7 @@ POST /agent/chat
 | `500` | 服务内部错误 |
 | `502` | 模型服务调用失败 |
 
-## 11. 前端推荐调用方式
+## 12. 前端推荐调用方式
 
 - 扫描详情页面：`GET /assets/{ip}/scan-data`；
 - 已保存报告页面：`GET /assets/{ip}/analysis`；
@@ -216,6 +246,8 @@ POST /agent/chat
 - 创建有限批量分析：`POST /analysis/batch`，之后轮询任务状态；
 - 查询持久化任务：`GET /analysis/tasks/{task_id}`；
 - 获取任务下所有结果：`GET /analysis/tasks/{task_id}/result`；
+- 生成批量统计：`POST /analysis/tasks/{task_id}/report`；
+- 查询批量统计：`GET /analysis/tasks/{task_id}/report`；
 - 自然语言问答：`POST /agent/chat`。
 
 前后端分开启动时，推荐前端开发服务器配置 `/api` 代理；正式部署时由 Nginx 将前端与

@@ -70,6 +70,20 @@ def test_analysis_and_report_queries_use_unique_identifiers() -> None:
     assert "agent_report.id" in compile_mysql(report_query)
 
 
+def test_batch_report_query_is_scoped_to_task_type_and_format() -> None:
+    statement = AgentReportRepository.build_task_report_query(
+        10,
+        report_type=ReportType.BATCH,
+        report_format=ReportFormat.JSON,
+    )
+    compiled = compile_mysql(statement)
+
+    assert "agent_report.task_id" in compiled
+    assert "agent_report.report_type" in compiled
+    assert "agent_report.report_format" in compiled
+    assert "ORDER BY agent_report.id DESC" in compiled
+
+
 def test_task_item_result_query_is_scoped_and_ordered() -> None:
     statement = AgentAnalysisRepository.build_task_item_results_query([4, 5])
     compiled = compile_mysql(statement)

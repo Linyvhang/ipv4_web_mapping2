@@ -7,7 +7,9 @@ class FakeOrchestrator:
 
 
 def test_create_app_mounts_analysis_and_chat_routes_and_metadata() -> None:
-    app = create_app(FakeOrchestrator(), batch_service=object())
+    app = create_app(
+        FakeOrchestrator(), batch_service=object(), batch_report_service=object()
+    )
     paths = {
         route.path
         for included in app.routes
@@ -24,6 +26,7 @@ def test_create_app_mounts_analysis_and_chat_routes_and_metadata() -> None:
     assert "/analysis/tasks/{task_id}" in paths
     assert "/analysis/tasks/{task_id}/result" in paths
     assert "/analysis/batch" in paths
+    assert "/analysis/tasks/{task_id}/report" in paths
     assert "/chat" in paths
     assert app.title == "IPv4 Web Mapping Agent API"
     assert app.version == "0.1.0"

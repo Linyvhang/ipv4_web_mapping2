@@ -315,6 +315,24 @@ class AgentReportRepository:
     def build_report_query(report_id: int):
         return select(AgentReport).where(AgentReport.id == report_id)
 
+    @staticmethod
+    def build_task_report_query(
+        task_id: int,
+        *,
+        report_type: ReportType,
+        report_format: ReportFormat,
+    ):
+        return (
+            select(AgentReport)
+            .where(
+                AgentReport.task_id == task_id,
+                AgentReport.report_type == report_type,
+                AgentReport.report_format == report_format,
+            )
+            .order_by(AgentReport.id.desc())
+            .limit(1)
+        )
+
     async def create_report(
         self,
         *,
@@ -341,5 +359,21 @@ class AgentReportRepository:
 
     async def get_report(self, report_id: int) -> AgentReport | None:
         result = await self.session.execute(self.build_report_query(report_id))
+        return result.scalar_one_or_none()
+
+    async def get_task_report(
+        self,
+        task_id: int,
+        *,
+        report_type: ReportType,
+        report_format: ReportFormat,
+    ) -> AgentReport | None:
+        result = await self.session.execute(
+            self.build_task_report_query(
+                task_id,
+                report_type=report_type,
+                report_format=report_format,
+            )
+        )
         return result.scalar_one_or_none()
 

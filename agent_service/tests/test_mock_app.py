@@ -17,6 +17,7 @@ def test_mock_app_exposes_analysis_and_chat_endpoints() -> None:
     assert "/assets/{ip}/scan-data" in route_paths
     assert "/analysis/tasks/{task_id}" in route_paths
     assert "/analysis/batch" in route_paths
+    assert "/analysis/tasks/{task_id}/report" in route_paths
 
 
 def test_mock_app_supports_visualization_integration_flow() -> None:
@@ -54,6 +55,8 @@ def test_mock_app_supports_limited_batch_analysis_flow() -> None:
         task_id = created.json()["task_id"]
         task = client.get(f"/analysis/tasks/{task_id}")
         result = client.get(f"/analysis/tasks/{task_id}/result")
+        created_report = client.post(f"/analysis/tasks/{task_id}/report")
+        reused_report = client.get(f"/analysis/tasks/{task_id}/report")
 
     assert created.status_code == 202
     assert created.json()["target_count"] == 2
@@ -67,6 +70,12 @@ def test_mock_app_supports_limited_batch_analysis_flow() -> None:
     assert result.status_code == 200
     assert len(result.json()["items"]) == 2
     assert all(item["result"] is not None for item in result.json()["items"])
+    assert created_report.status_code == 200
+    assert created_report.json()["reused"] is False
+    assert created_report.json()["report"]["overview"]["analyzed_assets"] == 2
+    assert reused_report.status_code == 200
+    assert reused_report.json()["reused"] is True
+    assert reused_report.json()["report_id"] == created_report.json()["report_id"]
 
 
 def test_batch_request_validates_ipv4_and_minimum_count() -> None:

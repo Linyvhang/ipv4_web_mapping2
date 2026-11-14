@@ -17,6 +17,7 @@ from agent_service.providers.mock import MockModelProvider
 from agent_service.services.ip_analysis import SingleIPAnalysisService
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
 from agent_service.services.batch_analysis import BatchAnalysisService
+from agent_service.services.batch_report import BatchReportService
 
 
 class MockL3DataProvider:
@@ -132,12 +133,34 @@ class MockAnalysisRepository:
         return [result for result in self.results.values() if result.task_item_id in ids]
 
 
+class MockReportRepository:
+    def __init__(self) -> None:
+        self.reports: dict[int, SimpleNamespace] = {}
+
+    async def get_task_report(self, task_id, **_kwargs):
+        return self.reports.get(task_id)
+
+    async def create_report(self, **kwargs):
+        now = datetime(2026, 1, 1)
+        record = SimpleNamespace(
+            id=len(self.reports) + 1,
+            created_at=now,
+            updated_at=now,
+            **kwargs,
+        )
+        self.reports[kwargs["task_id"]] = record
+        return record
+
+
 class _MockSession:
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc, traceback):
         return False
+
+    async def commit(self):
+        return None
 
 
 class _MockSessionFactory:
@@ -167,6 +190,7 @@ def create_mock_app():
     )
     task_repository = MockTaskRepository()
     analysis_repository = MockAnalysisRepository()
+    report_repository = MockReportRepository()
     data_provider = MockL3DataProvider()
     orchestrator = SingleIPTaskOrchestrator(
         task_repository=task_repository,
@@ -181,5 +205,15 @@ def create_mock_app():
         task_repository_factory=lambda _session: task_repository,
         analysis_repository_factory=lambda _session: analysis_repository,
     )
-    return create_app(orchestrator, batch_service=batch_service)
+    batch_report_service = BatchReportService(
+        session_factory=_MockSessionFactory(),
+        task_repository_factory=lambda _session: task_repository,
+        analysis_repository_factory=lambda _session: analysis_repository,
+        report_repository_factory=lambda _session: report_repository,
+    )
+    return create_app(
+        orchestrator,
+        batch_service=batch_service,
+        batch_report_service=batch_report_service,
+    )
 
