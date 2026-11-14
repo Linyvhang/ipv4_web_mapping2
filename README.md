@@ -142,9 +142,10 @@ python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8001
 开发联调入口，不执行身份认证。首页概览读取最新扫描批次；没有 TTL、公网地理位置或足够历史
 批次时会明确返回限制，不生成模拟统计。
 
-合并首页当前提供 `GET /api/health`、`GET /api/bootstrap` 和只读 `GET /api/search`。
-平台级 `POST /api/report` 尚未接入，点击巡检报告时会显示接口不可用；单 IP、批量统计报告和
-自然语言 Agent 接口不受影响。
+合并首页当前提供 `GET /api/health`、`GET /api/bootstrap`、只读 `GET /api/search` 和
+`POST /api/report`。平台报告固定统计最新扫描批次中已经发现服务的全部资产；统计数字由
+代码生成，DeepSeek 只接收不含 IP、Banner 和原始指纹的汇总数据并撰写分析段落，调用失败
+时自动降级为模板报告。数据库只有单次扫描时不会展示虚构的“最近 7 天/30 天”报告。
 
 在 Swagger 中可以使用 `POST /analysis/ip`，请求示例：
 

@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Body, HTTPException
 from fastapi.responses import FileResponse
 
 from agent_service.models.platform_schema import (
     PlatformBootstrapResponse,
     PlatformHealthResponse,
+    PlatformReportRequest,
+    PlatformReportResponse,
     PlatformSearchResponse,
 )
 from agent_service.services.platform_dashboard import PlatformDashboardService
@@ -41,6 +43,14 @@ def create_platform_router(
             return await service.search(q, page)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @router.post("/api/report", response_model=PlatformReportResponse)
+    async def platform_report(
+        request: PlatformReportRequest = Body(default_factory=PlatformReportRequest),
+    ) -> PlatformReportResponse:
+        # 当前契约的两个字段都是受限 Literal；保留 request 以固定前后端接口。
+        del request
+        return await service.generate_report()
 
     if frontend_file is not None:
         resolved = frontend_file.resolve()

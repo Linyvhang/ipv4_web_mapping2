@@ -118,6 +118,7 @@ def _make_app() -> FastAPI:
     platform_service = PlatformDashboardService(
         session_factory=session_factory,
         db_name=db_name,
+        model_provider=model_provider,
     )
     frontend_file = Path(__file__).resolve().parents[2] / "前端" / "index.html"
     app = create_app(

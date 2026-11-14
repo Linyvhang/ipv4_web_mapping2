@@ -28,3 +28,9 @@ def test_integrated_frontend_loads_platform_bootstrap() -> None:
     assert "apiJson('/api/bootstrap')" in content
     assert "FastAPI · MySQL · LangGraph" in content
     assert "SQLite 自有数据库" not in content
+    assert "apiJson('/api/report'" in content
+    assert 'report_type:"comprehensive"' in content
+    assert 'scope:"latest_services"' in content
+    assert "授权网段 3 段" not in content
+    assert "授权网段白名单（3 段）" not in content
+    assert "最新扫描批次中已发现服务的全部资产" in content

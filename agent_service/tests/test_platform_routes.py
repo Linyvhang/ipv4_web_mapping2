@@ -12,7 +12,11 @@ from agent_service.models.platform_schema import (
     PlatformStats,
     PlatformTrend,
     PlatformSearchResponse,
+    PlatformReportResponse,
+    PlatformReportSection,
+    PlatformReportStatistics,
 )
+from datetime import UTC, datetime
 
 
 class FakePlatformService:
@@ -48,6 +52,29 @@ class FakePlatformService:
             raise ValueError("检索条件必须使用 key=value 格式")
         return PlatformSearchResponse(total=0, ms=0.1, rows=[], list=[])
 
+    async def generate_report(self):
+        return PlatformReportResponse(
+            scan_round=1,
+            generated_at=datetime.now(UTC),
+            engine="template",
+            sections=[PlatformReportSection(t="p", txt="测试报告", src="模板降级")],
+            statistics=PlatformReportStatistics(
+                host_count=0,
+                service_count=0,
+                tcp_count=0,
+                udp_count=0,
+                risk_counts={
+                    "critical": 0,
+                    "high": 0,
+                    "medium": 0,
+                    "low": 0,
+                    "info": 0,
+                    "unknown": 0,
+                },
+                top_ports=[],
+            ),
+        )
+
 
 def test_platform_router_serves_health_bootstrap_and_frontend(tmp_path: Path) -> None:
     frontend = tmp_path / "index.html"
@@ -59,6 +86,8 @@ def test_platform_router_serves_health_bootstrap_and_frontend(tmp_path: Path) ->
         health = client.get("/api/health")
         bootstrap = client.get("/api/bootstrap")
         search = client.get("/api/search", params={"q": "port=22", "page": 1})
+        report = client.post("/api/report", json={})
+        invalid_report = client.post("/api/report", json={"scope": "all_history"})
         invalid = client.get("/api/search", params={"q": "bad", "page": 1})
         invalid_page = client.get("/api/search", params={"page": 0})
         page = client.get("/")
@@ -69,6 +98,10 @@ def test_platform_router_serves_health_bootstrap_and_frontend(tmp_path: Path) ->
     assert bootstrap.json()["overview"]["host"] == 0
     assert search.status_code == 200
     assert search.json()["total"] == 0
+    assert report.status_code == 200
+    assert report.json()["engine"] == "template"
+    assert report.json()["scan_round"] == 1
+    assert invalid_report.status_code == 422
     assert invalid.status_code == 400
     assert invalid_page.status_code == 400
     assert page.status_code == 200

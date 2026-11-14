@@ -47,6 +47,26 @@ GET /api/search?q=port%3D22%20%26%26%20service%3Dopenssh&page=1
 多个条件使用 `&&`，每页 15 条；响应包含总数、查询耗时、当前页 `rows` 和全量命中 `list`。
 接口只解析固定白名单字段，不接受 SQL。语法错误返回 `400`。
 
+```http
+POST /api/report
+Content-Type: application/json
+```
+
+请求固定为最新扫描批次中已经发现服务的全部资产：
+
+```json
+{
+  "report_type": "comprehensive",
+  "scope": "latest_services"
+}
+```
+
+后端代码生成资产、服务、TCP/UDP、端口和风险等级统计；DeepSeek 只接收不含 IP、Banner
+和原始指纹的汇总数字，用于撰写执行摘要、风险观察和处置建议。模型不可用或返回不合规时，
+`engine` 为 `template` 并自动使用模板降级；成功时为 `llm`。响应中的 `sections` 可由前端
+直接按顺序展示，`statistics` 是不可由模型改写的代码统计结果。接口不触发扫描，也不生成
+“最近 7 天/30 天”等数据库当前无法支持的虚构趋势。
+
 ## 3. 查询原始扫描数据
 
 ```http

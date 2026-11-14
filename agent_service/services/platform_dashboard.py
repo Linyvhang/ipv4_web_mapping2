@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from datetime import date, datetime
+import json
+from datetime import UTC, date, datetime
 from ipaddress import IPv4Address, ip_network
 from time import perf_counter
 from typing import Any
@@ -22,8 +23,13 @@ from agent_service.models.platform_schema import (
     PlatformRiskSubnet,
     PlatformStats,
     PlatformSearchResponse,
+    PlatformReportNarrative,
+    PlatformReportResponse,
+    PlatformReportSection,
+    PlatformReportStatistics,
     PlatformTrend,
 )
+from agent_service.providers.base import ModelProvider, ModelProviderError
 
 
 RISK_ORDER = {"critical": 5, "high": 4, "medium": 3, "low": 2, "info": 1, "unknown": 0}
@@ -54,9 +60,16 @@ def _service_category(service_type: str) -> str:
 class PlatformDashboardService:
     """平台接口适配层；只执行读取和确定性聚合。"""
 
-    def __init__(self, *, session_factory, db_name: str):
+    def __init__(
+        self,
+        *,
+        session_factory,
+        db_name: str,
+        model_provider: ModelProvider | None = None,
+    ):
         self.session_factory = session_factory
         self.db_name = db_name
+        self.model_provider = model_provider
 
     async def health(self) -> PlatformHealthResponse:
         async with self.session_factory() as session:
@@ -123,6 +136,146 @@ class PlatformDashboardService:
             rows=matches[start : start + 15],
             list=matches,
         )
+
+    async def generate_report(self) -> PlatformReportResponse:
+        """聚合最新批次事实，并让模型只基于无 IP 的汇总数字撰写段落。"""
+
+        bootstrap = await self.bootstrap()
+        statistics = self._build_report_statistics(bootstrap)
+        narrative: PlatformReportNarrative | None = None
+        if self.model_provider is not None:
+            prompt = self._build_report_prompt(
+                scan_round=bootstrap.overview.scan_round,
+                statistics=statistics,
+                limitations=bootstrap.limitations,
+            )
+            try:
+                narrative = await self.model_provider.generate_structured(
+                    prompt, PlatformReportNarrative
+                )
+            except ModelProviderError:
+                narrative = None
+
+        engine = "llm" if narrative is not None else "template"
+        sections = self._build_report_sections(
+            statistics=statistics,
+            limitations=bootstrap.limitations,
+            narrative=narrative,
+        )
+        return PlatformReportResponse(
+            scan_round=bootstrap.overview.scan_round,
+            generated_at=datetime.now(UTC),
+            engine=engine,
+            sections=sections,
+            statistics=statistics,
+            limitations=bootstrap.limitations,
+        )
+
+    @staticmethod
+    def _build_report_statistics(
+        bootstrap: PlatformBootstrapResponse,
+    ) -> PlatformReportStatistics:
+        risk_by_ip: dict[str, str] = {}
+        for asset in bootstrap.assets:
+            current = risk_by_ip.get(asset.ip, "unknown")
+            if RISK_ORDER[asset.risk] > RISK_ORDER[current]:
+                risk_by_ip[asset.ip] = asset.risk
+            else:
+                risk_by_ip.setdefault(asset.ip, current)
+        risk_counts = {risk: 0 for risk in RISK_ORDER}
+        for risk in risk_by_ip.values():
+            risk_counts[risk] += 1
+        return PlatformReportStatistics(
+            host_count=len(risk_by_ip),
+            service_count=len(bootstrap.assets),
+            tcp_count=sum(asset.proto == "tcp" for asset in bootstrap.assets),
+            udp_count=sum(asset.proto == "udp" for asset in bootstrap.assets),
+            risk_counts=risk_counts,
+            top_ports=bootstrap.stats.portTop10,
+        )
+
+    @staticmethod
+    def _build_report_prompt(
+        *,
+        scan_round: int | None,
+        statistics: PlatformReportStatistics,
+        limitations: list[str],
+    ) -> str:
+        context = {
+            "scan_round": scan_round,
+            "scope": "最新扫描批次中已发现服务的全部资产",
+            "statistics": statistics.model_dump(mode="json"),
+            "limitations": limitations,
+        }
+        return (
+            "请根据以下聚合统计撰写面向普通用户的资产摘要、风险观察和1至5条处置建议。"
+            "不得推断具体漏洞，不得声称风险已经验证，不得补充输入中没有的资产、产品或版本。"
+            "unknown 表示尚无已保存的智能体风险分析。输入不包含 IP、Banner 或原始指纹。\n"
+            + json.dumps(context, ensure_ascii=False, separators=(",", ":"))
+        )
+
+    @staticmethod
+    def _build_report_sections(
+        *,
+        statistics: PlatformReportStatistics,
+        limitations: list[str],
+        narrative: PlatformReportNarrative | None,
+    ) -> list[PlatformReportSection]:
+        top_ports = "、".join(
+            f"{port}端口 {count} 项" for port, count in statistics.top_ports[:5]
+        ) or "暂无端口统计"
+        high_count = statistics.risk_counts["critical"] + statistics.risk_counts["high"]
+        unknown_count = statistics.risk_counts["unknown"]
+        if narrative is None:
+            summary = (
+                f"本报告覆盖 {statistics.host_count} 个已发现服务的资产，共记录 "
+                f"{statistics.service_count} 项服务；TCP {statistics.tcp_count} 项，"
+                f"UDP {statistics.udp_count} 项。"
+            )
+            risk_observation = (
+                f"代码统计发现 {high_count} 个资产处于高或严重风险等级，"
+                f"另有 {unknown_count} 个资产尚无已保存的智能体风险分析。"
+            )
+            recommendations = [
+                "优先复核高或严重风险资产对应的扫描证据。",
+                "对风险未知的资产分批创建分析任务，补齐风险画像。",
+                "结合后续扫描批次持续观察服务和产品变化。",
+            ]
+            narrative_source = "模板降级"
+        else:
+            summary = narrative.executive_summary
+            risk_observation = narrative.risk_observation
+            recommendations = narrative.recommendations
+            narrative_source = "DeepSeek"
+
+        sections = [
+            PlatformReportSection(t="h", txt="一、执行摘要"),
+            PlatformReportSection(t="p", txt=summary, src=narrative_source),
+            PlatformReportSection(t="h", txt="二、服务暴露统计"),
+            PlatformReportSection(
+                t="p",
+                txt=f"端口分布前列：{top_ports}。所有数值均由后端代码从数据库聚合。",
+                src="代码统计",
+            ),
+            PlatformReportSection(t="h", txt="三、风险观察"),
+            PlatformReportSection(t="p", txt=risk_observation, src=narrative_source),
+            PlatformReportSection(t="h", txt="四、处置建议"),
+        ]
+        sections.extend(
+            PlatformReportSection(t="p", txt=item, src=narrative_source)
+            for item in recommendations
+        )
+        sections.extend(
+            [
+                PlatformReportSection(t="h", txt="五、数据范围与限制"),
+                PlatformReportSection(
+                    t="p",
+                    txt="；".join(limitations) or "当前没有额外限制说明。",
+                    src="系统说明",
+                ),
+            ]
+        )
+        return sections
 
     @staticmethod
     def _parse_search_query(query: str) -> list[tuple[str, str]]:

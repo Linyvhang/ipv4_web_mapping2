@@ -47,6 +47,7 @@ def test_mock_app_exposes_analysis_and_chat_endpoints() -> None:
     assert "/api/health" in route_paths
     assert "/api/bootstrap" in route_paths
     assert "/api/search" in route_paths
+    assert "/api/report" in route_paths
     assert all_route_paths.count("/") == 1
     assert "/preview" in route_paths
 
@@ -57,6 +58,7 @@ def test_mock_app_serves_integrated_frontend_and_platform_bootstrap() -> None:
         health = client.get("/api/health")
         bootstrap = client.get("/api/bootstrap")
         search = client.get("/api/search", params={"q": "port=22"})
+        report = client.post("/api/report", json={})
 
     assert page.status_code == 200
     assert "NetScope" in page.text
@@ -67,6 +69,9 @@ def test_mock_app_serves_integrated_frontend_and_platform_bootstrap() -> None:
     assert bootstrap.json()["assets"][0]["ip"] == "192.0.2.10"
     assert search.status_code == 200
     assert search.json()["total"] == 1
+    assert report.status_code == 200
+    assert report.json()["engine"] == "template"
+    assert report.json()["statistics"]["host_count"] == 1
 
 
 def test_mock_app_supports_visualization_integration_flow() -> None:

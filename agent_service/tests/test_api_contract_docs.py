@@ -10,6 +10,7 @@ def test_api_contract_documents_all_visualization_routes() -> None:
         "GET /api/health",
         "GET /api/bootstrap",
         "GET /api/search",
+        "POST /api/report",
         "GET /assets/{ip}/scan-data",
         "GET /assets/{ip}/analysis",
         "GET /assets/{ip}/changes",

@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from ipaddress import IPv4Address
 from pathlib import Path
 from types import SimpleNamespace
@@ -23,6 +23,7 @@ from agent_service.services.asset_change import AssetChangeService
 from agent_service.services.platform_dashboard import PlatformDashboardService
 from agent_service.models.platform_schema import (
     PlatformHealthResponse,
+    PlatformReportResponse,
     PlatformSearchResponse,
 )
 
@@ -230,6 +231,22 @@ class MockPlatformDashboardService:
             ms=0,
             rows=matches[start : start + 15],
             list=matches,
+        )
+
+    async def generate_report(self):
+        bootstrap = await self.bootstrap()
+        statistics = PlatformDashboardService._build_report_statistics(bootstrap)
+        return PlatformReportResponse(
+            scan_round=bootstrap.overview.scan_round,
+            generated_at=datetime.now(UTC),
+            engine="template",
+            sections=PlatformDashboardService._build_report_sections(
+                statistics=statistics,
+                limitations=bootstrap.limitations,
+                narrative=None,
+            ),
+            statistics=statistics,
+            limitations=bootstrap.limitations,
         )
 
 
