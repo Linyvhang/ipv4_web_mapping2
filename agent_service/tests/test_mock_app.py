@@ -108,3 +108,55 @@ def test_mock_app_compares_two_scan_rounds_without_model_calls() -> None:
     assert response.json()["risk_changes"]["available"] is False
     assert invalid.status_code == 400
 
+
+def test_mock_app_reuses_and_deletes_langgraph_conversation_checkpoint() -> None:
+    with TestClient(create_mock_app()) as client:
+        batch = client.post(
+            "/analysis/batch",
+            json={"ips": ["192.0.2.10", "192.0.2.11"], "scan_round": 1},
+        ).json()
+        client.post(f"/analysis/tasks/{batch['task_id']}/report")
+        first = client.post(
+            "/agent/chat",
+            json={"question": f"查询批量任务 {batch['task_id']} 的统计报告"},
+        )
+        conversation_id = first.json()["conversation_id"]
+        follow_up = client.post(
+            "/agent/chat",
+            json={
+                "question": "哪个资产需要优先处理？",
+                "conversation_id": conversation_id,
+            },
+        )
+        explicit_new_target = client.post(
+            "/agent/chat",
+            json={
+                "question": "查询 192.0.2.11 开放了哪些服务",
+                "conversation_id": conversation_id,
+            },
+        )
+        deleted = client.delete(f"/agent/conversations/{conversation_id}")
+        after_delete = client.post(
+            "/agent/chat",
+            json={
+                "question": "哪个资产需要优先处理？",
+                "conversation_id": conversation_id,
+            },
+        )
+
+    assert first.status_code == 200
+    assert first.json()["intent"] == "query_batch_report"
+    assert follow_up.status_code == 200
+    assert follow_up.json()["intent"] == "query_batch_report"
+    assert follow_up.json()["task_id"] == batch["task_id"]
+    assert follow_up.json()["context_reused"] is True
+    assert follow_up.json()["tools_used"][0]["name"] == "get_batch_report"
+    assert explicit_new_target.status_code == 200
+    assert explicit_new_target.json()["target_ip"] == "192.0.2.11"
+    assert explicit_new_target.json()["context_reused"] is False
+    assert deleted.status_code == 200
+    assert deleted.json()["deleted"] is True
+    assert after_delete.status_code == 200
+    assert after_delete.json()["status"] == "invalid_request"
+    assert after_delete.json()["context_reused"] is False
+

@@ -213,11 +213,32 @@ POST /agent/chat
 ```json
 {
   "question": "查询 1.2.163.154 开放了哪些服务和产品？",
-  "scan_round": null
+  "scan_round": null,
+  "conversation_id": null
 }
 ```
 
-响应包含自然语言回答、意图、模型来源、工具轨迹、LangGraph 节点轨迹、证据和限制。
+首次请求的 `conversation_id` 可以为空。响应包含服务端生成的 `conversation_id`、是否复用
+上下文的 `context_reused`、自然语言回答、意图、模型来源、工具轨迹、LangGraph 节点轨迹、
+证据和限制。客户端继续追问时应把相同的 `conversation_id` 原样传回：
+
+```json
+{
+  "question": "哪个资产需要优先处理？",
+  "conversation_id": "8f58505b96984626b43c63a723a94c0d"
+}
+```
+
+只有明确的追问才会复用已验证的 IP、扫描批次或任务 ID。问题中出现新的显式标识时，不会被
+旧上下文覆盖。会话 ID 只允许 8～64 位字母、数字、下划线和连字符。
+
+```http
+DELETE /agent/conversations/{conversation_id}
+```
+
+删除当前会话的 Checkpoint，成功返回 `200` 和删除确认。当前实现使用进程内存，服务重启后
+会话自动清空，也不能跨多个 Uvicorn Worker 共享；生产环境必须使用持久化 Checkpointer，
+并通过登录身份限制会话访问。
 
 自然语言 Agent 当前支持五个白名单工具：
 
@@ -288,6 +309,7 @@ IP 在两个有效批次中都不存在时返回 `404`；IP 只存在于一个�
 - 查询批量统计：`GET /analysis/tasks/{task_id}/report`；
 - 对比两个扫描批次：`GET /assets/{ip}/changes`；
 - 自然语言问答：`POST /agent/chat`。
+- 清除自然语言会话：`DELETE /agent/conversations/{conversation_id}`。
 
 前后端分开启动时，推荐前端开发服务器配置 `/api` 代理；正式部署时由 Nginx 将前端与
 FastAPI 放在同一域名下，避免浏览器跨域问题。

@@ -59,6 +59,11 @@ def create_app(
     )
     rules = RuleBasedQuestionUnderstandingProvider()
     primary_understanding = chat_ai_provider or understanding_provider or rules
+    try:
+        from langgraph.checkpoint.memory import InMemorySaver
+    except ImportError as exc:  # pragma: no cover - requirements 中已声明
+        raise RuntimeError("运行多轮 Agent 前请安装 langgraph checkpoint 依赖") from exc
+    chat_checkpointer = InMemorySaver()
     chat_graph = build_chat_agent_graph(
         understanding_provider=primary_understanding,
         fallback_understanding_provider=(rules if chat_ai_provider is not None else None),
@@ -66,14 +71,16 @@ def create_app(
         answer_provider=chat_ai_provider,
         request_validator=ChatRequestValidator(),
         tool_registry=tool_registry,
+        checkpointer=chat_checkpointer,
     )
     app.state.single_ip_graph = graph
     app.state.agent_tool_registry = tool_registry
     app.state.chat_agent_graph = chat_graph
+    app.state.chat_checkpointer = chat_checkpointer
     app.include_router(create_preview_router())
     app.include_router(create_chat_preview_router())
     app.include_router(create_single_ip_router(graph))
-    app.include_router(create_chat_agent_router(chat_graph))
+    app.include_router(create_chat_agent_router(chat_graph, chat_checkpointer))
     app.include_router(create_asset_router(orchestrator))
     app.include_router(
         create_task_query_router(

@@ -24,7 +24,11 @@ from agent_service.tools.asset_tools import (
 )
 
 from .chat_agent_state import ChatAgentState
-from .chat_understanding import ChatRequestValidator, QuestionUnderstandingProvider
+from .chat_understanding import (
+    ChatRequestValidator,
+    QuestionUnderstandingProvider,
+    apply_conversation_context,
+)
 
 
 def _product_values(service: dict[str, Any]) -> tuple[str | None, str | None]:
@@ -175,6 +179,8 @@ def chat_response_from_state(state: ChatAgentState) -> AgentChatResponse:
         from_scan_round=state.get("from_scan_round"),
         to_scan_round=state.get("to_scan_round"),
         task_id=state.get("task_id"),
+        conversation_id=state.get("conversation_id", "stateless"),
+        context_reused=state.get("context_reused", False),
         status=state.get("status", "failed"),
         model_provider=state.get("model_provider", "rules"),
         fallback_used=state.get("fallback_used", False),
@@ -196,6 +202,7 @@ def build_chat_agent_graph(
     answer_provider: AgentAnswerProvider | None = None,
     request_validator: ChatRequestValidator,
     tool_registry: AssetAgentToolRegistry,
+    checkpointer: Any | None = None,
 ) -> Any:
     """构建问题理解、验证、工具调用和模板回答的 LangGraph。"""
 
@@ -209,6 +216,18 @@ def build_chat_agent_graph(
             "fallback_used": True,
             "fallback_steps": [*state.get("fallback_steps", []), step],
         }
+
+    def with_context(state: ChatAgentState, understanding: QuestionUnderstanding):
+        resolved = apply_conversation_context(
+            state["question"],
+            understanding,
+            context_intent=state.get("context_intent"),
+            context_target_ip=state.get("context_target_ip"),
+            context_from_scan_round=state.get("context_from_scan_round"),
+            context_to_scan_round=state.get("context_to_scan_round"),
+            context_task_id=state.get("context_task_id"),
+        )
+        return resolved
 
     def traced(
         state: ChatAgentState,
@@ -251,12 +270,14 @@ def build_chat_agent_graph(
             )
             update.update(fallback_update(state, "understand_question"))
             fallback_reason = "模型问题理解失败，已改用规则理解器"
+        understanding = with_context(state, understanding)
         return traced(
             state,
             {
                 **update,
                 "understanding": understanding,
                 "intent": understanding.intent,
+                "context_reused": understanding.uses_conversation_context,
                 "target_ip": understanding.target_ip,
                 "explicit_analysis_request": understanding.explicit_analysis_request,
                 "from_scan_round": understanding.from_scan_round,
@@ -294,11 +315,13 @@ def build_chat_agent_graph(
             )
         if fallback_understanding_provider is not None and not state.get("fallback_used"):
             fallback = await fallback_understanding_provider.understand(state["question"])
+            fallback = with_context(state, fallback)
             fallback_validation = request_validator.validate(state["question"], fallback)
             update = {
                 **fallback_update(state, "validate_request"),
                 "understanding": fallback,
                 "intent": fallback.intent,
+                "context_reused": fallback.uses_conversation_context,
                 "target_ip": fallback.target_ip,
                 "explicit_analysis_request": fallback.explicit_analysis_request,
                 "from_scan_round": fallback.from_scan_round,
@@ -704,4 +727,4 @@ def build_chat_agent_graph(
         {"continue": "select_tool", "answer": "compose_answer"},
     )
     graph.add_edge("compose_answer", END)
-    return graph.compile()
+    return graph.compile(checkpointer=checkpointer)

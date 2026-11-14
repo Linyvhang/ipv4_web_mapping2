@@ -13,15 +13,22 @@ from agent_service.models.chat_schema import (
 
 
 def test_chat_request_normalizes_question_and_validates_scan_round() -> None:
-    request = AgentChatRequest(question="  查询 192.0.2.10 的服务  ", scan_round=3)
+    request = AgentChatRequest(
+        question="  查询 192.0.2.10 的服务  ",
+        scan_round=3,
+        conversation_id="conversation_01",
+    )
 
     assert request.question == "查询 192.0.2.10 的服务"
     assert request.scan_round == 3
+    assert request.conversation_id == "conversation_01"
 
     with pytest.raises(ValidationError):
         AgentChatRequest(question="   ")
     with pytest.raises(ValidationError):
         AgentChatRequest(question="查询服务", scan_round=0)
+    with pytest.raises(ValidationError):
+        AgentChatRequest(question="查询服务", conversation_id="bad id")
 
 
 def test_question_understanding_requires_supported_intent_and_ipv4() -> None:

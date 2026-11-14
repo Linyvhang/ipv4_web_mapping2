@@ -20,6 +20,7 @@ LangGraph 和大模型生成单 IP 资产画像、疑似风险、证据与处置
 - 批量统计 JSON 报告：汇总资产类型、风险等级、产品版本、端口服务和异常项，可直接用于可视化。
 - 单 IP 历史变化：对比两个扫描批次中的服务新增/消失、产品版本和风险等级变化。
 - Agent 可观测性：返回 LangGraph 节点顺序、耗时、决策、工具和安全降级原因。
+- LangGraph 多轮会话：使用 Checkpoint 复用已经验证的 IP、扫描批次或任务 ID，支持安全追问。
 
 自然语言问答的意图、工具轨迹、证据、响应 Schema 和 LangGraph 初始 State 已完成。
 自然语言 Agent 第一版 LangGraph 已完成，支持规则模式和 DeepSeek 模式。DeepSeek 负责
@@ -182,12 +183,25 @@ GET /assets/1.2.3.4/changes?from_scan_round=1&to_scan_round=2
 ```json
 {
   "question": "查询 1.2.3.4 开放了哪些服务",
-  "scan_round": null
+  "scan_round": null,
+  "conversation_id": null
 }
 ```
 
-`question` 为必填自然语言问题，长度为 1～2000 个字符，第一版要求问题中包含单个 IPv4；
-`scan_round` 为可选正整数，传 `null` 时读取该 IP 最近一次扫描批次。
+`question` 为必填自然语言问题，长度为 1～2000 个字符；`scan_round` 为可选正整数，传
+`null` 时读取该 IP 最近一次扫描批次。首次请求把 `conversation_id` 传 `null`，响应会
+返回服务端生成的会话 ID；后续追问把该 ID 原样传回，即可省略已经确认的 IP、批次或任务 ID。
+
+```json
+{
+  "question": "哪个资产需要优先处理？",
+  "conversation_id": "首次响应返回的会话ID"
+}
+```
+
+程序只在明确的追问中复用经过校验的上下文；问题中出现新的 IP、批次或任务 ID 时，以新参数
+为准。调用 `DELETE /agent/conversations/{conversation_id}` 可以清除会话，`/chat` 页面中的
+“新会话”按钮会自动执行该操作。
 
 接口返回识别意图、模型来源、是否发生安全降级、LangGraph 节点执行轨迹、白名单工具
 轨迹、结构化证据和数据限制。
@@ -197,6 +211,8 @@ GET /assets/1.2.3.4/changes?from_scan_round=1&to_scan_round=2
 试图改写的工具参数。
 也可以打开 `/chat` 使用简洁对话页面，并在右侧查看本轮工具调用和证据。
 页面中的“LangGraph 工作流”会按执行顺序展示节点状态与耗时；黄色节点表示已安全降级。
+当前 Checkpoint 使用进程内存保存，适合本地开发和演示；Uvicorn 重启后会话会清空，且不支持
+多进程共享。生产部署应替换为持久化 Checkpointer，并将会话 ID 与登录用户绑定。
 
 ## 6. 切换到 DeepSeek
 

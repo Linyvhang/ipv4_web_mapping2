@@ -26,6 +26,13 @@ class ChatAgentState(TypedDict):
     """六节点自然语言 Agent 共享的原始状态。"""
 
     question: str
+    conversation_id: str
+    context_reused: bool
+    context_intent: AgentIntent | None
+    context_target_ip: str | None
+    context_from_scan_round: int | None
+    context_to_scan_round: int | None
+    context_task_id: int | None
     scan_round: int | None
     intent: AgentIntent | None
     understanding: QuestionUnderstanding | None
@@ -55,12 +62,26 @@ def initial_chat_state(
     question: str,
     *,
     scan_round: int | None = None,
+    conversation_id: str = "stateless",
+    previous_context: dict[str, Any] | None = None,
 ) -> ChatAgentState:
     """校验用户入口参数并构造无共享可变对象的初始状态。"""
 
-    request = AgentChatRequest(question=question, scan_round=scan_round)
+    request = AgentChatRequest(
+        question=question,
+        scan_round=scan_round,
+        conversation_id=(None if conversation_id == "stateless" else conversation_id),
+    )
+    context = previous_context or {}
     return {
         "question": request.question,
+        "conversation_id": conversation_id,
+        "context_reused": False,
+        "context_intent": context.get("intent"),
+        "context_target_ip": context.get("target_ip"),
+        "context_from_scan_round": context.get("from_scan_round"),
+        "context_to_scan_round": context.get("to_scan_round"),
+        "context_task_id": context.get("task_id"),
         "scan_round": request.scan_round,
         "intent": None,
         "understanding": None,

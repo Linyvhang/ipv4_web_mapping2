@@ -1,5 +1,6 @@
 import pytest
 from fastapi import HTTPException
+from types import SimpleNamespace
 
 from agent_service.api.chat_routes import create_chat_agent_router
 from agent_service.models.chat_schema import AgentChatRequest
@@ -11,7 +12,10 @@ class FakeChatGraph:
         self.error = error
         self.states: list[dict] = []
 
-    async def ainvoke(self, state: dict):
+    async def aget_state(self, _config):
+        return SimpleNamespace(values={})
+
+    async def ainvoke(self, state: dict, config=None):
         self.states.append(state)
         if self.error is not None:
             raise self.error
@@ -52,6 +56,7 @@ async def test_chat_route_executes_graph_with_safe_initial_state() -> None:
     assert graph.states[0]["question"] == "查询 192.0.2.10 的服务"
     assert graph.states[0]["scan_round"] == 3
     assert graph.states[0]["max_tool_calls"] == 2
+    assert len(response.conversation_id) == 32
 
 
 @pytest.mark.asyncio

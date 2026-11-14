@@ -27,9 +27,12 @@ CHAT_PREVIEW_HTML = """<!doctype html>
     .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
     .brand-mark { display:grid; place-items:center; width:36px; height:36px; border-radius:11px;
       background:linear-gradient(135deg,var(--brand),#6c8fff); color:white; box-shadow:0 8px 20px #b8caff; }
-    .nav-links { display:flex; gap:8px; }
+    .nav-links { display:flex; align-items:center; gap:8px; }
     .nav-links a { padding:7px 12px; border-radius:9px; color:var(--muted); text-decoration:none; }
     .nav-links a[aria-current="page"] { background:white; color:var(--brand-dark); font-weight:700; }
+    #new-conversation { padding:7px 12px; border:1px solid var(--line); border-radius:9px;
+      color:var(--muted); background:white; cursor:pointer; }
+    #new-conversation:hover { color:var(--brand-dark); border-color:#bdd0fa; }
     header { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:20px; }
     h1 { margin:0; font-size:clamp(28px,4vw,46px); letter-spacing:-.035em; line-height:1.15; }
     header p { max-width:720px; margin:10px 0 0; color:var(--muted); font-size:16px; }
@@ -104,11 +107,11 @@ CHAT_PREVIEW_HTML = """<!doctype html>
 <div class="shell">
   <nav>
     <div class="brand"><span class="brand-mark">IP</span><span>IPv4 Web Mapping</span></div>
-    <div class="nav-links"><a href="/">资产分析</a><a href="/chat" aria-current="page">智能问答</a><a href="/docs">API 文档</a></div>
+    <div class="nav-links"><a href="/">资产分析</a><a href="/chat" aria-current="page">智能问答</a><a href="/docs">API 文档</a><button id="new-conversation" type="button">新会话</button></div>
   </nav>
   <header>
     <div><h1>网络资产分析助手</h1><p>用自然语言查询已有扫描指纹和分析结果。Agent 只调用受控工具，不会主动扫描或测试目标。</p></div>
-    <span class="mode">单轮问答 · 工具可追踪</span>
+    <span class="mode">多轮会话 · Checkpoint · 工具可追踪</span>
   </header>
   <div class="layout">
     <section class="panel conversation" aria-label="对话区域">
@@ -148,6 +151,8 @@ CHAT_PREVIEW_HTML = """<!doctype html>
   const tools = document.querySelector('#tools');
   const evidence = document.querySelector('#evidence');
   const limitations = document.querySelector('#limitations');
+  const newConversationButton = document.querySelector('#new-conversation');
+  let conversationId = null;
 
   function textElement(tag, text, className) {
     const element = document.createElement(tag); element.textContent = text;
@@ -164,6 +169,8 @@ CHAT_PREVIEW_HTML = """<!doctype html>
     meta.append(textElement('span', data.status, `badge ${data.status}`));
     meta.append(textElement('span', data.intent, 'badge'));
     if (data.target_ip) meta.append(textElement('span', data.target_ip, 'badge'));
+    if (data.conversation_id) meta.append(textElement('span', `会话：${data.conversation_id.slice(0, 8)}`, 'badge'));
+    if (data.context_reused) meta.append(textElement('span', '已复用上文', 'badge success'));
     meta.append(textElement('span', `模型：${data.model_provider || 'rules'}`, 'badge'));
     if (data.fallback_used) meta.append(textElement('span', '已安全降级', 'badge not_found'));
   }
@@ -207,6 +214,22 @@ CHAT_PREVIEW_HTML = """<!doctype html>
   for (const button of document.querySelectorAll('.example')) {
     button.addEventListener('click', () => { questionInput.value = button.textContent; questionInput.focus(); });
   }
+  newConversationButton.addEventListener('click', async () => {
+    const previousConversationId = conversationId;
+    conversationId = null;
+    if (previousConversationId) {
+      try { await fetch(`/agent/conversations/${encodeURIComponent(previousConversationId)}`, {method:'DELETE'}); }
+      catch (_) { /* 本地状态仍然清空，服务端 Checkpoint 会随进程结束释放。 */ }
+    }
+    messages.replaceChildren();
+    addMessage('assistant', '已开始新会话。请重新提供 IP、批次或任务 ID。');
+    meta.replaceChildren(textElement('span','等待提问','badge'));
+    workflow.className='empty'; workflow.textContent='回答后显示节点执行轨迹';
+    tools.className='empty'; tools.textContent='尚未调用工具';
+    evidence.className='empty'; evidence.textContent='回答后显示结构化证据';
+    showLimitations(['新会话不会继承上一会话的 IP、批次或任务 ID。']);
+    questionInput.focus();
+  });
   form.addEventListener('submit', async (event) => {
     event.preventDefault(); const question = questionInput.value.trim(); if (!question) return;
     addMessage('user', question); questionInput.value=''; sendButton.disabled=true; sendButton.textContent='处理中';
@@ -214,9 +237,10 @@ CHAT_PREVIEW_HTML = """<!doctype html>
     const round = roundInput.value.trim();
     try {
       const response = await fetch('/agent/chat', {method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({question, scan_round:round ? Number(round) : null})});
+        body:JSON.stringify({question, scan_round:round ? Number(round) : null, conversation_id:conversationId})});
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || `请求失败（HTTP ${response.status}）`);
+      conversationId = data.conversation_id;
       addMessage('assistant', data.answer); showMeta(data); showWorkflow(data.workflow_trace || []); showTools(data.tools_used || []);
       showEvidence(data.evidence || []); showLimitations(data.limitations || []);
     } catch (error) {

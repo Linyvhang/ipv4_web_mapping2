@@ -6,6 +6,7 @@ from agent_service.services.chat_understanding import (
     RuleBasedQuestionUnderstandingProvider,
     extract_ipv4_candidates,
     prohibited_operation,
+    apply_conversation_context,
     valid_ipv4s,
 )
 
@@ -137,3 +138,46 @@ def test_ip_helpers_return_candidates_and_normalized_unique_addresses() -> None:
         "999.1.1.1",
     ]
     assert valid_ipv4s(question) == ["192.0.2.10"]
+
+
+def test_follow_up_reuses_only_verified_conversation_context() -> None:
+    missing = QuestionUnderstanding(
+        intent="missing_target",
+        confidence=1.0,
+        reason="没有显式目标",
+    )
+    resolved = apply_conversation_context(
+        "哪个资产需要优先处理？",
+        missing,
+        context_intent="query_batch_report",
+        context_target_ip=None,
+        context_from_scan_round=None,
+        context_to_scan_round=None,
+        context_task_id=11,
+    )
+
+    assert resolved.intent == "query_batch_report"
+    assert resolved.task_id == 11
+    assert resolved.uses_conversation_context is True
+    assert ChatRequestValidator().validate("哪个资产需要优先处理？", resolved).valid
+
+
+def test_new_explicit_identifier_is_not_overwritten_by_conversation_context() -> None:
+    explicit = QuestionUnderstanding(
+        intent="query_scan_data",
+        target_ip="192.0.2.20",
+        confidence=1.0,
+        reason="显式新目标",
+    )
+    resolved = apply_conversation_context(
+        "查询 192.0.2.20 的服务",
+        explicit,
+        context_intent="query_analysis_result",
+        context_target_ip="192.0.2.10",
+        context_from_scan_round=None,
+        context_to_scan_round=None,
+        context_task_id=None,
+    )
+
+    assert resolved.target_ip == "192.0.2.20"
+    assert resolved.uses_conversation_context is False

@@ -59,6 +59,9 @@ class AgentChatRequest(SchemaModel):
 
     question: str = Field(min_length=1, max_length=2000)
     scan_round: int | None = Field(default=None, ge=1)
+    conversation_id: str | None = Field(
+        default=None, min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$"
+    )
 
     @field_validator("question")
     @classmethod
@@ -78,6 +81,7 @@ class QuestionUnderstanding(SchemaModel):
     from_scan_round: int | None = Field(default=None, ge=1)
     to_scan_round: int | None = Field(default=None, ge=1)
     task_id: int | None = Field(default=None, ge=1)
+    uses_conversation_context: bool = False
     confidence: Confidence
     reason: str
 
@@ -152,6 +156,11 @@ class AgentChatResponse(SchemaModel):
     from_scan_round: int | None = Field(default=None, ge=1)
     to_scan_round: int | None = Field(default=None, ge=1)
     task_id: int | None = Field(default=None, ge=1)
+    conversation_id: str = Field(
+        default="stateless",
+        min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$"
+    )
+    context_reused: bool = False
     status: AgentChatStatus
     model_provider: str = "rules"
     fallback_used: bool = False

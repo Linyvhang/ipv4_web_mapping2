@@ -12,6 +12,13 @@ def test_initial_chat_state_contains_safe_defaults() -> None:
 
     assert state == {
         "question": "查询 192.0.2.10 的服务",
+        "conversation_id": "stateless",
+        "context_reused": False,
+        "context_intent": None,
+        "context_target_ip": None,
+        "context_from_scan_round": None,
+        "context_to_scan_round": None,
+        "context_task_id": None,
         "scan_round": 3,
         "intent": None,
         "understanding": None,

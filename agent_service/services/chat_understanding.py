@@ -58,6 +58,63 @@ def extract_task_id(question: str) -> int | None:
     return int(match.group(1)) if match else None
 
 
+FOLLOW_UP_PATTERN = re.compile(
+    r"哪个|哪些|优先|为什么|为何|依据|详细|继续|它|这个|这些|怎么处理|怎么办",
+    re.I,
+)
+
+
+def apply_conversation_context(
+    question: str,
+    understanding: QuestionUnderstanding,
+    *,
+    context_intent: str | None,
+    context_target_ip: str | None,
+    context_from_scan_round: int | None,
+    context_to_scan_round: int | None,
+    context_task_id: int | None,
+) -> QuestionUnderstanding:
+    """仅在问题没有新标识符且明显是追问时继承已验证上下文。"""
+
+    if not FOLLOW_UP_PATTERN.search(question):
+        return understanding
+    if valid_ipv4s(question) or scan_rounds(question) or extract_task_id(question):
+        return understanding
+    if context_intent == "query_batch_report" and context_task_id is not None:
+        return QuestionUnderstanding(
+            intent="query_batch_report",
+            task_id=context_task_id,
+            uses_conversation_context=True,
+            confidence=1.0,
+            reason="沿用当前会话中已验证的批量任务 ID",
+        )
+    if (
+        context_intent == "compare_scan_rounds"
+        and context_target_ip is not None
+        and context_from_scan_round is not None
+        and context_to_scan_round is not None
+    ):
+        return QuestionUnderstanding(
+            intent="compare_scan_rounds",
+            target_ip=context_target_ip,
+            from_scan_round=context_from_scan_round,
+            to_scan_round=context_to_scan_round,
+            uses_conversation_context=True,
+            confidence=1.0,
+            reason="沿用当前会话中已验证的 IP 和两个扫描批次",
+        )
+    if context_target_ip is not None:
+        intent = "explain_result" if EXPLAIN_PATTERNS.search(question) else "query_analysis_result"
+        return QuestionUnderstanding(
+            intent=intent,
+            target_ip=context_target_ip,
+            uses_conversation_context=True,
+            confidence=0.9,
+            reason="沿用当前会话中已验证的目标 IP",
+        )
+    return understanding
+
+
 class QuestionUnderstandingProvider(Protocol):
     """问题理解器接口；后续 DeepSeek 实现遵守同一契约。"""
 
@@ -218,7 +275,14 @@ class ChatRequestValidator:
                     status="invalid_request",
                     error="批量报告查询不应指定单个 IP",
                 )
-            if extracted_task_id is None or understanding.task_id != extracted_task_id:
+            if understanding.uses_conversation_context:
+                if extracted_task_id is not None or understanding.task_id is None:
+                    return RequestValidation(
+                        valid=False,
+                        status="invalid_request",
+                        error="会话上下文任务 ID 校验失败",
+                    )
+            elif extracted_task_id is None or understanding.task_id != extracted_task_id:
                 return RequestValidation(
                     valid=False,
                     status="invalid_request",
@@ -243,20 +307,37 @@ class ChatRequestValidator:
                 status="invalid_request",
                 error="请提供需要查询的 IPv4 地址",
             )
-        if not addresses or understanding.target_ip != addresses[0]:
+        if understanding.uses_conversation_context:
+            if addresses or understanding.target_ip is None:
+                return RequestValidation(
+                    valid=False,
+                    status="invalid_request",
+                    error="会话上下文目标 IP 校验失败",
+                )
+        elif not addresses or understanding.target_ip != addresses[0]:
             return RequestValidation(
                 valid=False,
                 status="invalid_request",
                 error="结构化目标 IP 与用户问题不一致",
             )
         if understanding.intent == "compare_scan_rounds":
-            if len(extracted_rounds) != 2:
+            if understanding.uses_conversation_context:
+                if extracted_rounds or None in {
+                    understanding.from_scan_round,
+                    understanding.to_scan_round,
+                }:
+                    return RequestValidation(
+                        valid=False,
+                        status="invalid_request",
+                        error="会话上下文扫描批次校验失败",
+                    )
+            elif len(extracted_rounds) != 2:
                 return RequestValidation(
                     valid=False,
                     status="invalid_request",
                     error="历史变化对比需要明确提供两个不同扫描批次",
                 )
-            if (
+            if not understanding.uses_conversation_context and (
                 understanding.from_scan_round,
                 understanding.to_scan_round,
             ) != tuple(extracted_rounds):

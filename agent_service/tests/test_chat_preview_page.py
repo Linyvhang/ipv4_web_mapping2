@@ -27,6 +27,9 @@ def test_chat_preview_calls_agent_api_and_uses_safe_text_rendering() -> None:
     assert "data.fallback_used" in CHAT_PREVIEW_HTML
     assert "data.workflow_trace" in CHAT_PREVIEW_HTML
     assert "showWorkflow" in CHAT_PREVIEW_HTML
+    assert "conversation_id:conversationId" in CHAT_PREVIEW_HTML
+    assert "/agent/conversations/" in CHAT_PREVIEW_HTML
+    assert "data.context_reused" in CHAT_PREVIEW_HTML
     assert "textContent" in CHAT_PREVIEW_HTML
     assert "innerHTML" not in CHAT_PREVIEW_HTML
 
@@ -35,4 +38,5 @@ def test_chat_preview_has_navigation_and_responsive_layout() -> None:
     assert 'href="/"' in CHAT_PREVIEW_HTML
     assert 'href="/docs"' in CHAT_PREVIEW_HTML
     assert "@media (max-width:900px)" in CHAT_PREVIEW_HTML
-    assert "单轮问答 · 工具可追踪" in CHAT_PREVIEW_HTML
+    assert "多轮会话 · Checkpoint · 工具可追踪" in CHAT_PREVIEW_HTML
+    assert 'id="new-conversation"' in CHAT_PREVIEW_HTML
