@@ -5,6 +5,7 @@ from agent_service.models.chat_schema import (
     AgentChatRequest,
     AgentChatResponse,
     AgentEvidence,
+    PriorityAsset,
     AgentWorkflowStep,
     QuestionUnderstanding,
     ToolCallRecord,
@@ -111,6 +112,19 @@ def test_chat_response_serializes_tool_trace_and_evidence() -> None:
                 confidence=0.9,
             )
         ],
+        priority_assets=[
+            PriorityAsset(
+                rank=1,
+                ip="192.0.2.10",
+                scan_round=1,
+                risk_level="high",
+                risk_count=1,
+                risk_titles=["疑似配置风险"],
+                exposed_services=["22/tcp ssh"],
+                products=["OpenSSH 9.2"],
+                reasons=["资产整体风险等级为 high"],
+            )
+        ],
         limitations=["回答仅基于已有扫描数据"],
     )
 
@@ -118,6 +132,8 @@ def test_chat_response_serializes_tool_trace_and_evidence() -> None:
     assert payload["schema_version"] == "1.0"
     assert payload["tools_used"][0]["name"] == "get_ip_scan_data"
     assert payload["evidence"][0]["port"] == 22
+    assert payload["priority_assets"][0]["rank"] == 1
+    assert payload["priority_assets"][0]["ip"] == "192.0.2.10"
     assert payload["model_provider"] == "rules"
     assert payload["fallback_used"] is False
     assert payload["workflow_trace"][0]["node"] == "understand_question"

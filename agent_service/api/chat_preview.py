@@ -91,6 +91,9 @@ CHAT_PREVIEW_HTML = """<!doctype html>
     .evidence { padding:11px 12px; margin-bottom:9px; border:1px solid var(--line); border-radius:11px; background:#f9fbfd; }
     .evidence strong { display:block; font-size:13px; }
     .evidence small { display:block; color:var(--muted); overflow-wrap:anywhere; }
+    .priority { padding:12px; margin-bottom:9px; border:1px solid #f0d6a8; border-radius:11px; background:var(--warn-soft); }
+    .priority strong,.priority small { display:block; overflow-wrap:anywhere; }
+    .priority small { color:#815015; }
     .limits { margin:14px 0 0; padding:12px 14px; border-radius:11px; background:var(--warn-soft); color:#815015; font-size:12px; }
     .limits ul { margin:5px 0 0; padding-left:18px; }
     @keyframes rise { from { opacity:0; transform:translateY(5px); } }
@@ -136,6 +139,7 @@ CHAT_PREVIEW_HTML = """<!doctype html>
         <div id="limitations" class="limits">回答将明确展示数据范围和能力限制。</div></section>
       <section class="panel"><h2>LangGraph 工作流</h2><div id="workflow" class="empty">回答后显示节点执行轨迹</div></section>
       <section class="panel"><h2>工具调用轨迹</h2><div id="tools" class="empty">尚未调用工具</div></section>
+      <section class="panel"><h2>处置优先级</h2><div id="priorities" class="empty">批量报告问答后显示优先资产</div></section>
       <section class="panel"><h2>引用证据</h2><div id="evidence" class="empty">回答后显示结构化证据</div></section>
     </aside>
   </div>
@@ -149,6 +153,7 @@ CHAT_PREVIEW_HTML = """<!doctype html>
   const meta = document.querySelector('#meta');
   const workflow = document.querySelector('#workflow');
   const tools = document.querySelector('#tools');
+  const priorities = document.querySelector('#priorities');
   const evidence = document.querySelector('#evidence');
   const limitations = document.querySelector('#limitations');
   const newConversationButton = document.querySelector('#new-conversation');
@@ -205,6 +210,18 @@ CHAT_PREVIEW_HTML = """<!doctype html>
       box.append(textElement('strong', heading), textElement('small', item.detail)); evidence.append(box);
     }
   }
+  function showPriorities(items) {
+    priorities.replaceChildren(); priorities.className = '';
+    if (!items.length) { priorities.className='empty'; priorities.textContent='本轮没有可排序的重点资产'; return; }
+    for (const item of items) {
+      const box = textElement('div', '', 'priority');
+      box.append(
+        textElement('strong', `#${item.rank} ${item.ip} · ${item.risk_level}`),
+        textElement('small', (item.reasons || []).join('；'))
+      );
+      priorities.append(box);
+    }
+  }
   function showLimitations(items) {
     limitations.replaceChildren();
     const title = textElement('strong', '数据与能力限制'); const list = document.createElement('ul');
@@ -226,6 +243,7 @@ CHAT_PREVIEW_HTML = """<!doctype html>
     meta.replaceChildren(textElement('span','等待提问','badge'));
     workflow.className='empty'; workflow.textContent='回答后显示节点执行轨迹';
     tools.className='empty'; tools.textContent='尚未调用工具';
+    priorities.className='empty'; priorities.textContent='批量报告问答后显示优先资产';
     evidence.className='empty'; evidence.textContent='回答后显示结构化证据';
     showLimitations(['新会话不会继承上一会话的 IP、批次或任务 ID。']);
     questionInput.focus();
@@ -242,7 +260,7 @@ CHAT_PREVIEW_HTML = """<!doctype html>
       if (!response.ok) throw new Error(data.detail || `请求失败（HTTP ${response.status}）`);
       conversationId = data.conversation_id;
       addMessage('assistant', data.answer); showMeta(data); showWorkflow(data.workflow_trace || []); showTools(data.tools_used || []);
-      showEvidence(data.evidence || []); showLimitations(data.limitations || []);
+      showPriorities(data.priority_assets || []); showEvidence(data.evidence || []); showLimitations(data.limitations || []);
     } catch (error) {
       addMessage('assistant', `请求失败：${error.message || '未知错误'}`);
       meta.replaceChildren(textElement('span','failed','badge failed'));

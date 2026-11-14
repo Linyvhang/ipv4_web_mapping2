@@ -9,6 +9,7 @@ from agent_service.models.chat_schema import (
     AgentChatStatus,
     AgentEvidence,
     AgentIntent,
+    PriorityAsset,
     AgentToolName,
     AgentWorkflowStep,
     QuestionUnderstanding,
@@ -50,6 +51,7 @@ class ChatAgentState(TypedDict):
     continue_tool_loop: bool
     answer: str | None
     evidence: list[AgentEvidence]
+    priority_assets: list[PriorityAsset]
     limitations: list[str]
     status: AgentChatStatus
     model_provider: str
@@ -99,6 +101,7 @@ def initial_chat_state(
         "continue_tool_loop": False,
         "answer": None,
         "evidence": [],
+        "priority_assets": [],
         "limitations": list(DEFAULT_CHAT_LIMITATIONS),
         "status": "pending",
         "model_provider": "rules",

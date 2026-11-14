@@ -7,7 +7,7 @@ from typing import Any, Literal
 
 from pydantic import Field, field_validator
 
-from .analysis_schema import Confidence, SchemaModel
+from .analysis_schema import Confidence, RiskLevel, SchemaModel
 
 
 AgentIntent = Literal[
@@ -134,6 +134,22 @@ class AgentEvidence(SchemaModel):
     confidence: Confidence | None = None
 
 
+class PriorityAsset(SchemaModel):
+    """由批量报告事实确定的资产处置顺序，不代表漏洞已确认。"""
+
+    rank: int = Field(ge=1)
+    ip: str
+    scan_round: int = Field(ge=1)
+    risk_level: RiskLevel
+    risk_count: int = Field(ge=0)
+    risk_titles: list[str] = Field(default_factory=list)
+    exposed_services: list[str] = Field(default_factory=list)
+    products: list[str] = Field(default_factory=list)
+    reasons: list[str] = Field(default_factory=list)
+
+    _validate_ip = field_validator("ip")(validate_optional_ipv4)
+
+
 class AgentWorkflowStep(SchemaModel):
     """一个可安全公开的 LangGraph 节点执行轨迹。"""
 
@@ -167,6 +183,7 @@ class AgentChatResponse(SchemaModel):
     workflow_trace: list[AgentWorkflowStep] = Field(default_factory=list)
     tools_used: list[ToolUseSummary] = Field(default_factory=list)
     evidence: list[AgentEvidence] = Field(default_factory=list)
+    priority_assets: list[PriorityAsset] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
 
     _validate_target_ip = field_validator("target_ip")(validate_optional_ipv4)

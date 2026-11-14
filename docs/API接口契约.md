@@ -232,6 +232,11 @@ POST /agent/chat
 只有明确的追问才会复用已验证的 IP、扫描批次或任务 ID。问题中出现新的显式标识时，不会被
 旧上下文覆盖。会话 ID 只允许 8～64 位字母、数字、下划线和连字符。
 
+批量报告问答还会返回 `priority_assets`。该数组依次包含 `rank`、`ip`、`scan_round`、
+`risk_level`、`risk_count`、`risk_titles`、`exposed_services`、`products` 和 `reasons`。
+排序规则固定为整体风险等级从高到低、疑似风险数量从多到少、IP 从小到大。它只使用报告中
+的 `attention_items` 和聚合事实，便于前端展示和审计，不把疑似风险解释为已确认漏洞。
+
 ```http
 DELETE /agent/conversations/{conversation_id}
 ```

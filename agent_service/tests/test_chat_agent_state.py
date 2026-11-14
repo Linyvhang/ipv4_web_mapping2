@@ -36,6 +36,7 @@ def test_initial_chat_state_contains_safe_defaults() -> None:
         "continue_tool_loop": False,
         "answer": None,
         "evidence": [],
+        "priority_assets": [],
         "limitations": [
             "回答仅基于已有扫描数据",
             "当前扫描只覆盖指定常用端口",

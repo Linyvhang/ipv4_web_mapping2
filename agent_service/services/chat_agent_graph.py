@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ipaddress import ip_address
 from time import perf_counter
 from typing import Any
 
@@ -10,6 +11,7 @@ from pydantic import ValidationError
 from agent_service.models.chat_schema import (
     AgentChatResponse,
     AgentEvidence,
+    PriorityAsset,
     AgentWorkflowStep,
     QuestionUnderstanding,
     ToolCallRecord,
@@ -79,7 +81,65 @@ def _latest_success_data(state: ChatAgentState, tool_name: str) -> dict[str, Any
     return None
 
 
-def _compose_success_answer(state: ChatAgentState) -> tuple[str, list[AgentEvidence]]:
+_RISK_PRIORITY = {"critical": 5, "high": 4, "medium": 3, "low": 2, "info": 1}
+
+
+def _batch_priority_assets(report: dict[str, Any]) -> list[PriorityAsset]:
+    """根据批量报告的已验证字段生成可解释、可重复的处置顺序。"""
+
+    services_by_ip: dict[str, set[str]] = {}
+    for item in report.get("ports", []):
+        label = (
+            f"{item.get('port')}/{item.get('transport_protocol', 'tcp')} "
+            f"{item.get('service_type', 'unknown')}"
+        )
+        for ip in item.get("ips", []):
+            services_by_ip.setdefault(ip, set()).add(label)
+
+    products_by_ip: dict[str, set[str]] = {}
+    for item in report.get("products", []):
+        label = str(item.get("product") or "未知产品")
+        if item.get("version"):
+            label += f" {item['version']}"
+        for ip in item.get("ips", []):
+            products_by_ip.setdefault(ip, set()).add(label)
+
+    items = sorted(
+        report.get("attention_items", []),
+        key=lambda item: (
+            -_RISK_PRIORITY.get(str(item.get("risk_level")), 0),
+            -int(item.get("risk_count", 0)),
+            int(ip_address(str(item.get("ip")))),
+        ),
+    )
+    priorities: list[PriorityAsset] = []
+    for rank, item in enumerate(items, start=1):
+        ip = str(item.get("ip"))
+        risk_titles = [str(title) for title in item.get("risk_titles", [])]
+        risk_level = str(item.get("risk_level"))
+        risk_count = int(item.get("risk_count", 0))
+        reasons = [f"资产整体风险等级为 {risk_level}", f"记录 {risk_count} 条疑似风险"]
+        if risk_titles:
+            reasons.append("重点风险：" + "、".join(risk_titles[:3]))
+        priorities.append(
+            PriorityAsset(
+                rank=rank,
+                ip=ip,
+                scan_round=item.get("scan_round"),
+                risk_level=risk_level,
+                risk_count=risk_count,
+                risk_titles=risk_titles,
+                exposed_services=sorted(services_by_ip.get(ip, set()))[:10],
+                products=sorted(products_by_ip.get(ip, set()))[:10],
+                reasons=reasons,
+            )
+        )
+    return priorities
+
+
+def _compose_success_answer(
+    state: ChatAgentState,
+) -> tuple[str, list[AgentEvidence], list[PriorityAsset]]:
     ip = state.get("target_ip") or "目标 IP"
     intent = state.get("intent")
     analysis_data = _latest_success_data(state, "get_ip_analysis_result")
@@ -91,6 +151,7 @@ def _compose_success_answer(state: ChatAgentState) -> tuple[str, list[AgentEvide
     if batch_report_data is not None:
         report = batch_report_data.get("report", {})
         overview = report.get("overview", {})
+        priority_assets = _batch_priority_assets(report)
         answer = (
             f"批量任务 {batch_report_data.get('task_id')} 的统计报告包含 "
             f"{overview.get('analyzed_assets', 0)} 个有效资产、"
@@ -98,10 +159,23 @@ def _compose_success_answer(state: ChatAgentState) -> tuple[str, list[AgentEvide
             f"{overview.get('total_risks', 0)} 条疑似风险；"
             f"失败资产 {overview.get('failed_assets', 0)} 个。"
         )
-        evidence = [
-            AgentEvidence(source="batch_report", detail=answer)
-        ]
-        return answer, evidence
+        evidence = [AgentEvidence(source="batch_report", detail=answer)]
+        if priority_assets:
+            first = priority_assets[0]
+            reason = "；".join(first.reasons)
+            answer += f" 建议优先核查 {first.ip}：{reason}。"
+            evidence.extend(
+                AgentEvidence(
+                    source="batch_priority",
+                    detail=f"优先级 {item.rank}：{item.ip}；" + "；".join(item.reasons),
+                )
+                for item in priority_assets[:5]
+            )
+        else:
+            answer += " 报告没有标记需要重点关注的资产，现有事实不足以确定处置优先级。"
+        if overview.get("failed_assets", 0) or overview.get("missing_results", 0):
+            answer += " 失败或缺少分析结果的资产尚未完成风险判断，也应优先补齐数据。"
+        return answer, evidence, priority_assets
 
     if comparison_data is not None:
         comparison = comparison_data.get("comparison", {})
@@ -124,14 +198,14 @@ def _compose_success_answer(state: ChatAgentState) -> tuple[str, list[AgentEvide
                 detail=answer,
             )
         ]
-        return answer, evidence
+        return answer, evidence, []
 
     if create_data is not None:
         result = create_data.get("result", {})
         summary = result.get("summary", {})
         action = "复用了已有分析结果" if create_data.get("reused") else "已完成新的分析任务"
         answer = f"{ip} {action}。{summary.get('description') or '已生成标准分析结果。'}"
-        return answer, _analysis_evidence(result)
+        return answer, _analysis_evidence(result), []
 
     if analysis_data is not None:
         result = analysis_data.get("result", {})
@@ -145,7 +219,7 @@ def _compose_success_answer(state: ChatAgentState) -> tuple[str, list[AgentEvide
         if intent == "explain_result" and scan_data is not None:
             evidence.extend(_scan_evidence(scan_data.get("asset", {})))
             answer += " 判断依据同时参考了保存的分析证据和原始服务指纹。"
-        return answer, evidence
+        return answer, evidence, []
 
     if scan_data is not None:
         asset = scan_data.get("asset", {})
@@ -163,9 +237,9 @@ def _compose_success_answer(state: ChatAgentState) -> tuple[str, list[AgentEvide
             )
         else:
             answer = f"{ip} 存在扫描记录，但当前结果没有可展示的服务指纹。"
-        return answer, _scan_evidence(asset)
+        return answer, _scan_evidence(asset), []
 
-    return "工具已执行，但没有返回可展示的数据。", []
+    return "工具已执行，但没有返回可展示的数据。", [], []
 
 
 def chat_response_from_state(state: ChatAgentState) -> AgentChatResponse:
@@ -190,6 +264,7 @@ def chat_response_from_state(state: ChatAgentState) -> AgentChatResponse:
             for record in state.get("tool_history", [])
         ],
         evidence=state.get("evidence", []),
+        priority_assets=state.get("priority_assets", []),
         limitations=state.get("limitations", []),
     )
 
@@ -667,7 +742,7 @@ def build_chat_agent_graph(
                 started=started,
                 tool_name=last.name,
             )
-        answer, evidence = _compose_success_answer(state)
+        answer, evidence, priority_assets = _compose_success_answer(state)
         update: dict[str, Any] = {}
         fallback_reason = None
         if answer_provider is not None and not state.get("fallback_used"):
@@ -690,6 +765,7 @@ def build_chat_agent_graph(
                 **update,
                 "answer": answer,
                 "evidence": evidence,
+                "priority_assets": priority_assets,
                 "status": "success",
             },
             node="compose_answer",

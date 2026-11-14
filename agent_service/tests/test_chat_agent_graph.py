@@ -44,7 +44,39 @@ class FakeToolRegistry:
                             "total_services": 3,
                             "total_risks": 1,
                             "failed_assets": 0,
-                        }
+                            "missing_results": 0,
+                        },
+                        "attention_items": [
+                            {
+                                "ip": "192.0.2.20",
+                                "scan_round": 1,
+                                "risk_level": "high",
+                                "risk_count": 2,
+                                "risk_titles": ["疑似高风险配置", "疑似版本风险"],
+                            },
+                            {
+                                "ip": "192.0.2.10",
+                                "scan_round": 1,
+                                "risk_level": "critical",
+                                "risk_count": 1,
+                                "risk_titles": ["疑似严重配置风险"],
+                            },
+                        ],
+                        "ports": [
+                            {
+                                "port": 22,
+                                "transport_protocol": "tcp",
+                                "service_type": "ssh",
+                                "ips": ["192.0.2.10"],
+                            }
+                        ],
+                        "products": [
+                            {
+                                "product": "OpenSSH",
+                                "version": "9.2",
+                                "ips": ["192.0.2.10"],
+                            }
+                        ],
                     },
                 },
             )
@@ -273,6 +305,15 @@ async def test_rule_graph_queries_saved_batch_report_by_task_id() -> None:
     assert response.tools_used[0].name == "get_batch_report"
     assert registry.calls[0][1] == {"task_id": 11}
     assert "2 个有效资产" in response.answer
+    assert "建议优先核查 192.0.2.10" in response.answer
+    assert [item.ip for item in response.priority_assets] == [
+        "192.0.2.10",
+        "192.0.2.20",
+    ]
+    assert response.priority_assets[0].rank == 1
+    assert response.priority_assets[0].exposed_services == ["22/tcp ssh"]
+    assert response.priority_assets[0].products == ["OpenSSH 9.2"]
+    assert response.evidence[1].source == "batch_priority"
 
 
 @pytest.mark.asyncio

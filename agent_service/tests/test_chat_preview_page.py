@@ -16,6 +16,7 @@ def test_chat_preview_page_is_served() -> None:
     assert "网络资产分析助手" in response.text
     assert "工具调用轨迹" in response.text
     assert "引用证据" in response.text
+    assert "处置优先级" in response.text
     assert "LangGraph 工作流" in response.text
 
 
@@ -30,6 +31,8 @@ def test_chat_preview_calls_agent_api_and_uses_safe_text_rendering() -> None:
     assert "conversation_id:conversationId" in CHAT_PREVIEW_HTML
     assert "/agent/conversations/" in CHAT_PREVIEW_HTML
     assert "data.context_reused" in CHAT_PREVIEW_HTML
+    assert "data.priority_assets" in CHAT_PREVIEW_HTML
+    assert "showPriorities" in CHAT_PREVIEW_HTML
     assert "textContent" in CHAT_PREVIEW_HTML
     assert "innerHTML" not in CHAT_PREVIEW_HTML
 
