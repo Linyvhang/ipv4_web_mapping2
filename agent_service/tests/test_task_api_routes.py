@@ -54,6 +54,11 @@ class FakeAnalysisRepository:
         assert list(ids) == [11]
         return self.records
 
+    async def get_cached_result(self, *, ip, scan_round):
+        if self.records:
+            return self.records[0]
+        return None
+
 
 class FakeOrchestrator:
     def __init__(self, status=TaskStatus.SUCCESS, found=True, include_result=True):
@@ -93,6 +98,20 @@ async def test_completed_and_failed_task_results_are_queryable():
     assert failed.status == "failed"
     assert failed.items[0].result is None
     assert failed.items[0].error_message == "模型失败"
+
+
+@pytest.mark.asyncio
+async def test_successful_reused_item_falls_back_to_cached_result():
+    orchestrator = FakeOrchestrator(include_result=True)
+    orchestrator.analysis_repository.records[0].task_item_id = 999
+    route = endpoint(
+        create_task_query_router(orchestrator),
+        "/analysis/tasks/{task_id}/result",
+    )
+
+    response = await route(10)
+
+    assert response.items[0].result.analysis_id == "analysis-asset-api"
 
 
 @pytest.mark.asyncio

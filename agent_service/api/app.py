@@ -9,6 +9,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
+from agent_service.services.batch_analysis import BatchAnalysisService
 from agent_service.services.chat_ai import NaturalLanguageAgentProvider
 from agent_service.services.single_ip_graph import build_single_ip_graph
 from agent_service.services.chat_agent_graph import build_chat_agent_graph
@@ -25,6 +26,7 @@ from .task_routes import create_task_query_router
 from .chat_preview import create_chat_preview_router
 from .preview import create_preview_router
 from .routes import create_single_ip_router
+from .batch_routes import create_batch_analysis_router
 
 
 def create_app(
@@ -32,6 +34,7 @@ def create_app(
     *,
     understanding_provider: QuestionUnderstandingProvider | None = None,
     chat_ai_provider: NaturalLanguageAgentProvider | None = None,
+    batch_service: BatchAnalysisService | None = None,
 ) -> FastAPI:
     """创建已连接单 IP 编排 Service 的 FastAPI 应用。"""
 
@@ -61,5 +64,8 @@ def create_app(
     app.include_router(create_chat_agent_router(chat_graph))
     app.include_router(create_asset_router(orchestrator))
     app.include_router(create_task_query_router(orchestrator))
+    if batch_service is not None:
+        app.state.batch_analysis_service = batch_service
+        app.include_router(create_batch_analysis_router(batch_service))
     return app
 

@@ -92,6 +92,12 @@ def create_task_query_router(orchestrator: SingleIPTaskOrchestrator) -> APIRoute
         result_items = []
         for item in items:
             record = by_item.get(item.id)
+            # 批量任务命中缓存时，新子任务不会重复写入唯一的分析结果；
+            # 按 IP 和扫描批次回查即可把原结果返回给可视化模块。
+            if record is None and _value(item.status) == "success":
+                record = await orchestrator.analysis_repository.get_cached_result(
+                    ip=item.ip, scan_round=item.scan_round
+                )
             result_items.append(
                 TaskResultItemResponse(
                     task_item_id=item.id,

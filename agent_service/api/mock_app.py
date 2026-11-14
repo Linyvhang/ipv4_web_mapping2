@@ -16,6 +16,7 @@ from agent_service.db.models import TaskStatus
 from agent_service.providers.mock import MockModelProvider
 from agent_service.services.ip_analysis import SingleIPAnalysisService
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
+from agent_service.services.batch_analysis import BatchAnalysisService
 
 
 class MockL3DataProvider:
@@ -51,6 +52,9 @@ class MockTaskRepository:
             created_at=now,
             started_at=None,
             completed_at=None,
+            completed_count=0,
+            failed_count=0,
+            summary_json=None,
         )
         self.tasks[task.id] = task
         self.next_id += 1
@@ -90,6 +94,11 @@ class MockTaskRepository:
             if kwargs.get(name) is not None:
                 setattr(item, name, kwargs[name])
 
+    async def update_task_progress(self, task_id, **kwargs) -> None:
+        task = self.tasks[task_id]
+        for name, value in kwargs.items():
+            setattr(task, name, value)
+
     async def get_task(self, task_id: int):
         return self.tasks.get(task_id)
 
@@ -123,6 +132,19 @@ class MockAnalysisRepository:
         return [result for result in self.results.values() if result.task_item_id in ids]
 
 
+class _MockSession:
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, traceback):
+        return False
+
+
+class _MockSessionFactory:
+    def __call__(self):
+        return _MockSession()
+
+
 def _mock_result_factory(
     _prompt: str, _output_model: type[ModelAnalysisPayload]
 ) -> dict:
@@ -143,11 +165,21 @@ def create_mock_app():
     analysis_service = SingleIPAnalysisService(
         data_provider=MockL3DataProvider(), model_provider=model_provider
     )
+    task_repository = MockTaskRepository()
+    analysis_repository = MockAnalysisRepository()
+    data_provider = MockL3DataProvider()
     orchestrator = SingleIPTaskOrchestrator(
-        task_repository=MockTaskRepository(),
-        analysis_repository=MockAnalysisRepository(),
-        data_provider=MockL3DataProvider(),
+        task_repository=task_repository,
+        analysis_repository=analysis_repository,
+        data_provider=data_provider,
         analysis_service=analysis_service,
     )
-    return create_app(orchestrator)
+    batch_service = BatchAnalysisService(
+        session_factory=_MockSessionFactory(),
+        model_provider=model_provider,
+        data_provider_factory=lambda _session: data_provider,
+        task_repository_factory=lambda _session: task_repository,
+        analysis_repository_factory=lambda _session: analysis_repository,
+    )
+    return create_app(orchestrator, batch_service=batch_service)
 

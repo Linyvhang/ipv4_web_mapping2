@@ -11,6 +11,7 @@ def test_api_contract_documents_all_visualization_routes() -> None:
         "GET /assets/{ip}/analysis",
         "POST /analysis/ip",
         "POST /analysis/ip/stream",
+        "POST /analysis/batch",
         "GET /analysis/tasks/{task_id}",
         "GET /analysis/tasks/{task_id}/result",
         "POST /agent/chat",
@@ -18,6 +19,8 @@ def test_api_contract_documents_all_visualization_routes() -> None:
         assert route in content
     assert "不触发主动扫描" in content
     assert "application/x-ndjson" in content
+    assert "2～50" in content
+    assert "不接受 CIDR" in content
 
 
 def test_visualization_handoff_is_directly_actionable() -> None:

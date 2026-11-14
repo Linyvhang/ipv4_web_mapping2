@@ -29,6 +29,7 @@ from agent_service.providers.deepseek_chat import DeepSeekNaturalLanguageProvide
 from agent_service.providers.base import ModelProvider
 from agent_service.services.ip_analysis import SingleIPAnalysisService
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
+from agent_service.services.batch_analysis import BatchAnalysisService
 
 
 def _build_model_provider() -> ModelProvider:
@@ -65,12 +66,23 @@ def _build_orchestrator():
         data_provider=data_provider, model_provider=model_provider
     )
 
-    return SingleIPTaskOrchestrator(
+    orchestrator = SingleIPTaskOrchestrator(
         task_repository=task_repo,
         analysis_repository=analysis_repo,
         data_provider=data_provider,
         analysis_service=analysis_service,
-    ), engine
+    )
+    return orchestrator, engine, factory, model_provider
+
+
+def _positive_int_env(name: str, default: int) -> int:
+    try:
+        value = int(os.environ.get(name, str(default)))
+    except ValueError as exc:
+        raise ValueError(f"{name} 必须是整数") from exc
+    if value < 1:
+        raise ValueError(f"{name} 必须大于 0")
+    return value
 
 
 def _build_chat_ai_provider():
@@ -87,8 +99,18 @@ def _build_chat_ai_provider():
 
 
 def _make_app() -> FastAPI:
-    orchestrator, engine = _build_orchestrator()
-    app = create_app(orchestrator, chat_ai_provider=_build_chat_ai_provider())
+    orchestrator, engine, session_factory, model_provider = _build_orchestrator()
+    batch_service = BatchAnalysisService(
+        session_factory=session_factory,
+        model_provider=model_provider,
+        max_concurrency=_positive_int_env("AGENT_BATCH_CONCURRENCY", 3),
+        max_ips=min(_positive_int_env("AGENT_BATCH_MAX_IPS", 50), 50),
+    )
+    app = create_app(
+        orchestrator,
+        chat_ai_provider=_build_chat_ai_provider(),
+        batch_service=batch_service,
+    )
 
     original_lifespan = app.router.lifespan_context
 

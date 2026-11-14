@@ -45,7 +45,11 @@ class AgentTaskRepository:
 
     @staticmethod
     def build_task_query(task_id: int):
-        return select(AgentTask).where(AgentTask.id == task_id)
+        return (
+            select(AgentTask)
+            .where(AgentTask.id == task_id)
+            .execution_options(populate_existing=True)
+        )
 
     @staticmethod
     def build_item_query(item_id: int):
@@ -57,6 +61,7 @@ class AgentTaskRepository:
             select(AgentTaskItem)
             .where(AgentTaskItem.task_id == task_id)
             .order_by(AgentTaskItem.id)
+            .execution_options(populate_existing=True)
         )
 
     @staticmethod
@@ -78,6 +83,22 @@ class AgentTaskRepository:
             values["completed_at"] = completed_at
         if cancelled_at is not None:
             values["cancelled_at"] = cancelled_at
+        return update(AgentTask).where(AgentTask.id == task_id).values(**values)
+
+    @staticmethod
+    def build_update_task_progress(
+        task_id: int,
+        *,
+        completed_count: int,
+        failed_count: int,
+        summary_json: dict | None = None,
+    ):
+        values: dict[str, object] = {
+            "completed_count": completed_count,
+            "failed_count": failed_count,
+        }
+        if summary_json is not None:
+            values["summary_json"] = summary_json
         return update(AgentTask).where(AgentTask.id == task_id).values(**values)
 
     @staticmethod
@@ -180,6 +201,23 @@ class AgentTaskRepository:
                 error_message=error_message,
                 started_at=started_at,
                 completed_at=completed_at,
+            )
+        )
+
+    async def update_task_progress(
+        self,
+        task_id: int,
+        *,
+        completed_count: int,
+        failed_count: int,
+        summary_json: dict | None = None,
+    ) -> None:
+        await self.session.execute(
+            self.build_update_task_progress(
+                task_id,
+                completed_count=completed_count,
+                failed_count=failed_count,
+                summary_json=summary_json,
             )
         )
 

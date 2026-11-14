@@ -32,14 +32,22 @@ def test_task_query_and_update_statements_are_scoped() -> None:
         error_message="model timeout",
         started_at=datetime(2026, 1, 1),
     )
+    progress_update = AgentTaskRepository.build_update_task_progress(
+        7, completed_count=3, failed_count=1, summary_json={"success": 2}
+    )
 
     assert "agent_task.id" in compile_mysql(task_query)
     assert "agent_task_item.id" in compile_mysql(item_query)
     assert "agent_task_item.task_id" in compile_mysql(task_items_query)
     assert "ORDER BY agent_task_item.id" in compile_mysql(task_items_query)
+    assert task_query.get_execution_options()["populate_existing"] is True
+    assert task_items_query.get_execution_options()["populate_existing"] is True
     assert "SET status=%s" in compile_mysql(task_update)
     assert "error_message=%s" in compile_mysql(task_update)
     assert "started_at=%s" in compile_mysql(task_update)
+    assert "completed_count=%s" in compile_mysql(progress_update)
+    assert "failed_count=%s" in compile_mysql(progress_update)
+    assert "summary_json=%s" in compile_mysql(progress_update)
 
 
 def test_cached_result_query_uses_ip_and_scan_round() -> None:

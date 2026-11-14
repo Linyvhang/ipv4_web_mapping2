@@ -16,6 +16,7 @@ LangGraph 和大模型生成单 IP 资产画像、疑似风险、证据与处置
 - Agent 任务和分析结果持久化。
 - 白名单 Agent 工具层：扫描数据查询、已保存结果查询和受控分析任务创建。
 - 面向可视化模块的只读扫描数据、已保存分析、任务状态和任务结果接口。
+- 有限批量 IP 分析：显式提交 2～50 个 IPv4，预检、去重、并发处理、缓存复用和逐项失败隔离。
 - Agent 可观测性：返回 LangGraph 节点顺序、耗时、决策、工具和安全降级原因。
 
 自然语言问答的意图、工具轨迹、证据、响应 Schema 和 LangGraph 初始 State 已完成。
@@ -99,6 +100,10 @@ AGENT_DB_PASSWORD=数据库密码
 # 先使用 Mock 模型分析真实数据库数据
 AGENT_MODEL_PROVIDER=mock
 AGENT_CHAT_PROVIDER=rules
+
+# 有限批量分析（可选，以下为默认值）
+AGENT_BATCH_CONCURRENCY=3
+AGENT_BATCH_MAX_IPS=50
 ```
 
 `.env` 已被 `.gitignore` 忽略，不要把密码或 API Key 提交到 Git。
@@ -136,6 +141,19 @@ python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8001
 ```
 
 `scan_round` 为 `null` 时查询该 IP 的最近扫描批次。只能分析数据库中已经存在的 IP。
+
+有限批量分析使用 `POST /analysis/batch`：
+
+```json
+{
+  "ips": ["1.2.3.4", "1.2.3.5"],
+  "scan_round": null
+}
+```
+
+接口返回 `202` 和 `task_id`，随后用 `GET /analysis/tasks/{task_id}` 查询进度，完成后用
+`GET /analysis/tasks/{task_id}/result` 获取各 IP 结果。批量只接受明确 IP 列表，不会展开
+CIDR，也不会触发扫描。第一版任务在 FastAPI 进程内运行，服务重启会中断未完成任务。
 
 自然语言问答可以在 Swagger 中使用 `POST /agent/chat`：
 

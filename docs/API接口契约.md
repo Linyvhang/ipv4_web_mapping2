@@ -102,7 +102,40 @@ POST /analysis/ip/stream
 
 需要实时进度时使用该接口；当前不需要通过任务状态接口轮询单 IP 实时进度。
 
-## 6. 查询任务状态
+## 6. 创建有限批量 IP 分析
+
+```http
+POST /analysis/batch
+```
+
+请求必须显式提供 2～50 个 IPv4，不接受 CIDR 网段；重复 IP 会按首次出现顺序去重：
+
+```json
+{
+  "ips": ["1.2.163.154", "1.2.163.155"],
+  "scan_round": null
+}
+```
+
+系统会先检查所有 IP 是否存在扫描数据。只要有一个不存在，就返回 `404` 和
+`missing_ips`，并且不创建任务。全部通过后返回 `202 Accepted`：
+
+```json
+{
+  "task_id": 200,
+  "status": "pending",
+  "target_count": 2,
+  "targets": [
+    {"ip": "1.2.163.154", "scan_round": 1},
+    {"ip": "1.2.163.155", "scan_round": 1}
+  ]
+}
+```
+
+后台任务默认最多同时处理 3 个 IP，单个 IP 失败不影响其他 IP。已有相同 IP 和扫描批次
+的结果会直接复用。第一版后台任务运行在 FastAPI 进程内，服务重启会中断尚未完成的任务。
+
+## 7. 查询任务状态
 
 ```http
 GET /analysis/tasks/{task_id}
@@ -130,7 +163,7 @@ GET /analysis/tasks/{task_id}
 
 状态取值：`pending`、`running`、`success`、`failed`、`cancelled`。
 
-## 7. 查询任务结果
+## 8. 查询任务结果
 
 ```http
 GET /analysis/tasks/{task_id}/result
@@ -141,7 +174,7 @@ GET /analysis/tasks/{task_id}/result
 - 任务仍为 `pending` 或 `running`：`409`；
 - 失败子项的 `result` 为 `null`，并通过 `error_message` 说明原因。
 
-## 8. 自然语言 Agent
+## 9. 自然语言 Agent
 
 ```http
 POST /agent/chat
@@ -156,7 +189,7 @@ POST /agent/chat
 
 响应包含自然语言回答、意图、模型来源、工具轨迹、LangGraph 节点轨迹、证据和限制。
 
-## 9. 错误处理
+## 10. 错误处理
 
 统一错误结构：
 
@@ -167,18 +200,20 @@ POST /agent/chat
 | 状态码 | 含义 |
 | --- | --- |
 | `200` | 成功 |
+| `202` | 批量任务已创建并进入后台处理 |
 | `404` | 扫描数据、分析结果或任务不存在 |
 | `409` | 任务未完成或缓存模型冲突 |
 | `422` | IP、扫描批次或请求字段校验失败 |
 | `500` | 服务内部错误 |
 | `502` | 模型服务调用失败 |
 
-## 10. 前端推荐调用方式
+## 11. 前端推荐调用方式
 
 - 扫描详情页面：`GET /assets/{ip}/scan-data`；
 - 已保存报告页面：`GET /assets/{ip}/analysis`；
 - 立即创建分析：`POST /analysis/ip`；
 - 展示实时分析步骤：`POST /analysis/ip/stream`；
+- 创建有限批量分析：`POST /analysis/batch`，之后轮询任务状态；
 - 查询持久化任务：`GET /analysis/tasks/{task_id}`；
 - 获取任务下所有结果：`GET /analysis/tasks/{task_id}/result`；
 - 自然语言问答：`POST /agent/chat`。
