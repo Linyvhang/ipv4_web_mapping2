@@ -35,6 +35,27 @@ SCAN_QUERY_PATTERNS = re.compile(
     r"服务|端口|产品|版本|指纹|banner|扫描数据|扫描结果|开放了什么|open\s+port",
     re.I,
 )
+COMPARE_PATTERNS = re.compile(r"对比|比较|变化|变更|新增.*消失|前后差异", re.I)
+BATCH_REPORT_PATTERNS = re.compile(
+    r"批量.*(?:统计|汇总|报告)|任务\s*#?\s*\d+.*(?:统计|汇总|报告)|(?:统计|汇总|报告).*任务\s*#?\s*\d+",
+    re.I,
+)
+SCAN_ROUND_PATTERN = re.compile(r"(?:扫描)?批次\s*#?\s*(\d+)|第\s*(\d+)\s*批")
+TASK_ID_PATTERN = re.compile(r"(?:批量)?任务\s*#?\s*(\d+)", re.I)
+
+
+def scan_rounds(question: str) -> list[int]:
+    rounds: list[int] = []
+    for first, second in SCAN_ROUND_PATTERN.findall(question):
+        value = int(first or second)
+        if value > 0 and value not in rounds:
+            rounds.append(value)
+    return rounds
+
+
+def extract_task_id(question: str) -> int | None:
+    match = TASK_ID_PATTERN.search(question)
+    return int(match.group(1)) if match else None
 
 
 class QuestionUnderstandingProvider(Protocol):
@@ -90,6 +111,8 @@ class RuleBasedQuestionUnderstandingProvider:
         normalized = question.strip()
         addresses = valid_ipv4s(normalized)
         target_ip = addresses[0] if addresses else None
+        rounds = scan_rounds(normalized)
+        task_id = extract_task_id(normalized)
 
         prohibited = prohibited_operation(normalized)
         if prohibited is not None:
@@ -100,6 +123,15 @@ class RuleBasedQuestionUnderstandingProvider:
                 confidence=1.0,
                 reason=f"请求包含禁止操作：{prohibited}",
             )
+        if BATCH_REPORT_PATTERNS.search(normalized) and task_id is not None:
+            return QuestionUnderstanding(
+                intent="query_batch_report",
+                target_ip=None,
+                task_id=task_id,
+                explicit_analysis_request=False,
+                confidence=0.95,
+                reason="用户正在查询已保存的批量统计报告",
+            )
         if target_ip is None:
             return QuestionUnderstanding(
                 intent="missing_target",
@@ -107,6 +139,16 @@ class RuleBasedQuestionUnderstandingProvider:
                 explicit_analysis_request=False,
                 confidence=1.0,
                 reason="问题中没有可用的 IPv4 地址",
+            )
+        if COMPARE_PATTERNS.search(normalized) and len(rounds) >= 2:
+            return QuestionUnderstanding(
+                intent="compare_scan_rounds",
+                target_ip=target_ip,
+                from_scan_round=rounds[0],
+                to_scan_round=rounds[1],
+                explicit_analysis_request=False,
+                confidence=0.95,
+                reason="用户正在比较同一 IP 的两个扫描批次",
             )
         if CREATE_ANALYSIS_PATTERNS.search(normalized):
             return QuestionUnderstanding(
@@ -167,6 +209,22 @@ class ChatRequestValidator:
 
         candidates = extract_ipv4_candidates(question)
         addresses = valid_ipv4s(question)
+        extracted_rounds = scan_rounds(question)
+        extracted_task_id = extract_task_id(question)
+        if understanding.intent == "query_batch_report":
+            if understanding.target_ip is not None:
+                return RequestValidation(
+                    valid=False,
+                    status="invalid_request",
+                    error="批量报告查询不应指定单个 IP",
+                )
+            if extracted_task_id is None or understanding.task_id != extracted_task_id:
+                return RequestValidation(
+                    valid=False,
+                    status="invalid_request",
+                    error="请在问题中提供一致的批量任务 ID",
+                )
+            return RequestValidation(valid=True, status="valid", error=None)
         if len(addresses) > 1:
             return RequestValidation(
                 valid=False,
@@ -191,6 +249,28 @@ class ChatRequestValidator:
                 status="invalid_request",
                 error="结构化目标 IP 与用户问题不一致",
             )
+        if understanding.intent == "compare_scan_rounds":
+            if len(extracted_rounds) != 2:
+                return RequestValidation(
+                    valid=False,
+                    status="invalid_request",
+                    error="历史变化对比需要明确提供两个不同扫描批次",
+                )
+            if (
+                understanding.from_scan_round,
+                understanding.to_scan_round,
+            ) != tuple(extracted_rounds):
+                return RequestValidation(
+                    valid=False,
+                    status="invalid_request",
+                    error="结构化扫描批次与用户问题不一致",
+                )
+            if understanding.from_scan_round == understanding.to_scan_round:
+                return RequestValidation(
+                    valid=False,
+                    status="invalid_request",
+                    error="两个扫描批次不能相同",
+                )
         if understanding.intent == "unsupported":
             return RequestValidation(
                 valid=False,

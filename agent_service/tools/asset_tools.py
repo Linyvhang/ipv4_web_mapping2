@@ -21,6 +21,15 @@ from agent_service.services.task_orchestrator import (
     SingleIPExecution,
     SingleIPTaskOrchestrator,
 )
+from agent_service.services.asset_change import (
+    AssetChangeService,
+    ComparedAssetNotFoundError,
+    ScanRoundNotFoundError,
+)
+from agent_service.services.batch_report import (
+    BatchReportNotFoundError,
+    BatchReportService,
+)
 
 
 class IPLookupInput(SchemaModel):
@@ -45,6 +54,27 @@ class CreateIPAnalysisInput(IPLookupInput):
     """创建受控分析任务；不会触发主动扫描。"""
 
     save_result: bool = True
+
+
+class CompareScanRoundsInput(SchemaModel):
+    ip: str
+    from_scan_round: int = Field(ge=1)
+    to_scan_round: int = Field(ge=1)
+
+    @field_validator("ip")
+    @classmethod
+    def validate_ipv4(cls, value: str) -> str:
+        try:
+            address = ip_address(value)
+        except ValueError as exc:
+            raise ValueError("ip must be a valid IPv4 address") from exc
+        if not isinstance(address, IPv4Address):
+            raise ValueError("ip must be a valid IPv4 address")
+        return str(address)
+
+
+class GetBatchReportInput(SchemaModel):
+    task_id: int = Field(ge=1)
 
 
 class AgentToolResult(SchemaModel):
@@ -98,6 +128,18 @@ class AssetAgentToolRegistry:
             read_only=False,
             requires_explicit_request=True,
         ),
+        AgentToolDefinition(
+            name="compare_ip_scan_rounds",
+            description="只读比较同一 IP 两个已有扫描批次的服务、产品版本和风险变化。",
+            input_schema=CompareScanRoundsInput,
+            read_only=True,
+        ),
+        AgentToolDefinition(
+            name="get_batch_report",
+            description="按批量任务 ID 查询已经保存的批量统计 JSON 报告，不生成新报告。",
+            input_schema=GetBatchReportInput,
+            read_only=True,
+        ),
     )
 
     def __init__(
@@ -105,9 +147,13 @@ class AssetAgentToolRegistry:
         *,
         orchestrator: SingleIPTaskOrchestrator,
         graph: Any,
+        asset_change_service: AssetChangeService | None = None,
+        batch_report_service: BatchReportService | None = None,
     ) -> None:
         self.orchestrator = orchestrator
         self.graph = graph
+        self.asset_change_service = asset_change_service
+        self.batch_report_service = batch_report_service
         self._definitions = {definition.name: definition for definition in self.DEFINITIONS}
 
     @property
@@ -140,6 +186,10 @@ class AssetAgentToolRegistry:
             return await self._get_ip_analysis_result(parsed)
         if name == "create_ip_analysis":
             return await self._create_ip_analysis(parsed)
+        if name == "compare_ip_scan_rounds":
+            return await self._compare_scan_rounds(parsed)
+        if name == "get_batch_report":
+            return await self._get_batch_report(parsed)
         raise UnknownAgentToolError(f"未注册的 Agent 工具: {name}")  # pragma: no cover
 
     async def _load_asset(self, request: IPLookupInput):
@@ -227,5 +277,61 @@ class AssetAgentToolRegistry:
                 "task_item_id": execution.task_item_id,
                 "reused": execution.reused,
                 "result": result_json,
+            },
+        )
+
+    async def _compare_scan_rounds(
+        self, request: CompareScanRoundsInput
+    ) -> AgentToolResult:
+        if self.asset_change_service is None:
+            raise ValueError("历史变化对比工具尚未配置")
+        try:
+            comparison = await self.asset_change_service.compare(
+                request.ip,
+                from_scan_round=request.from_scan_round,
+                to_scan_round=request.to_scan_round,
+            )
+        except (ComparedAssetNotFoundError, ScanRoundNotFoundError) as exc:
+            return AgentToolResult(
+                tool_name="compare_ip_scan_rounds",
+                status="not_found",
+                message=str(exc),
+                data={
+                    "found": False,
+                    "ip": request.ip,
+                    "from_scan_round": request.from_scan_round,
+                    "to_scan_round": request.to_scan_round,
+                },
+            )
+        return AgentToolResult(
+            tool_name="compare_ip_scan_rounds",
+            status="success",
+            message="已比较两个扫描批次的资产变化",
+            data={"found": True, "comparison": comparison.model_dump(mode="json")},
+        )
+
+    async def _get_batch_report(
+        self, request: GetBatchReportInput
+    ) -> AgentToolResult:
+        if self.batch_report_service is None:
+            raise ValueError("批量报告查询工具尚未配置")
+        try:
+            response = await self.batch_report_service.get_report(request.task_id)
+        except BatchReportNotFoundError as exc:
+            return AgentToolResult(
+                tool_name="get_batch_report",
+                status="not_found",
+                message=str(exc),
+                data={"found": False, "task_id": request.task_id},
+            )
+        return AgentToolResult(
+            tool_name="get_batch_report",
+            status="success",
+            message="已读取保存的批量统计报告",
+            data={
+                "found": True,
+                "report_id": response.report_id,
+                "task_id": response.task_id,
+                "report": response.report.model_dump(mode="json"),
             },
         )

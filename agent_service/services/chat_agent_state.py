@@ -30,6 +30,9 @@ class ChatAgentState(TypedDict):
     intent: AgentIntent | None
     understanding: QuestionUnderstanding | None
     target_ip: str | None
+    from_scan_round: int | None
+    to_scan_round: int | None
+    task_id: int | None
     explicit_analysis_request: bool
     request_error: str | None
     selected_tool: AgentToolName | None
@@ -62,6 +65,9 @@ def initial_chat_state(
         "intent": None,
         "understanding": None,
         "target_ip": None,
+        "from_scan_round": None,
+        "to_scan_round": None,
+        "task_id": None,
         "explicit_analysis_request": False,
         "request_error": None,
         "selected_tool": None,

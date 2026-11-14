@@ -26,6 +26,11 @@ def run_immediate(coroutine):
         ("192.0.2.10 有哪些风险？", "query_analysis_result", False),
         ("帮我分析 192.0.2.10", "create_analysis", True),
         ("为什么 192.0.2.10 被判断为低风险？", "explain_result", False),
+        (
+            "比较 192.0.2.10 扫描批次 1 和扫描批次 2 的变化",
+            "compare_scan_rounds",
+            False,
+        ),
     ],
 )
 def test_rule_based_provider_classifies_supported_questions(
@@ -38,6 +43,22 @@ def test_rule_based_provider_classifies_supported_questions(
     assert result.intent == intent
     assert result.target_ip == "192.0.2.10"
     assert result.explicit_analysis_request is explicit
+
+
+def test_rule_provider_extracts_history_rounds_and_batch_task_id() -> None:
+    provider = RuleBasedQuestionUnderstandingProvider()
+    history_question = "比较 192.0.2.10 扫描批次 1 和扫描批次 2 的变化"
+    report_question = "查询批量任务 11 的统计报告"
+
+    history = run_immediate(provider.understand(history_question))
+    report = run_immediate(provider.understand(report_question))
+
+    assert (history.from_scan_round, history.to_scan_round) == (1, 2)
+    assert ChatRequestValidator().validate(history_question, history).valid is True
+    assert report.intent == "query_batch_report"
+    assert report.target_ip is None
+    assert report.task_id == 11
+    assert ChatRequestValidator().validate(report_question, report).valid is True
 
 
 def test_safe_scan_result_query_is_not_treated_as_active_scanning() -> None:

@@ -96,6 +96,37 @@ class FakeGraph:
         }
 
 
+class FakeSerializable:
+    def __init__(self, payload):
+        self.payload = payload
+
+    def model_dump(self, **_kwargs):
+        return self.payload
+
+
+class FakeAssetChangeService:
+    async def compare(self, ip, *, from_scan_round, to_scan_round):
+        return FakeSerializable(
+            {
+                "ip": ip,
+                "from_scan_round": from_scan_round,
+                "to_scan_round": to_scan_round,
+                "change_status": "changed",
+            }
+        )
+
+
+class FakeBatchReportService:
+    async def get_report(self, task_id):
+        return SimpleNamespace(
+            report_id=7,
+            task_id=task_id,
+            report=FakeSerializable(
+                {"overview": {"analyzed_assets": 2, "total_services": 3}}
+            ),
+        )
+
+
 def run_immediate(coroutine):
     try:
         yielded = coroutine.send(None)
@@ -108,19 +139,32 @@ def run_immediate(coroutine):
 def make_registry(result: AnalysisResult | None = None):
     orchestrator = FakeOrchestrator(result)
     graph = FakeGraph()
-    return AssetAgentToolRegistry(orchestrator=orchestrator, graph=graph), orchestrator, graph
+    return AssetAgentToolRegistry(
+        orchestrator=orchestrator,
+        graph=graph,
+        asset_change_service=FakeAssetChangeService(),
+        batch_report_service=FakeBatchReportService(),
+    ), orchestrator, graph
 
 
-def test_registry_exposes_only_three_bounded_tools() -> None:
+def test_registry_exposes_five_bounded_tools() -> None:
     registry, _, _ = make_registry()
 
     assert [definition.name for definition in registry.definitions] == [
         "get_ip_scan_data",
         "get_ip_analysis_result",
         "create_ip_analysis",
+        "compare_ip_scan_rounds",
+        "get_batch_report",
     ]
-    assert [definition.read_only for definition in registry.definitions] == [True, True, False]
-    assert registry.definitions[-1].requires_explicit_request is True
+    assert [definition.read_only for definition in registry.definitions] == [
+        True,
+        True,
+        False,
+        True,
+        True,
+    ]
+    assert registry.definitions[2].requires_explicit_request is True
 
 
 def test_scan_tool_returns_existing_l3_fingerprints() -> None:
@@ -194,3 +238,25 @@ def test_unknown_tool_and_invalid_ip_are_rejected_before_database_access() -> No
         run_immediate(registry.execute("get_ip_scan_data", {"ip": "not-an-ip"}))
 
     assert orchestrator.load_calls == []
+
+
+def test_history_comparison_and_batch_report_tools_are_read_only() -> None:
+    registry, _, _ = make_registry()
+
+    comparison = run_immediate(
+        registry.execute(
+            "compare_ip_scan_rounds",
+            {
+                "ip": "192.0.2.10",
+                "from_scan_round": 1,
+                "to_scan_round": 2,
+            },
+        )
+    )
+    report = run_immediate(registry.execute("get_batch_report", {"task_id": 11}))
+
+    assert comparison.status == "success"
+    assert comparison.data["comparison"]["change_status"] == "changed"
+    assert report.status == "success"
+    assert report.data["report_id"] == 7
+    assert report.data["report"]["overview"]["analyzed_assets"] == 2

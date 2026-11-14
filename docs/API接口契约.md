@@ -219,6 +219,24 @@ POST /agent/chat
 
 响应包含自然语言回答、意图、模型来源、工具轨迹、LangGraph 节点轨迹、证据和限制。
 
+自然语言 Agent 当前支持五个白名单工具：
+
+- `get_ip_scan_data`：读取已有扫描数据；
+- `get_ip_analysis_result`：读取已保存单 IP 分析；
+- `create_ip_analysis`：用户明确授权时创建单 IP 分析；
+- `compare_ip_scan_rounds`：只读比较同一 IP 的两个扫描批次；
+- `get_batch_report`：按任务 ID 读取已保存批量统计报告。
+
+示例问题：
+
+```text
+比较 1.2.3.4 扫描批次 1 和扫描批次 2 的变化
+查询批量任务 11 的统计报告
+```
+
+程序会从原问题独立提取并校验 IP、批次号和任务 ID。即使模型选择了正确工具，也不能
+改变已经验证的参数、执行 SQL 或触发主动扫描。
+
 ## 11. 查询单 IP 跨扫描批次变化
 
 ```http

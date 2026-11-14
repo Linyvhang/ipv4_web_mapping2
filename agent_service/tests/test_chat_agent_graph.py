@@ -29,7 +29,50 @@ class FakeToolRegistry:
 
     async def execute(self, name, arguments, *, allow_task_creation=False):
         self.calls.append((name, arguments, allow_task_creation))
+        if name == "get_batch_report":
+            return AgentToolResult(
+                tool_name=name,
+                status="success",
+                message="已读取批量报告",
+                data={
+                    "found": True,
+                    "task_id": arguments["task_id"],
+                    "report_id": 7,
+                    "report": {
+                        "overview": {
+                            "analyzed_assets": 2,
+                            "total_services": 3,
+                            "total_risks": 1,
+                            "failed_assets": 0,
+                        }
+                    },
+                },
+            )
         ip = arguments["ip"]
+        if name == "compare_ip_scan_rounds":
+            return AgentToolResult(
+                tool_name=name,
+                status="success",
+                message="已比较扫描批次",
+                data={
+                    "found": True,
+                    "comparison": {
+                        "ip": ip,
+                        "from_scan_round": arguments["from_scan_round"],
+                        "to_scan_round": arguments["to_scan_round"],
+                        "change_status": "changed",
+                        "summary": {
+                            "added_service_count": 1,
+                            "removed_service_count": 0,
+                            "product_change_count": 1,
+                        },
+                        "risk_changes": {
+                            "available": True,
+                            "direction": "increased",
+                        },
+                    },
+                },
+            )
         if name == "get_ip_scan_data":
             if not self.scan_found:
                 return AgentToolResult(
@@ -188,6 +231,48 @@ def test_graph_contains_planned_nodes_and_async_boundaries() -> None:
     assert inspect.iscoroutinefunction(graph.nodes["execute_tool"].data.afunc)
     assert inspect.iscoroutinefunction(graph.nodes["select_tool"].data.afunc)
     assert inspect.iscoroutinefunction(graph.nodes["compose_answer"].data.afunc)
+
+
+@pytest.mark.asyncio
+async def test_rule_graph_compares_scan_rounds_with_read_only_tool() -> None:
+    registry = FakeToolRegistry()
+    graph = make_graph(registry)
+
+    state = await graph.ainvoke(
+        initial_chat_state(
+            "比较 192.0.2.10 扫描批次 1 和扫描批次 2 的变化"
+        )
+    )
+    response = chat_response_from_state(state)
+
+    assert response.intent == "compare_scan_rounds"
+    assert response.from_scan_round == 1
+    assert response.to_scan_round == 2
+    assert response.tools_used[0].name == "compare_ip_scan_rounds"
+    assert registry.calls[0][1] == {
+        "ip": "192.0.2.10",
+        "from_scan_round": 1,
+        "to_scan_round": 2,
+    }
+    assert "新增服务 1 个" in response.answer
+
+
+@pytest.mark.asyncio
+async def test_rule_graph_queries_saved_batch_report_by_task_id() -> None:
+    registry = FakeToolRegistry()
+    graph = make_graph(registry)
+
+    state = await graph.ainvoke(
+        initial_chat_state("查询批量任务 11 的统计报告")
+    )
+    response = chat_response_from_state(state)
+
+    assert response.intent == "query_batch_report"
+    assert response.target_ip is None
+    assert response.task_id == 11
+    assert response.tools_used[0].name == "get_batch_report"
+    assert registry.calls[0][1] == {"task_id": 11}
+    assert "2 个有效资产" in response.answer
 
 
 @pytest.mark.asyncio

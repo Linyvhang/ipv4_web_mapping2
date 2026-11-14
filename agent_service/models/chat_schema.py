@@ -15,6 +15,8 @@ AgentIntent = Literal[
     "query_analysis_result",
     "create_analysis",
     "explain_result",
+    "compare_scan_rounds",
+    "query_batch_report",
     "unsupported",
     "missing_target",
 ]
@@ -22,6 +24,8 @@ AgentToolName = Literal[
     "get_ip_scan_data",
     "get_ip_analysis_result",
     "create_ip_analysis",
+    "compare_ip_scan_rounds",
+    "get_batch_report",
 ]
 AgentChatStatus = Literal[
     "pending",
@@ -71,6 +75,9 @@ class QuestionUnderstanding(SchemaModel):
     intent: AgentIntent
     target_ip: str | None = None
     explicit_analysis_request: bool = False
+    from_scan_round: int | None = Field(default=None, ge=1)
+    to_scan_round: int | None = Field(default=None, ge=1)
+    task_id: int | None = Field(default=None, ge=1)
     confidence: Confidence
     reason: str
 
@@ -142,6 +149,9 @@ class AgentChatResponse(SchemaModel):
     answer: str
     intent: AgentIntent
     target_ip: str | None = None
+    from_scan_round: int | None = Field(default=None, ge=1)
+    to_scan_round: int | None = Field(default=None, ge=1)
+    task_id: int | None = Field(default=None, ge=1)
     status: AgentChatStatus
     model_provider: str = "rules"
     fallback_used: bool = False

@@ -51,7 +51,12 @@ def create_app(
         description="基于已有扫描数据的被动资产分析接口",
     )
     graph = build_single_ip_graph(orchestrator)
-    tool_registry = AssetAgentToolRegistry(orchestrator=orchestrator, graph=graph)
+    tool_registry = AssetAgentToolRegistry(
+        orchestrator=orchestrator,
+        graph=graph,
+        asset_change_service=asset_change_service,
+        batch_report_service=batch_report_service,
+    )
     rules = RuleBasedQuestionUnderstandingProvider()
     primary_understanding = chat_ai_provider or understanding_provider or rules
     chat_graph = build_chat_agent_graph(

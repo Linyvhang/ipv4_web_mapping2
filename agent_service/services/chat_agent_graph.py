@@ -81,6 +81,46 @@ def _compose_success_answer(state: ChatAgentState) -> tuple[str, list[AgentEvide
     analysis_data = _latest_success_data(state, "get_ip_analysis_result")
     create_data = _latest_success_data(state, "create_ip_analysis")
     scan_data = _latest_success_data(state, "get_ip_scan_data")
+    comparison_data = _latest_success_data(state, "compare_ip_scan_rounds")
+    batch_report_data = _latest_success_data(state, "get_batch_report")
+
+    if batch_report_data is not None:
+        report = batch_report_data.get("report", {})
+        overview = report.get("overview", {})
+        answer = (
+            f"批量任务 {batch_report_data.get('task_id')} 的统计报告包含 "
+            f"{overview.get('analyzed_assets', 0)} 个有效资产、"
+            f"{overview.get('total_services', 0)} 个服务和 "
+            f"{overview.get('total_risks', 0)} 条疑似风险；"
+            f"失败资产 {overview.get('failed_assets', 0)} 个。"
+        )
+        evidence = [
+            AgentEvidence(source="batch_report", detail=answer)
+        ]
+        return answer, evidence
+
+    if comparison_data is not None:
+        comparison = comparison_data.get("comparison", {})
+        summary = comparison.get("summary", {})
+        risk = comparison.get("risk_changes", {})
+        answer = (
+            f"{ip} 从扫描批次 {comparison.get('from_scan_round')} 到 "
+            f"{comparison.get('to_scan_round')} 的状态为 {comparison.get('change_status')}："
+            f"新增服务 {summary.get('added_service_count', 0)} 个，"
+            f"消失服务 {summary.get('removed_service_count', 0)} 个，"
+            f"产品变化 {summary.get('product_change_count', 0)} 项。"
+        )
+        if risk.get("available"):
+            answer += f" 风险变化方向为 {risk.get('direction')}。"
+        else:
+            answer += " 至少一个批次没有保存的分析结果，暂不能比较风险。"
+        evidence = [
+            AgentEvidence(
+                source="scan_round_comparison",
+                detail=answer,
+            )
+        ]
+        return answer, evidence
 
     if create_data is not None:
         result = create_data.get("result", {})
@@ -132,6 +172,9 @@ def chat_response_from_state(state: ChatAgentState) -> AgentChatResponse:
         answer=state.get("answer") or "当前没有可用回答。",
         intent=intent,
         target_ip=state.get("target_ip"),
+        from_scan_round=state.get("from_scan_round"),
+        to_scan_round=state.get("to_scan_round"),
+        task_id=state.get("task_id"),
         status=state.get("status", "failed"),
         model_provider=state.get("model_provider", "rules"),
         fallback_used=state.get("fallback_used", False),
@@ -216,6 +259,9 @@ def build_chat_agent_graph(
                 "intent": understanding.intent,
                 "target_ip": understanding.target_ip,
                 "explicit_analysis_request": understanding.explicit_analysis_request,
+                "from_scan_round": understanding.from_scan_round,
+                "to_scan_round": understanding.to_scan_round,
+                "task_id": understanding.task_id,
             },
             node="understand_question",
             status="fallback" if fallback_reason else "success",
@@ -255,6 +301,9 @@ def build_chat_agent_graph(
                 "intent": fallback.intent,
                 "target_ip": fallback.target_ip,
                 "explicit_analysis_request": fallback.explicit_analysis_request,
+                "from_scan_round": fallback.from_scan_round,
+                "to_scan_round": fallback.to_scan_round,
+                "task_id": fallback.task_id,
             }
             if fallback_validation.valid:
                 return traced(
@@ -316,6 +365,10 @@ def build_chat_agent_graph(
         used_tools = {record.name for record in state["tool_history"]}
         if intent == "create_analysis":
             return "create_ip_analysis"
+        if intent == "compare_scan_rounds":
+            return "compare_ip_scan_rounds"
+        if intent == "query_batch_report":
+            return "get_batch_report"
         if intent == "explain_result" and "get_ip_analysis_result" in used_tools:
             return "get_ip_scan_data"
         if intent in {"query_analysis_result", "explain_result"}:
@@ -323,6 +376,14 @@ def build_chat_agent_graph(
         return "get_ip_scan_data"
 
     def canonical_arguments(state: ChatAgentState, selected: str) -> dict[str, Any]:
+        if selected == "compare_ip_scan_rounds":
+            return {
+                "ip": state["target_ip"],
+                "from_scan_round": state.get("from_scan_round"),
+                "to_scan_round": state.get("to_scan_round"),
+            }
+        if selected == "get_batch_report":
+            return {"task_id": state.get("task_id")}
         arguments: dict[str, Any] = {
             "ip": state["target_ip"],
             "scan_round": state.get("scan_round"),
@@ -370,6 +431,17 @@ def build_chat_agent_graph(
                 model_ip = choice.arguments.get("ip")
                 if model_ip is not None and model_ip != state.get("target_ip"):
                     raise ValueError("模型工具参数中的 IP 与已校验 IP 不一致")
+                if choice.name == "compare_ip_scan_rounds" and (
+                    choice.arguments.get("from_scan_round")
+                    != state.get("from_scan_round")
+                    or choice.arguments.get("to_scan_round")
+                    != state.get("to_scan_round")
+                ):
+                    raise ValueError("模型工具参数中的扫描批次与已校验批次不一致")
+                if choice.name == "get_batch_report" and (
+                    choice.arguments.get("task_id") != state.get("task_id")
+                ):
+                    raise ValueError("模型工具参数中的任务 ID 与已校验任务不一致")
                 selected = choice.name
             except (ModelProviderError, ValidationError, ValueError):
                 selected = deterministic_tool(state)
@@ -538,7 +610,11 @@ def build_chat_agent_graph(
             )
         last = state["tool_history"][-1]
         if last.status == "not_found":
-            if last.name == "get_ip_analysis_result":
+            if last.name == "get_batch_report":
+                answer = f"批量任务 {state.get('task_id')} 尚无已保存的统计报告。"
+            elif last.name == "compare_ip_scan_rounds":
+                answer = last.message or "指定扫描批次或资产数据不存在。"
+            elif last.name == "get_ip_analysis_result":
                 answer = (
                     f"{state.get('target_ip')} 尚无已保存的分析结果。"
                     "如需创建分析，请明确提出‘帮我分析这个 IP’。"
