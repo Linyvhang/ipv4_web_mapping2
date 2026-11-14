@@ -35,6 +35,7 @@ def create_app(
     understanding_provider: QuestionUnderstandingProvider | None = None,
     chat_ai_provider: NaturalLanguageAgentProvider | None = None,
     batch_service: BatchAnalysisService | None = None,
+    query_session_factory=None,
 ) -> FastAPI:
     """创建已连接单 IP 编排 Service 的 FastAPI 应用。"""
 
@@ -63,7 +64,11 @@ def create_app(
     app.include_router(create_single_ip_router(graph))
     app.include_router(create_chat_agent_router(chat_graph))
     app.include_router(create_asset_router(orchestrator))
-    app.include_router(create_task_query_router(orchestrator))
+    app.include_router(
+        create_task_query_router(
+            orchestrator, session_factory=query_session_factory
+        )
+    )
     if batch_service is not None:
         app.state.batch_analysis_service = batch_service
         app.include_router(create_batch_analysis_router(batch_service))

@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 
+import agent_service.api.task_routes as task_routes_module
 from agent_service.api.task_routes import create_task_query_router
 from agent_service.db.models import TaskStatus, TaskType
 from agent_service.tests.test_asset_api_routes import analysis_result
@@ -131,3 +132,41 @@ async def test_running_result_returns_409_and_missing_task_returns_404():
     with pytest.raises(HTTPException) as missing_error:
         await missing_route(99)
     assert missing_error.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_task_queries_use_a_fresh_session_when_factory_is_provided(monkeypatch):
+    orchestrator = FakeOrchestrator()
+
+    class SessionContext:
+        async def __aenter__(self):
+            return object()
+
+        async def __aexit__(self, exc_type, exc, traceback):
+            return False
+
+    class SessionFactory:
+        def __init__(self):
+            self.calls = 0
+
+        def __call__(self):
+            self.calls += 1
+            return SessionContext()
+
+    factory = SessionFactory()
+    monkeypatch.setattr(
+        task_routes_module,
+        "AgentTaskRepository",
+        lambda _session: orchestrator.task_repository,
+    )
+    monkeypatch.setattr(
+        task_routes_module,
+        "AgentAnalysisRepository",
+        lambda _session: orchestrator.analysis_repository,
+    )
+    router = create_task_query_router(orchestrator, session_factory=factory)
+
+    await endpoint(router, "/analysis/tasks/{task_id}")(10)
+    await endpoint(router, "/analysis/tasks/{task_id}/result")(10)
+
+    assert factory.calls == 2

@@ -110,6 +110,7 @@ def _make_app() -> FastAPI:
         orchestrator,
         chat_ai_provider=_build_chat_ai_provider(),
         batch_service=batch_service,
+        query_session_factory=session_factory,
     )
 
     original_lifespan = app.router.lifespan_context
