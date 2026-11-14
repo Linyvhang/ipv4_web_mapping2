@@ -23,6 +23,41 @@ LangGraph 和大模型生成单 IP 资产画像、疑似风险、证据与处置
 - LangGraph 多轮会话：使用 Checkpoint 复用已经验证的 IP、扫描批次或任务 ID，支持安全追问。
 - 批量资产优先级问答：根据报告中的风险等级和疑似风险数量确定排序，并返回结构化依据。
 - NetScope 合并首页：FastAPI 同源托管单文件前端，读取现有 MySQL 最新扫描批次并调用 Agent。
+- 平台综合报告：代码聚合最新批次资产、服务、端口和风险统计，DeepSeek 只接收无 IP 的汇总
+  数据撰写段落，失败时自动降级为模板报告。
+- 资产检索：使用白名单组合语法只读过滤 MySQL 最新扫描批次，不接受任意 SQL。
+
+## 当前进度（2026-11-15）
+
+当前已经跑通“云端 MySQL 真实扫描数据 → FastAPI → LangGraph Agent → DeepSeek → 标准 JSON →
+NetScope 前端”的完整链路。Mock 与真实数据库两种启动方式均有自动化测试；完整测试为
+`196 passed`。当前开发分支为 `codex/langgraph-multi-step-agent`。
+
+### 本阶段增加的模块
+
+| 模块 | 主要内容 |
+| --- | --- |
+| 数据模型 | 单 IP 分析、任务、批量统计、历史变化、自然语言问答和平台报告 Pydantic Schema |
+| 数据访问 | 读取 `active_host`、`service_instance_l2` 和五类 L3 明细表，保存 Agent 任务、结果和报告 |
+| 指纹归一化 | Web、SSH、数据库等产品名称和版本归一化，保留来源证据 |
+| 模型适配 | 统一 `ModelProvider`，支持 Mock 与 DeepSeek结构化输出和异常降级 |
+| 单 IP 工作流 | LangGraph 读取数据、缓存检查、模型分析、事实校验、修正重试和安全降级 |
+| 自然语言 Agent | 问题理解、程序校验、白名单工具选择、工具执行、证据回答和工作流轨迹 |
+| 多轮会话 | 使用 `conversation_id` 和 Checkpoint 复用单个 IP、批次或任务 ID 上下文 |
+| 批量与报告 | 2～50个明确 IP 并发分析、JSON统计报告、风险优先级和任务结果复用 |
+| 历史对比 | 比较两个真实扫描批次的新增/消失服务、产品版本和风险变化 |
+| 平台接口 | `/api/health`、`/api/bootstrap`、`/api/search`、`/api/report` |
+| 可视化集成 | FastAPI同源托管 `前端/index.html`，展示真实 MySQL资产、Agent结果和平台报告 |
+| 测试与文档 | API、服务、工作流、模型适配、前端契约和真实链路的自动化测试与接口文档 |
+
+### 当前限制
+
+- 自然语言多轮会话会记住一个目标 IP，但单轮多 IP 对比尚未实现；
+- 批量分析只接受2～50个明确 IPv4，不展开 CIDR；
+- Checkpoint 当前保存在进程内存，重启服务后会话清空；
+- 历史变化依赖至少两个真实扫描批次，当前只有一个批次时只能分析最新数据；
+- 首页登录是开发演示入口，尚未实现真实身份认证和用户权限；
+- DeepSeek单 IP 分析会发送该 IP 的已有指纹；平台综合报告只发送不含 IP/Banner 的汇总数据。
 
 自然语言问答的意图、工具轨迹、证据、响应 Schema 和 LangGraph 初始 State 已完成。
 自然语言 Agent 第一版 LangGraph 已完成，支持规则模式和 DeepSeek 模式。DeepSeek 负责
@@ -36,12 +71,26 @@ LangGraph 和大模型生成单 IP 资产画像、疑似风险、证据与处置
 前后端接口说明见 [API 接口契约](docs/API接口契约.md)，可直接转发的前端说明见
 [可视化模块对接说明](docs/可视化模块对接说明.md)。
 
-## 1. 首次准备本地环境
+## 1. 克隆项目并准备本地环境
 
-以下命令均在项目根目录 `H:\ipv4_web_mapping2` 中执行。
+首次获取当前开发版本：
 
 ```powershell
-cd H:\ipv4_web_mapping2
+git clone --branch codex/langgraph-multi-step-agent https://github.com/Linyvhang/ipv4_web_mapping2.git
+cd ipv4_web_mapping2
+```
+
+已经克隆过仓库：
+
+```powershell
+git fetch origin
+git switch codex/langgraph-multi-step-agent
+git pull --ff-only
+```
+
+在项目根目录创建虚拟环境：
+
+```powershell
 python -m venv .venv
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 .\.venv\Scripts\Activate.ps1
@@ -97,6 +146,12 @@ Test-NetConnection 127.0.0.1 -Port 13306
 
 在项目根目录创建 `.env` 文件：
 
+```powershell
+Copy-Item .env.example .env
+```
+
+然后编辑 `.env`：
+
 ```dotenv
 AGENT_DB_HOST=127.0.0.1
 AGENT_DB_PORT=13306
@@ -115,28 +170,31 @@ AGENT_BATCH_MAX_IPS=50
 
 `.env` 已被 `.gitignore` 忽略，不要把密码或 API Key 提交到 Git。
 
-第一次使用 Agent 表时执行：
+第一次使用 Agent 表时执行 Alembic迁移。`DATABASE_URL` 只在当前终端有效，其中密码包含
+`@`、`:` 等特殊字符时需要进行 URL编码：
 
 ```powershell
-python init_agent_tables.py
+$env:DATABASE_URL="mysql+pymysql://数据库用户名:数据库密码@127.0.0.1:13306/ipv4scan"
+python -m alembic upgrade head
 ```
 
-该命令只负责创建 Agent 使用的任务和分析结果表，不会删除原有扫描数据。
+该迁移创建 `agent_task`、`agent_task_item`、`agent_analysis_result` 和 `agent_report`，不会删除
+原有扫描数据。完成后可执行 `Remove-Item Env:DATABASE_URL` 清除当前终端中的连接串。
 
 ## 5. 启动真实数据库 API
 
 确保 SSH 隧道仍在运行，并在已经激活 `.venv` 的项目终端执行：
 
 ```powershell
-python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8001
+python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8010
 ```
 
 然后访问：
 
-- NetScope 合并首页：<http://127.0.0.1:8001/>
-- 原分析预览页：<http://127.0.0.1:8001/preview>
-- Swagger API：<http://127.0.0.1:8001/docs>
-- 自然语言问答页：<http://127.0.0.1:8001/chat>
+- NetScope 合并首页：<http://127.0.0.1:8010/>
+- 原分析预览页：<http://127.0.0.1:8010/preview>
+- Swagger API：<http://127.0.0.1:8010/docs>
+- 自然语言问答页：<http://127.0.0.1:8010/chat>
 
 平台首页和 Agent 使用同源接口，不需要单独设置 `AGENT_BASE` 或 CORS。首页登录按钮当前只是
 开发联调入口，不执行身份认证。首页概览读取最新扫描批次；没有 TTL、公网地理位置或足够历史
@@ -231,7 +289,93 @@ GET /assets/1.2.3.4/changes?from_scan_round=1&to_scan_round=2
 当前 Checkpoint 使用进程内存保存，适合本地开发和演示；Uvicorn 重启后会话会清空，且不支持
 多进程共享。生产部署应替换为持久化 Checkpointer，并将会话 ID 与登录用户绑定。
 
-## 6. 切换到 DeepSeek
+## 6. 云服务器长期部署
+
+云服务器与 MySQL 在同一台机器时，不需要 SSH隧道。建议让 Uvicorn只监听
+`127.0.0.1:8010`，再由 Nginx 提供公网入口。
+
+```bash
+git clone --branch codex/langgraph-multi-step-agent https://github.com/Linyvhang/ipv4_web_mapping2.git
+cd ipv4_web_mapping2
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
+```
+
+云服务器 `.env` 中数据库一般配置为：
+
+```dotenv
+AGENT_DB_HOST=127.0.0.1
+AGENT_DB_PORT=3306
+AGENT_DB_NAME=ipv4scan
+AGENT_DB_USER=数据库用户名
+AGENT_DB_PASSWORD=数据库密码
+AGENT_MODEL_PROVIDER=deepseek
+AGENT_CHAT_PROVIDER=deepseek
+DEEPSEEK_API_KEY=你的API密钥
+DEEPSEEK_MODEL=deepseek-flash
+```
+
+迁移并前台验证：
+
+```bash
+export DATABASE_URL='mysql+pymysql://数据库用户名:数据库密码@127.0.0.1:3306/ipv4scan'
+python -m alembic upgrade head
+python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8010
+```
+
+长期运行可创建 `/etc/systemd/system/ipv4-agent.service`：
+
+```ini
+[Unit]
+Description=IPv4 Mapping Agent API
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/ipv4_web_mapping2
+EnvironmentFile=/root/ipv4_web_mapping2/.env
+ExecStart=/root/ipv4_web_mapping2/.venv/bin/python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8010
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+根据实际用户名和项目路径修改 `User`、`WorkingDirectory`、`EnvironmentFile` 和 `ExecStart`，
+然后执行：
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now ipv4-agent
+sudo systemctl status ipv4-agent
+```
+
+Nginx站点中将同一域名转发到 FastAPI：
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:8010;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_read_timeout 180s;
+}
+```
+
+部署后至少验证：
+
+```bash
+curl http://127.0.0.1:8010/api/health
+curl http://127.0.0.1:8010/openapi.json
+```
+
+`/api/health` 应返回 `{"ok":true,"db":"ipv4scan"}`。浏览器再访问根路径和 `/docs`。
+
+## 7. 切换到 DeepSeek
 
 在 `.env` 中修改或增加：
 
@@ -249,7 +393,7 @@ DEEPSEEK_MODEL=deepseek-flash
 可以独立配置。`AGENT_CHAT_PROVIDER` 未设置时会跟随前者，设置为 `rules` 可只使用规则
 理解器和模板回答。
 
-## 7. 运行测试
+## 8. 运行测试
 
 不要把测试文件作为普通脚本直接运行。请在项目根目录通过 pytest 执行：
 
@@ -264,7 +408,7 @@ python -m pytest agent_service/tests -q
 真实数据库 API 启动后，可以重复执行自然语言 Agent 端到端验收：
 
 ```powershell
-python -m agent_service.scripts.verify_chat_e2e --base-url http://127.0.0.1:8002 --ip 数据库中已有的IP
+python -m agent_service.scripts.verify_chat_e2e --base-url http://127.0.0.1:8010 --ip 数据库中已有的IP
 ```
 
 错误示例：
@@ -275,12 +419,13 @@ python agent_service/tests/test_analysis_validation.py
 
 上述错误方式可能导致 `ModuleNotFoundError: No module named 'agent_service'`。
 
-## 8. 常见问题
+## 9. 常见问题
 
-### 端口 8001 已被占用
+### 端口被占用
 
-如果出现 Windows 错误 `10048`，说明已经有程序占用 8001。可以继续使用已启动的服务，
-或者把启动命令中的端口改成 `8002`，随后访问对应端口。
+如果出现 Windows 错误 `10048`，说明指定端口已经被占用。先用
+`Get-NetTCPConnection -LocalPort 8010 -State Listen` 查找进程，确认后停止旧服务，或临时改用
+`8011` 并访问对应端口。
 
 ### 页面返回 500
 
@@ -295,7 +440,7 @@ python agent_service/tests/test_analysis_validation.py
 
 确认请求中的 `scan_round` 与数据库记录一致；不确定时先传 `null` 使用最近批次。
 
-## 9. 当前 LangGraph 流程
+## 10. 当前 LangGraph 流程
 
 ```text
 读取扫描数据
@@ -309,7 +454,7 @@ python agent_service/tests/test_analysis_validation.py
                  └─ 仍失败：生成安全降级报告并保存
 ```
 
-## 10. 文档维护要求
+## 11. 文档维护要求
 
 后续新增或修改以下内容时，必须同步更新本 README：
 

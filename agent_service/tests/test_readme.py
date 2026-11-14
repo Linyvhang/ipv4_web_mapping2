@@ -9,12 +9,15 @@ def test_readme_contains_current_startup_and_test_commands() -> None:
 
     assert "agent_service.api.mock_main:app" in content
     assert "agent_service.api.real_main:app" in content
-    assert "python init_agent_tables.py" in content
+    assert "python -m alembic upgrade head" in content
     assert "python -m pytest agent_service/tests -q" in content
-    assert "http://127.0.0.1:8001/docs" in content
+    assert "http://127.0.0.1:8010/docs" in content
     assert "白名单 Agent 工具层" in content
     assert "POST /agent/chat" in content
-    assert "http://127.0.0.1:8001/chat" in content
+    assert "http://127.0.0.1:8010/chat" in content
+    assert "codex/langgraph-multi-step-agent" in content
+    assert "ipv4-agent.service" in content
+    assert "POST /api/report" in content
 
 
 def test_readme_uses_placeholders_instead_of_credentials() -> None:
