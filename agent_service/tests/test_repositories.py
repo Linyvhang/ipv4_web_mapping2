@@ -25,6 +25,7 @@ def compile_mysql(statement) -> str:
 def test_task_query_and_update_statements_are_scoped() -> None:
     task_query = AgentTaskRepository.build_task_query(7)
     item_query = AgentTaskRepository.build_item_query(8)
+    task_items_query = AgentTaskRepository.build_task_items_query(7)
     task_update = AgentTaskRepository.build_update_task_status(
         7,
         TaskStatus.FAILED,
@@ -34,6 +35,8 @@ def test_task_query_and_update_statements_are_scoped() -> None:
 
     assert "agent_task.id" in compile_mysql(task_query)
     assert "agent_task_item.id" in compile_mysql(item_query)
+    assert "agent_task_item.task_id" in compile_mysql(task_items_query)
+    assert "ORDER BY agent_task_item.id" in compile_mysql(task_items_query)
     assert "SET status=%s" in compile_mysql(task_update)
     assert "error_message=%s" in compile_mysql(task_update)
     assert "started_at=%s" in compile_mysql(task_update)
@@ -57,6 +60,14 @@ def test_analysis_and_report_queries_use_unique_identifiers() -> None:
 
     assert "agent_analysis_result.analysis_id" in compile_mysql(analysis_query)
     assert "agent_report.id" in compile_mysql(report_query)
+
+
+def test_task_item_result_query_is_scoped_and_ordered() -> None:
+    statement = AgentAnalysisRepository.build_task_item_results_query([4, 5])
+    compiled = compile_mysql(statement)
+
+    assert "agent_analysis_result.task_item_id IN" in compiled
+    assert "ORDER BY agent_analysis_result.task_item_id" in compiled
 
 
 def test_task_and_report_models_construct_expected_defaults() -> None:

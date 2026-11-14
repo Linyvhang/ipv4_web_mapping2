@@ -52,6 +52,14 @@ class AgentTaskRepository:
         return select(AgentTaskItem).where(AgentTaskItem.id == item_id)
 
     @staticmethod
+    def build_task_items_query(task_id: int):
+        return (
+            select(AgentTaskItem)
+            .where(AgentTaskItem.task_id == task_id)
+            .order_by(AgentTaskItem.id)
+        )
+
+    @staticmethod
     def build_update_task_status(
         task_id: int,
         status: TaskStatus,
@@ -131,6 +139,10 @@ class AgentTaskRepository:
         result = await self.session.execute(self.build_item_query(item_id))
         return result.scalar_one_or_none()
 
+    async def get_task_items(self, task_id: int) -> list[AgentTaskItem]:
+        result = await self.session.execute(self.build_task_items_query(task_id))
+        return list(result.scalars().all())
+
     async def update_task_status(
         self,
         task_id: int,
@@ -191,6 +203,15 @@ class AgentAnalysisRepository:
             AgentAnalysisResult.analysis_id == analysis_id
         )
 
+    @staticmethod
+    def build_task_item_results_query(task_item_ids: Iterable[int]):
+        ids = list(task_item_ids)
+        return (
+            select(AgentAnalysisResult)
+            .where(AgentAnalysisResult.task_item_id.in_(ids))
+            .order_by(AgentAnalysisResult.task_item_id)
+        )
+
     async def get_cached_result(
         self,
         *,
@@ -235,6 +256,15 @@ class AgentAnalysisRepository:
     async def get_by_analysis_id(self, analysis_id: str) -> AgentAnalysisResult | None:
         result = await self.session.execute(self.build_analysis_id_query(analysis_id))
         return result.scalar_one_or_none()
+
+    async def get_by_task_item_ids(
+        self, task_item_ids: Iterable[int]
+    ) -> list[AgentAnalysisResult]:
+        ids = list(task_item_ids)
+        if not ids:
+            return []
+        result = await self.session.execute(self.build_task_item_results_query(ids))
+        return list(result.scalars().all())
 
 
 class AgentReportRepository:

@@ -12,6 +12,7 @@ from types import SimpleNamespace
 from agent_service.api.app import create_app
 from agent_service.models.analysis_schema import ModelAnalysisPayload
 from agent_service.models.input_schema import AssetAnalysisInput
+from agent_service.db.models import TaskStatus
 from agent_service.providers.mock import MockModelProvider
 from agent_service.services.ip_analysis import SingleIPAnalysisService
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
@@ -35,20 +36,65 @@ class MockL3DataProvider:
 class MockTaskRepository:
     def __init__(self) -> None:
         self.next_id = 1
+        self.tasks: dict[int, SimpleNamespace] = {}
+        self.items: dict[int, SimpleNamespace] = {}
 
-    async def create_task(self, **_: object):
-        task = SimpleNamespace(id=self.next_id)
+    async def create_task(self, **kwargs: object):
+        now = datetime(2026, 1, 1)
+        task = SimpleNamespace(
+            id=self.next_id,
+            task_type=kwargs["task_type"],
+            status=TaskStatus.PENDING,
+            save_result=kwargs.get("save_result", True),
+            target_count=kwargs.get("target_count", 0),
+            error_message=None,
+            created_at=now,
+            started_at=None,
+            completed_at=None,
+        )
+        self.tasks[task.id] = task
         self.next_id += 1
         return task
 
     async def create_items(self, *, task_id: int, targets: list[tuple[str, int]]):
-        return [SimpleNamespace(id=self.next_id, task_id=task_id, ip=targets[0][0])]
+        now = datetime(2026, 1, 1)
+        created = []
+        for ip, scan_round in targets:
+            item = SimpleNamespace(
+                id=self.next_id,
+                task_id=task_id,
+                ip=ip,
+                scan_round=scan_round,
+                status=TaskStatus.PENDING,
+                error_message=None,
+                created_at=now,
+                started_at=None,
+                completed_at=None,
+            )
+            self.items[item.id] = item
+            self.next_id += 1
+            created.append(item)
+        return created
 
-    async def update_task_status(self, *_: object, **__: object) -> None:
-        return None
+    async def update_task_status(self, task_id, status, **kwargs) -> None:
+        task = self.tasks[task_id]
+        task.status = status
+        for name in ("error_message", "started_at", "completed_at"):
+            if kwargs.get(name) is not None:
+                setattr(task, name, kwargs[name])
 
-    async def update_item_status(self, *_: object, **__: object) -> None:
-        return None
+    async def update_item_status(self, item_id, status, **kwargs) -> None:
+        item = self.items[item_id]
+        item.status = status
+        for name in ("error_message", "started_at", "completed_at"):
+            if kwargs.get(name) is not None:
+                setattr(item, name, kwargs[name])
+
+    async def get_task(self, task_id: int):
+        return self.tasks.get(task_id)
+
+    async def get_task_items(self, task_id: int):
+        return [item for item in self.items.values() if item.task_id == task_id]
 
     async def commit(self) -> None:
         return None
@@ -65,9 +111,16 @@ class MockAnalysisRepository:
         return self.results.get((ip, scan_round))
 
     async def create_result(self, **kwargs: object):
-        result = SimpleNamespace(**kwargs, id=len(self.results) + 1)
+        now = datetime(2026, 1, 1)
+        result = SimpleNamespace(
+            **kwargs, id=len(self.results) + 1, created_at=now, updated_at=now
+        )
         self.results[(str(kwargs["ip"]), int(kwargs["scan_round"]))] = result
         return result
+
+    async def get_by_task_item_ids(self, task_item_ids):
+        ids = set(task_item_ids)
+        return [result for result in self.results.values() if result.task_item_id in ids]
 
 
 def _mock_result_factory(

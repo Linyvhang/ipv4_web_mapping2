@@ -19,6 +19,10 @@ def test_create_app_mounts_analysis_and_chat_routes_and_metadata() -> None:
 
     assert "/analysis/ip" in paths
     assert "/agent/chat" in paths
+    assert "/assets/{ip}/scan-data" in paths
+    assert "/assets/{ip}/analysis" in paths
+    assert "/analysis/tasks/{task_id}" in paths
+    assert "/analysis/tasks/{task_id}/result" in paths
     assert "/chat" in paths
     assert app.title == "IPv4 Web Mapping Agent API"
     assert app.version == "0.1.0"

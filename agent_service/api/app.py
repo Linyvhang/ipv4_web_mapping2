@@ -20,6 +20,8 @@ from agent_service.services.chat_understanding import (
 from agent_service.tools.asset_tools import AssetAgentToolRegistry
 
 from .chat_routes import create_chat_agent_router
+from .asset_routes import create_asset_router
+from .task_routes import create_task_query_router
 from .chat_preview import create_chat_preview_router
 from .preview import create_preview_router
 from .routes import create_single_ip_router
@@ -57,5 +59,7 @@ def create_app(
     app.include_router(create_chat_preview_router())
     app.include_router(create_single_ip_router(graph))
     app.include_router(create_chat_agent_router(chat_graph))
+    app.include_router(create_asset_router(orchestrator))
+    app.include_router(create_task_query_router(orchestrator))
     return app
 
