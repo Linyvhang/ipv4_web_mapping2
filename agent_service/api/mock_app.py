@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from ipaddress import IPv4Address
+from pathlib import Path
 from types import SimpleNamespace
 
 from agent_service.api.app import create_app
@@ -19,6 +20,11 @@ from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
 from agent_service.services.batch_analysis import BatchAnalysisService
 from agent_service.services.batch_report import BatchReportService
 from agent_service.services.asset_change import AssetChangeService
+from agent_service.services.platform_dashboard import PlatformDashboardService
+from agent_service.models.platform_schema import (
+    PlatformHealthResponse,
+    PlatformSearchResponse,
+)
 
 
 class MockL3DataProvider:
@@ -172,6 +178,61 @@ class _MockSessionFactory:
         return _MockSession()
 
 
+class MockPlatformDashboardService:
+    async def health(self):
+        return PlatformHealthResponse(ok=True, db="mock")
+
+    async def bootstrap(self):
+        return PlatformDashboardService.build_bootstrap(
+            scan_round=1,
+            hosts=[
+                {
+                    "id": 1,
+                    "ip_address": int(IPv4Address("192.0.2.10")),
+                    "first_seen": datetime(2026, 1, 1),
+                    "last_seen": datetime(2026, 1, 2),
+                },
+                {
+                    "id": 2,
+                    "ip_address": int(IPv4Address("192.0.2.11")),
+                    "first_seen": datetime(2026, 1, 1),
+                    "last_seen": datetime(2026, 1, 2),
+                },
+            ],
+            services=[
+                {
+                    "id": 1,
+                    "active_host_id": 1,
+                    "ip_address": int(IPv4Address("192.0.2.10")),
+                    "port": 22,
+                    "transport_protocol": "tcp",
+                    "service_type": "ssh",
+                    "application_proto": "ssh",
+                    "banner": "SSH-2.0-OpenSSH_9.2",
+                    "confidence": 0.9,
+                    "scan_time": datetime(2026, 1, 2),
+                }
+            ],
+            analyses=[],
+        )
+
+    async def search(self, query: str, page: int):
+        bootstrap = await self.bootstrap()
+        conditions = PlatformDashboardService._parse_search_query(query)
+        matches = [
+            asset
+            for asset in bootstrap.assets
+            if PlatformDashboardService._matches_conditions(asset, conditions)
+        ]
+        start = (page - 1) * 15
+        return PlatformSearchResponse(
+            total=len(matches),
+            ms=0,
+            rows=matches[start : start + 15],
+            list=matches,
+        )
+
+
 def _mock_result_factory(
     _prompt: str, _output_model: type[ModelAnalysisPayload]
 ) -> dict:
@@ -220,10 +281,13 @@ def create_mock_app():
         data_provider_factory=lambda _session: data_provider,
         analysis_repository_factory=lambda _session: analysis_repository,
     )
+    frontend_file = Path(__file__).resolve().parents[2] / "前端" / "index.html"
     return create_app(
         orchestrator,
         batch_service=batch_service,
         batch_report_service=batch_report_service,
         asset_change_service=asset_change_service,
+        platform_service=MockPlatformDashboardService(),
+        frontend_file=frontend_file,
     )
 

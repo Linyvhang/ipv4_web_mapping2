@@ -1,17 +1,42 @@
 from agent_service.api import create_mock_app
+from agent_service.api.app import _create_chat_checkpointer
+from agent_service.models.chat_schema import (
+    AgentEvidence,
+    AgentWorkflowStep,
+    PriorityAsset,
+    QuestionUnderstanding,
+    ToolCallRecord,
+)
 from fastapi.testclient import TestClient
+
+
+def test_chat_checkpointer_only_allows_project_state_types() -> None:
+    checkpointer = _create_chat_checkpointer()
+    expected = {
+        (model.__module__, model.__name__)
+        for model in (
+            QuestionUnderstanding,
+            ToolCallRecord,
+            AgentEvidence,
+            PriorityAsset,
+            AgentWorkflowStep,
+        )
+    }
+
+    assert checkpointer.serde._allowed_msgpack_modules == expected
 
 
 def test_mock_app_exposes_analysis_and_chat_endpoints() -> None:
     app = create_mock_app()
-    route_paths = {
+    all_route_paths = [
         route.path
         for included in app.routes
         for route in getattr(
             getattr(included, "original_router", included), "routes", [included]
         )
         if hasattr(route, "path")
-    }
+    ]
+    route_paths = set(all_route_paths)
     assert "/analysis/ip" in route_paths
     assert "/agent/chat" in route_paths
     assert "/assets/{ip}/scan-data" in route_paths
@@ -19,6 +44,29 @@ def test_mock_app_exposes_analysis_and_chat_endpoints() -> None:
     assert "/analysis/batch" in route_paths
     assert "/analysis/tasks/{task_id}/report" in route_paths
     assert "/assets/{ip}/changes" in route_paths
+    assert "/api/health" in route_paths
+    assert "/api/bootstrap" in route_paths
+    assert "/api/search" in route_paths
+    assert all_route_paths.count("/") == 1
+    assert "/preview" in route_paths
+
+
+def test_mock_app_serves_integrated_frontend_and_platform_bootstrap() -> None:
+    with TestClient(create_mock_app()) as client:
+        page = client.get("/")
+        health = client.get("/api/health")
+        bootstrap = client.get("/api/bootstrap")
+        search = client.get("/api/search", params={"q": "port=22"})
+
+    assert page.status_code == 200
+    assert "NetScope" in page.text
+    assert health.json() == {"ok": True, "db": "mock"}
+    assert bootstrap.status_code == 200
+    assert bootstrap.json()["overview"]["scan_round"] == 1
+    assert bootstrap.json()["overview"]["host"] == 2
+    assert bootstrap.json()["assets"][0]["ip"] == "192.0.2.10"
+    assert search.status_code == 200
+    assert search.json()["total"] == 1
 
 
 def test_mock_app_supports_visualization_integration_flow() -> None:

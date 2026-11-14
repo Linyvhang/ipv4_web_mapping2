@@ -7,6 +7,9 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_api_contract_documents_all_visualization_routes() -> None:
     content = (ROOT / "docs" / "API接口契约.md").read_text(encoding="utf-8")
     for route in (
+        "GET /api/health",
+        "GET /api/bootstrap",
+        "GET /api/search",
         "GET /assets/{ip}/scan-data",
         "GET /assets/{ip}/analysis",
         "GET /assets/{ip}/changes",

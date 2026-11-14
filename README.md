@@ -22,6 +22,7 @@ LangGraph 和大模型生成单 IP 资产画像、疑似风险、证据与处置
 - Agent 可观测性：返回 LangGraph 节点顺序、耗时、决策、工具和安全降级原因。
 - LangGraph 多轮会话：使用 Checkpoint 复用已经验证的 IP、扫描批次或任务 ID，支持安全追问。
 - 批量资产优先级问答：根据报告中的风险等级和疑似风险数量确定排序，并返回结构化依据。
+- NetScope 合并首页：FastAPI 同源托管单文件前端，读取现有 MySQL 最新扫描批次并调用 Agent。
 
 自然语言问答的意图、工具轨迹、证据、响应 Schema 和 LangGraph 初始 State 已完成。
 自然语言 Agent 第一版 LangGraph 已完成，支持规则模式和 DeepSeek 模式。DeepSeek 负责
@@ -62,7 +63,8 @@ python -m uvicorn agent_service.api.mock_main:app --host 127.0.0.1 --port 8001
 
 启动后访问：
 
-- 分析预览页：<http://127.0.0.1:8001/>
+- NetScope 合并首页：<http://127.0.0.1:8001/>
+- 原分析预览页：<http://127.0.0.1:8001/preview>
 - Swagger API：<http://127.0.0.1:8001/docs>
 - 自然语言问答页：<http://127.0.0.1:8001/chat>
 - OpenAPI JSON：<http://127.0.0.1:8001/openapi.json>
@@ -131,9 +133,18 @@ python -m uvicorn agent_service.api.real_main:app --host 127.0.0.1 --port 8001
 
 然后访问：
 
-- 分析预览页：<http://127.0.0.1:8001/>
+- NetScope 合并首页：<http://127.0.0.1:8001/>
+- 原分析预览页：<http://127.0.0.1:8001/preview>
 - Swagger API：<http://127.0.0.1:8001/docs>
 - 自然语言问答页：<http://127.0.0.1:8001/chat>
+
+平台首页和 Agent 使用同源接口，不需要单独设置 `AGENT_BASE` 或 CORS。首页登录按钮当前只是
+开发联调入口，不执行身份认证。首页概览读取最新扫描批次；没有 TTL、公网地理位置或足够历史
+批次时会明确返回限制，不生成模拟统计。
+
+合并首页当前提供 `GET /api/health`、`GET /api/bootstrap` 和只读 `GET /api/search`。
+平台级 `POST /api/report` 尚未接入，点击巡检报告时会显示接口不可用；单 IP、批量统计报告和
+自然语言 Agent 接口不受影响。
 
 在 Swagger 中可以使用 `POST /analysis/ip`，请求示例：
 

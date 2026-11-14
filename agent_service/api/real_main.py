@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 
@@ -32,6 +33,7 @@ from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
 from agent_service.services.batch_analysis import BatchAnalysisService
 from agent_service.services.batch_report import BatchReportService
 from agent_service.services.asset_change import AssetChangeService
+from agent_service.services.platform_dashboard import PlatformDashboardService
 
 
 def _build_model_provider() -> ModelProvider:
@@ -57,7 +59,10 @@ def _build_model_provider() -> ModelProvider:
 
 
 def _build_orchestrator():
-    engine, factory = create_session_factory()
+    from agent_service.db.session import DatabaseSettings
+
+    settings = DatabaseSettings.from_env()
+    engine, factory = create_session_factory(settings)
     session = factory()
 
     task_repo = AgentTaskRepository(session)
@@ -74,7 +79,7 @@ def _build_orchestrator():
         data_provider=data_provider,
         analysis_service=analysis_service,
     )
-    return orchestrator, engine, factory, model_provider
+    return orchestrator, engine, factory, model_provider, settings.name
 
 
 def _positive_int_env(name: str, default: int) -> int:
@@ -101,7 +106,7 @@ def _build_chat_ai_provider():
 
 
 def _make_app() -> FastAPI:
-    orchestrator, engine, session_factory, model_provider = _build_orchestrator()
+    orchestrator, engine, session_factory, model_provider, db_name = _build_orchestrator()
     batch_service = BatchAnalysisService(
         session_factory=session_factory,
         model_provider=model_provider,
@@ -110,6 +115,11 @@ def _make_app() -> FastAPI:
     )
     batch_report_service = BatchReportService(session_factory=session_factory)
     asset_change_service = AssetChangeService(session_factory=session_factory)
+    platform_service = PlatformDashboardService(
+        session_factory=session_factory,
+        db_name=db_name,
+    )
+    frontend_file = Path(__file__).resolve().parents[2] / "前端" / "index.html"
     app = create_app(
         orchestrator,
         chat_ai_provider=_build_chat_ai_provider(),
@@ -117,6 +127,8 @@ def _make_app() -> FastAPI:
         query_session_factory=session_factory,
         batch_report_service=batch_report_service,
         asset_change_service=asset_change_service,
+        platform_service=platform_service,
+        frontend_file=frontend_file,
     )
 
     original_lifespan = app.router.lifespan_context

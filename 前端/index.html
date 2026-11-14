@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="GyEk8jAxCT52hB8x4GKMpE">
+<head data-page-node-id="K7xImD7DvVTNHhKd5wrNQ3">
+<meta charset="UTF-8" data-page-node-id="TLstb2TSTE0idTAnaWf9lr">
+<meta name="viewport" content="width=device-width,initial-scale=1.0" data-page-node-id="8GFJUWDrDc99YfHBntSYXZ">
+<title>NetScope · 网络资产测绘与智能分析平台</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#F6F7F9;--panel:#fff;--border:#E9EBF0;--text:#1A1F2E;--sub:#7A8194;
+  --primary:#3B6EF6;--primary-hover:#2F5FE0;--primary-soft:#EEF3FF;
+  --ok:#16A34A;--ok-soft:#E9F8EF;--warn:#E8901A;--warn-soft:#FEF4E6;
+  --danger:#E5484D;--danger-soft:#FDECEC;--purple:#7c5cff;
+  --side:#0F1729;--side-txt:#9AA5BD;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);overflow:hidden}
+.v,.kpi .v,.s-kpi .v,td{font-variant-numeric:tabular-nums}
+.mono,.kv .v,.code{font-family:"JetBrains Mono","SF Mono",Consolas,monospace}
+a{text-decoration:none}
+svg.ic{vertical-align:-3px}
+/* ============ 登录页 ============ */
+#loginPage{position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;
+  background:#0B1120;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:40px 40px}
+.login-box{width:400px;background:#fff;border-radius:16px;padding:38px 36px;
+  box-shadow:0 24px 64px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06)}
+.login-box h1{font-size:20px;text-align:center;margin-bottom:4px}
+.login-box .s{text-align:center;font-size:12px;color:var(--sub);margin-bottom:26px}
+.login-box label{font-size:12.5px;color:var(--sub);display:block;margin:14px 0 6px}
+.login-box input{width:100%;border:1px solid var(--border);border-radius:9px;padding:11px 13px;font-size:13.5px;outline:none}
+.login-box input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.login-btn{width:100%;margin-top:22px;background:var(--primary);color:#fff;border:none;border-radius:9px;padding:12px;font-size:14.5px;font-weight:600;cursor:pointer}
+.login-tip{margin-top:14px;font-size:11px;color:var(--sub);background:var(--bg);border-radius:8px;padding:9px 12px;line-height:1.7}
+/* ============ 主框架 ============ */
+.app{display:none;height:100vh}
+.app.show{display:flex}
+.sidebar{width:216px;background:var(--side);display:flex;flex-direction:column;flex-shrink:0}
+.logo{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.logo b{font-size:15px;color:#fff;display:block;letter-spacing:1px}
+.logo span{font-size:10.5px;color:var(--side-txt)}
+.nav{flex:1;padding:12px 10px;overflow-y:auto}
+.nav .grp{font-size:10.5px;color:#5a6f9e;padding:10px 10px 6px;letter-spacing:1px}
+.nav a{display:flex;align-items:center;gap:10px;padding:10.5px 12px;border-radius:8px;color:var(--side-txt);font-size:13px;margin-bottom:3px;cursor:pointer}
+.nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav a.active{background:rgba(59,110,246,.14);color:#fff;font-weight:600;box-shadow:inset 3px 0 0 var(--primary)}
+.nav .ico{width:16px;text-align:center}
+.side-foot{padding:12px 16px;font-size:10.5px;color:#5a6f9e;border-top:1px solid rgba(255,255,255,.08);line-height:1.7}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0}
+.topbar .crumb{font-size:13.5px;font-weight:600}
+.topbar .crumb small{color:var(--sub);font-weight:400;margin-left:10px;font-size:11.5px}
+.topbar .right{margin-left:auto;display:flex;gap:10px;align-items:center;font-size:12.5px}
+.env{font-size:11px;padding:3px 10px;border-radius:999px;background:#F1F3F7;color:#5A6270;display:inline-flex;align-items:center;gap:6px}
+.env::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--warn)}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3B6EF6,#7c5cff);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.content{flex:1;overflow-y:auto;padding:24px}
+.page{display:none}.page.active{display:block}
+.page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.page-head h2{font-size:17px}
+.page-head .desc{font-size:12px;color:var(--sub);margin-top:3px}
+.tag{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--primary-soft);color:var(--primary)}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;
+  box-shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.04);transition:box-shadow .15s ease}
+.panel:hover{box-shadow:0 4px 12px rgba(16,24,40,.07)}
+.grid{display:grid;gap:16px}
+/* 组件 */
+.btn{border:none;border-radius:8px;padding:9px 18px;font-size:13px;cursor:pointer;font-weight:600;transition:background .15s,box-shadow .15s,color .15s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-ghost{background:var(--panel);border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{border-color:#cfd6e2}
+.btn-danger{background:var(--danger);color:#fff}
+input,select,textarea{border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;outline:none;font-family:inherit;background:#fff;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,110,246,.12)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:#FAFBFC;font-weight:600;color:#5A6270;font-size:12px;letter-spacing:.02em;padding:11px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid #F1F3F7}
+tr:hover td{background:#F7FAFF}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;white-space:nowrap}
+.p-ok{background:var(--ok-soft);color:var(--ok)}.p-mid{background:var(--warn-soft);color:#B96A0B}.p-high{background:var(--danger-soft);color:var(--danger)}.p-low{background:#eef1f6;color:var(--sub)}.p-info{background:var(--primary-soft);color:var(--primary)}
+.kpis{grid-template-columns:repeat(4,1fr);margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px;
+  box-shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.04);transition:box-shadow .15s ease}
+.kpi:hover{box-shadow:0 4px 12px rgba(16,24,40,.07)}
+.kpi-head{display:flex;justify-content:space-between;align-items:center}
+.kpi .n{font-size:12px;color:var(--sub)}
+.kpi .v{font-size:28px;font-weight:700;margin-top:10px}
+.kpi .d{font-size:11px;margin-top:4px}.up{color:var(--ok)}.down{color:var(--danger)}
+.kpi .ico{width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.kpi .ic-p{background:var(--primary-soft);color:var(--primary)}
+.kpi .ic-g{background:var(--ok-soft);color:var(--ok)}
+.kpi .ic-r{background:var(--danger-soft);color:var(--danger)}
+.chart{height:280px}
+.chart-title{font-size:13.5px;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.chart-title small{font-weight:400;color:var(--sub);font-size:11px}
+/* 大屏页 */
+.screen-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.screen-head{background:#0A1224;color:#dfe8ff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+.screen-head b{letter-spacing:3px;font-size:15px}
+.screen-head span{font-size:11px;color:#7e93c9}
+#screenBody{background:#0A1224;padding:14px;display:none}
+#screenBody.show{display:block}
+.s-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
+.s-kpi{border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.035);padding:10px 12px;color:#dfe8ff}
+.s-kpi .n{font-size:10.5px;color:#7e93c9}.s-kpi .v{font-size:20px;font-weight:700;font-family:Consolas,monospace}
+.s-grid{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:10px}
+.s-card{border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.035);padding:10px;color:#dfe8ff}
+.s-card .t{font-size:11.5px;color:#7e93c9;margin-bottom:4px;display:flex;justify-content:space-between}
+.s-card .t b{color:#dfe8ff;font-size:12px;font-weight:600}
+/* 检索 */
+.search-bar{display:flex;gap:10px;margin-bottom:10px}
+.search-bar input{flex:1;padding:11px 14px;font-size:13px}
+.syntax-tips{font-size:11.5px;color:var(--sub);margin-bottom:12px}
+.syntax-tips code{background:var(--bg);padding:2px 7px;border-radius:5px;color:var(--primary);cursor:pointer;margin-right:6px}
+.pager{display:flex;gap:6px;justify-content:flex-end;margin-top:12px;align-items:center;font-size:12px;color:var(--sub)}
+.pager button{min-width:30px;height:28px;border:1px solid var(--border);background:#fff;border-radius:6px;cursor:pointer;font-size:12px}
+.pager button.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+/* 抽屉 */
+.drawer{position:fixed;top:0;right:-460px;width:440px;height:100vh;background:#fff;box-shadow:-12px 0 40px rgba(15,30,70,.18);z-index:50;transition:right .25s;display:flex;flex-direction:column}
+.drawer.show{right:0}
+.drawer .dh{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.drawer .dh b{font-size:15px}.drawer .dh span{cursor:pointer;color:var(--sub);font-size:18px}
+.drawer .db{flex:1;overflow-y:auto;padding:18px 20px;font-size:12.5px;line-height:1.9}
+.kv{display:grid;grid-template-columns:92px 1fr;gap:4px 10px;margin-bottom:14px}
+.kv .k{color:var(--sub)}
+.kv .v{font-family:Consolas,monospace;font-size:12px}
+.subh{font-size:13px;font-weight:600;margin:14px 0 8px;padding-left:8px;border-left:3px solid var(--primary)}
+.code{background:#0e1a3d;color:#9fd0ff;border-radius:8px;padding:10px 12px;font-family:Consolas,monospace;font-size:11.5px;line-height:1.8;white-space:pre-wrap}
+/* toast */
+#toast{position:fixed;top:70px;right:24px;z-index:99;display:flex;flex-direction:column;gap:8px}
+.toast{background:#fff;border-left:4px solid var(--primary);border-radius:8px;padding:11px 16px;font-size:12.5px;box-shadow:0 8px 30px rgba(15,30,70,.16);animation:tin .25s}
+.toast.err{border-color:var(--danger)}.toast.ok{border-color:var(--ok)}
+@keyframes tin{from{transform:translateX(30px);opacity:0}}
+/* 报告 */
+.rep-layout{grid-template-columns:300px 1fr}
+#repBody{min-height:430px;font-size:13px;line-height:1.9;white-space:pre-wrap}
+#repBody h4{font-size:13.5px;margin:12px 0 6px;color:var(--primary)}
+.typing{color:var(--sub);font-style:italic}.blink::after{content:"▌";color:var(--primary);animation:bk 1s infinite}@keyframes bk{50%{opacity:0}}
+.foot-note{margin-top:14px;text-align:center;font-size:11px;color:var(--sub)}
+
+/* ====== 微交互与细节 ====== */
+.content::-webkit-scrollbar,.nav::-webkit-scrollbar,.db::-webkit-scrollbar{width:8px}
+.content::-webkit-scrollbar-thumb,.nav::-webkit-scrollbar-thumb,.db::-webkit-scrollbar-thumb{background:#D6DBE5;border-radius:4px}
+.content::-webkit-scrollbar-thumb:hover{background:#BFC6D4}
+.btn,.nav a,.pill,.kpi,.panel{transition:background .15s,box-shadow .15s,color .15s,border-color .15s}
+.crumb small::before{content:'/';margin:0 8px;color:#C3CAD8}
+.crumb small{color:var(--sub);font-weight:400;font-size:12px}
+#sEv div{padding:3px 2px}
+#sEv div::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:#35C7D8;margin-right:8px;vertical-align:middle}
+.backdrop{position:fixed;inset:0;background:rgba(15,23,42,.3);z-index:45;opacity:0;pointer-events:none;transition:opacity .2s}
+.backdrop.show{opacity:1;pointer-events:auto}
+.empty{text-align:center;padding:38px 0;color:var(--sub)}
+.empty svg{opacity:.35;margin-bottom:10px}
+/* 智能体分析页 */
+.ag-steps{display:flex;flex-direction:column;margin:14px 0 4px;max-height:220px;overflow-y:auto}
+.ag-step{display:flex;align-items:center;gap:10px;font-size:12.5px;padding:7px 4px;border-bottom:1px dashed #F1F3F7}
+.ag-step .dot{width:8px;height:8px;border-radius:50%;background:#C3CAD8;flex-shrink:0}
+.ag-step.run .dot,.ag-step.running .dot{background:var(--warn);animation:bk 1s infinite}
+.ag-step.ok .dot,.ag-step.completed .dot{background:var(--ok)}
+.ag-step.fail .dot,.ag-step.failed .dot{background:var(--danger)}
+.ag-step .tag-n{font-family:Consolas,monospace;font-size:11px;color:var(--sub);background:var(--bg);padding:1px 7px;border-radius:5px}
+.ag-res h3{font-size:13.5px;margin:16px 0 8px;padding-left:8px;border-left:3px solid var(--purple)}
+.ag-chat-log{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.ag-msg{max-width:88%;padding:10px 14px;border-radius:10px;font-size:12.5px;line-height:1.8;white-space:pre-wrap}
+.ag-msg.u{align-self:flex-end;background:var(--primary);color:#fff;border-bottom-right-radius:3px}
+.ag-msg.a{align-self:flex-start;background:var(--bg);border:1px solid var(--border);border-bottom-left-radius:3px}
+.ag-msg .meta{font-size:10.5px;color:var(--sub);margin-top:6px}
+</style>
+</head>
+<body data-page-node-id="cLr1rEEXiUlaVPbetqcE1w">
+
+<!-- ==================== 登录页 ==================== -->
+<div id="loginPage" data-page-node-id="D3MtSoay7zvYWJh8WAkj29">
+  <div class="login-box" data-page-node-id="3RuER47XEiH2Co2Y7emfsW">
+    <h1 data-page-node-id="zKEdquqcQs2i9K0BbgRoAY" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B6EF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>NetScope 资产测绘平台</h1>
+    <div class="s" data-page-node-id="59UIMDVAhWl5ka34eSDllv">私有化网络资产分析 · 开发联调版</div>
+    <label data-page-node-id="wY01tey4H0DmOEhG0YMOH4">用户名</label><input id="lu" value="admin" data-page-node-id="nhb724cRsunfP7Yo5gbkoB">
+    <label data-page-node-id="DPLN9OaM2MBV8aIAM8g3k5">密码</label><input id="lp" type="password" value="netscope2026" data-page-node-id="cO7KOVYCDHnRqez4lZo3wL">
+    <button class="login-btn" onclick="doLogin()" data-page-node-id="jrSONz2vKeohAQUnbTJJSZ">登 录 平 台</button>
+    <div class="login-tip" data-page-node-id="FHReIZYwWNEJcDAZvrRn3I">当前为开发联调入口，用户名和密码暂不参与鉴权。平台只读取已有扫描数据，智能体不会触发主动扫描。</div>
+  </div>
+</div>
+
+<!-- ==================== 主框架 ==================== -->
+<div class="app" id="app" data-page-node-id="N8Fp1ML8l2DM7GDUyectPJ">
+  <div class="sidebar" data-page-node-id="2h0nJCCCJCVyUmSiuQH4cg">
+    <div class="logo" data-page-node-id="dFGeLVqxuusVYqhGASjeph"><b data-page-node-id="Gl8vuTTMMvFzm7tEnBDuwT" style="display:flex;align-items:center;gap:7px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B6EF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>NetScope</b><span data-page-node-id="hQxETo625viz4U33iezTWn">网络资产测绘平台 · 私有化部署</span></div>
+    <div class="nav" data-page-node-id="H7My1QFEpizsH8amIAGFx2">
+      <div class="grp" data-page-node-id="iSz3Dw4mRbvLLHG7bHb9Cd">总 览</div>
+      <a data-p="pHome" class="active" data-page-node-id="3FBcBlS02cAnl09BoPA01J"><span class="ico" data-page-node-id="5Hh8Fn9NAYQRnN4DG9Zkqr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span>控制台首页</a>
+      <a data-p="pScreen" data-page-node-id="dTiX05jwWANh8hao2h3K4G"><span class="ico" data-page-node-id="yQZKjKhQZN7mvMpMVFDR3O"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></span>态势大屏</a>
+      <div class="grp" data-page-node-id="NNk3dCxtMXlfBympTHiNcE">资 产</div>
+      <a data-p="pSearch" data-page-node-id="xEF1VXJMDLM5fV5tbTv44v"><span class="ico" data-page-node-id="23ssJU5tcH5r9u06WIlLpB"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>资产检索</a>
+      <a data-p="pView" data-page-node-id="3GsSVIy2FvVK4Op6ptue8C"><span class="ico" data-page-node-id="uEOLlJpE0G07lL1RQVQWxl"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg></span>资产视图（拓扑/地图）</a>
+      <div class="grp" data-page-node-id="p1GghA6kVg7p0wkLZmFgDj">运 营</div>
+      <a data-p="pRisk" data-page-node-id="aJaOGUEW7tvOHqH9qHbWi2"><span class="ico" data-page-node-id="1w1H4hVvHqcelE2zhxvm0b"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></span>风险态势</a>
+      <a data-p="pReport" data-page-node-id="r4oc7uQWEHyxRIdzf37aE0"><span class="ico" data-page-node-id="jNe6tTZy97t565z1fBySMH"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span>LLM 巡检报告</a>
+      <a data-p="pAgent"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></span>智能体分析</a>
+    </div>
+    <div class="side-foot" data-page-node-id="c0DtlGO8n4j23GaKXuC4sl">合规：只分析已有扫描数据<br data-page-node-id="G52y3JHX4hdnL7qhZGeHSA">数据仅用于科研与授权运营<br data-page-node-id="gWwHGHMnKOCEP1N6YkdGPE"><span style="color:#3b5590" data-page-node-id="66omsQ42GH0xEy4ruWqBuX">FastAPI · MySQL · LangGraph</span></div>
+  </div>
+
+  <div class="main" data-page-node-id="iShiVCzYswGAVRLmVzDqI2">
+    <div class="topbar" data-page-node-id="LtZZznYsrYHEJW3tnGuN2n">
+      <div class="crumb" id="crumb" data-page-node-id="uALLjnhotyRUgrdEssp2U0">控制台首页<small id="crumbSub" data-page-node-id="AvvmSsPGXh5Yrf4kdtxhXQ">授权范围资产分布与风险态势</small></div>
+      <div class="right" data-page-node-id="RzZPfbDrFoWdAscySDgq7F">
+        <span class="env" id="backendStatus" data-page-node-id="HGot5mzY0CoqDzY3OMyWHB">正在连接后端</span>
+        <span style="color:var(--sub)" data-page-node-id="403vYLfXplGC0KebgeiACT">授权网段 3 段</span>
+        <div class="avatar" data-page-node-id="ux2F3q1sG8o56xM0jifs6d">ZN</div>
+      </div>
+    </div>
+    <div class="content" data-page-node-id="iot6FmmplTPI0ulCmTjZCi">
+
+      <!-- ============ 控制台首页 ============ -->
+      <div class="page active" id="pHome" data-page-node-id="1AjFxI3Ve6abh4EmW44QLX">
+        <div class="page-head" data-page-node-id="Hfo3yZgRVLLysKLd5GIfhN"><div data-page-node-id="Kuh3kmGyCzOHTdZJ60YQ3H"><h2 data-page-node-id="4JMkWFABs7e7y9u2b6FjD6">控制台首页</h2><div class="desc" data-page-node-id="apurUpgMOph61GZFEpaYZp">最近扫描窗口 11-04 06:00 ~ 06:40 · 数据每 5 分钟同步</div></div><span class="tag" data-page-node-id="yCht8Een6y53EBh7xPsdLi">13 个视图组件</span></div>
+        <div class="grid kpis" data-page-node-id="aa7UD7955bqw2Efbx7T84T">
+          <div class="kpi" data-page-node-id="JyLlr2Is32EH1XmF1UhWHY"><div class="kpi-head"><span class="n" data-page-node-id="kYFnqWAfOWbHT7avwm7fGp">存活主机</span><span class="ico ic-p" data-page-node-id="kVYhD5gMWxgzh2UyqIdvEg"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01"/><path d="M6 18h.01"/></svg></span></div><div class="v" id="kHost" data-page-node-id="NY2dZj8L12ZeaKpbCmj34X">1,284</div><div class="d up" id="kDelta1" data-page-node-id="ZJ99Ehlf3CH5CndTuWNDJ4">▲ 较上次扫描 +36</div></div>
+          <div class="kpi" data-page-node-id="VEOGuD5ZHodqeXAWMT0MoS"><div class="kpi-head"><span class="n" data-page-node-id="RtmKCUP4pMUUYsVbjrDiFf">开放端口总数</span><span class="ico ic-p" data-page-node-id="2D6844QqUPJcwZ4BMhrfFR"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span></div><div class="v" id="kPort" data-page-node-id="TpQ1pKekrFp8s4QM0yClhI">3,467</div><div class="d" id="kTcpUdp" data-page-node-id="bzJ9nffGkwGlN74a1YuSSi">TCP 2,892 · UDP 575</div></div>
+          <div class="kpi" data-page-node-id="g0ZNEHragsdXnkA764pIrN"><div class="kpi-head"><span class="n" data-page-node-id="URytFu2lyUOHK5OA6icmHG">识别服务类型</span><span class="ico ic-g" data-page-node-id="fuFh17mmXT9FiJFGNQK7yA"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 10 5-10 5L2 7Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg></span></div><div class="v" id="kSvc" data-page-node-id="qM39oMA02pSGcdnsGmLaDY">27</div><div class="d" data-page-node-id="9w2CD7Orj8OjqigLpwRTp1">指纹规则库 v1.3</div></div>
+          <div class="kpi" data-page-node-id="nOQMIRdBkOlI6qAulNFXVf"><div class="kpi-head"><span class="n" data-page-node-id="Jh4nen3uGYMiAAZXswZVBi">高风险资产</span><span class="ico ic-r" data-page-node-id="D7CMGHUuYZRJlaqPKf6mxK"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span></div><div class="v" style="color:var(--danger)" id="kRisk" data-page-node-id="xRzp5l6YZGtAV8mBjdYdjs">58</div><div class="d down" id="kDelta2" data-page-node-id="ThT8ywGv5UkUno2zF3Ms5o">▲ 新增 7，需关注</div></div>
+        </div>
+        <div class="grid" style="grid-template-columns:1.25fr 1fr" data-page-node-id="RPPbFXQeWvYTJQicQgBqSu">
+          <div class="panel" data-page-node-id="CNrrYQMe7I9bJFyCHjPyFF"><div class="chart-title" data-page-node-id="sFC8TE0SEDLmMteLxCDnyX">30 天扫描趋势<small data-page-node-id="G2XraQxjlmHlf3pCnrLNSf">存活主机 / 开放端口</small></div><div id="hTrend" class="chart" data-page-node-id="NQqpimqkhFZ5vwXcHrsHQJ"></div></div>
+          <div class="panel" data-page-node-id="xWwCgJDnUKO2Jm1mxLIFUu"><div class="chart-title" data-page-node-id="LTonbdWyQFB9mleBOybusY">服务类型分布<small data-page-node-id="Rqtg9DcseCHcfrumPGAAR9">三层指纹识别结果</small></div><div id="hSvc" class="chart" data-page-node-id="w41RzxvcoQ586mX6atVunC"></div></div>
+        </div>
+        <div class="grid" style="grid-template-columns:1fr 1.25fr;margin-top:14px" data-page-node-id="Xo0gkM5DMVqZz8T8WG38pf">
+          <div class="panel" data-page-node-id="XzfhpAudzd5toxak6SEDUM"><div class="chart-title" data-page-node-id="6xbqyenYtqmhh5cyg6JW7v">开放端口 Top10</div><div id="hPort" class="chart" data-page-node-id="CRdBNmuEmAnsCjBUjmEuRK"></div></div>
+          <div class="panel" data-page-node-id="E00uOafEFRJbPvPVCbxbi2"><div class="chart-title" data-page-node-id="OU1XhvBukE61WgmlTDh1Pp">最新高风险资产<small data-page-node-id="8KAw9em6pwfM0IPmmi1xNY">点击行查看详情</small></div>
+            <table data-page-node-id="lLR4z52DDATC4gZma3VAHX"><thead data-page-node-id="yHB9AwKvBBukTC1uuDKkyk"><tr data-page-node-id="LCpkEjelPzaknHX6tOwLFR"><th data-page-node-id="BILr440PGF8K6ztP5AkKCf">IP</th><th data-page-node-id="wb6S5sH5KklqS6hBC6euVy">端口</th><th data-page-node-id="PD0jhBxAIDE4Cdu6tjqVlF">服务</th><th data-page-node-id="Xl3iP5kSL9BuPuHhbCg9ig">风险</th><th data-page-node-id="G8w6yQgDxCuETwUkVzGmbj">命中规则</th></tr></thead><tbody id="hRisk" data-page-node-id="dca8RfiZow8RAD3Ohmw9vN"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 态势大屏 ============ -->
+      <div class="page" id="pScreen" data-page-node-id="KD7bDqL90eqt7lKFE8CBTT">
+        <div class="page-head" data-page-node-id="QmWEGz4nnfBhHuUFxBjRwW"><div data-page-node-id="XlYvaZLtAQbTz8xacGozy6"><h2 data-page-node-id="gGYRPhtNmaw6nR4gbuCcOs">态势大屏</h2><div class="desc" data-page-node-id="IN1nlC6JtUUw8JhOUjpxH1">投屏模式 · 数据自动刷新 · 深色主题</div></div>
+          <button class="btn btn-primary" id="btnFull" onclick="toggleScreen()" data-page-node-id="TE3xtCfI6kGSMnyPuDhGEf">展开大屏预览</button></div>
+        <div class="screen-wrap" data-page-node-id="Zo5hFirM3Gve5NfwCiNqgp">
+          <div class="screen-head" data-page-node-id="pY5n6YNzXRlN0HmkrfSdHU"><b data-page-node-id="rJXsOkxRR7TMSsyroFg9eo">网络资产测绘安全态势大屏</b><span data-page-node-id="MoMpgZ3Fsd5K4wirrrhsnm">授权网段白名单 3 段 · 仅限授权扫描 · <span id="sClock" data-page-node-id="8zxTC1JmjvNwNCD6OdKwFI">--:--:--</span></span></div>
+          <div id="screenBody" data-page-node-id="1vb5t10mydBpH49V2MXv8t">
+            <div class="s-kpis" data-page-node-id="EbeyTuWgAwW2bLpgLBRPLb">
+              <div class="s-kpi" data-page-node-id="SsMCaM2QXG3CICvIoUC7KA"><div class="n" data-page-node-id="IlCONRTSa1EFsF2LFmrQtG">存活主机</div><div class="v" style="color:#fff" id="sHost" data-page-node-id="nXpfKSy2RaWo0o6GQyp4Xj">1,284</div></div>
+              <div class="s-kpi" data-page-node-id="U9R54zeiHdlnaKtMwEP3Ta"><div class="n" data-page-node-id="a81iKBZlkHmVmqZAvYT2Fo">开放端口</div><div class="v" style="color:rgba(255,255,255,.85)" id="sPort" data-page-node-id="6e8ZMYnNkO0XCo4n0JnG8Q">3,467</div></div>
+              <div class="s-kpi" data-page-node-id="qqw15A4mH2jYacEki7ZHsW"><div class="n" data-page-node-id="snAfwQVVnwqjMkHvCXhGUt">高风险资产</div><div class="v" style="color:#FF8A85" id="sRisk" data-page-node-id="l41fxpaz6OBFnHjyVGsdIJ">58</div></div>
+              <div class="s-kpi" data-page-node-id="sdFeVcE7mg7pc3tI4BIKWu"><div class="n" data-page-node-id="jijjIOYFjJuvmofARky0MT">今日新增</div><div class="v" style="color:rgba(255,255,255,.85)" id="sNew" data-page-node-id="SWZROjlh7uRQu76HS9nSIg">36</div></div>
+              <div class="s-kpi" data-page-node-id="uy7Kcn0Rn88hH6fpVzcX8Q"><div class="n" data-page-node-id="yFMQqbm787UfruYWIf8nux">TCP 端口占比</div><div class="v" style="color:#35C7D8" id="sTcpPct" data-page-node-id="z7PyKOy0nMnEQGpm1Af5eA">97.2%</div></div>
+              <div class="s-kpi" data-page-node-id="0MCtAht1EIzcjawFEh3bbG"><div class="n" data-page-node-id="WTp58eEoIWiLlIDyGV4B6l">私网资产占比</div><div class="v" style="color:#4C8DFF" id="sPrivPct" data-page-node-id="Z0uVq5kkleRIcTDHDJcUvN">91.8%</div></div>
+            </div>
+            <div class="s-grid" data-page-node-id="VWjrsemWqqdPRJcX7hM8gH">
+              <div class="s-card" data-page-node-id="nKUD6UtFUCqtdk3F787v81"><div class="t" data-page-node-id="HNVsX5jTjvXxSvxNeDaDgF"><b data-page-node-id="knKT87QNr1OCI3wOpG7x1j">服务类型分布</b><span data-page-node-id="IAgRmBpcW1KCmSbd8X0Fvi">指纹识别</span></div><div id="sSvc" style="height:210px" data-page-node-id="QNDbZnsAkaZZslQWJkCZ9S"></div>
+                <div class="t" style="margin-top:6px" data-page-node-id="r3ZDNHHm2HgiIuzo1jgmSa"><b data-page-node-id="oTBLHXvDWr0EQDTONKGU3o">端口 Top5</b></div><div id="sPortChart" style="height:150px" data-page-node-id="r9NNvFM4EaTXiKans1dQsn"></div></div>
+              <div class="s-card" data-page-node-id="mGnFgdEc4RWRFdac45HgHj"><div class="t" data-page-node-id="mw8Pn4sL5xlw0lcMdFk1c4"><b data-page-node-id="rgi7EpjGL7epWD13tFhZzO">公网资产地理分布</b><span data-page-node-id="g5QvXHlWcfDDcaKRTv8dCc">ip2region 离线归属</span></div><div id="sMap" style="height:378px" data-page-node-id="jgUkZQqFLTbV0yNE4ObgE7"></div></div>
+              <div class="s-card" data-page-node-id="LDJxp82EPj0eYEQvECFUiq"><div class="t" data-page-node-id="SMKWGHzsPVQnHbzp5ux6qr"><b data-page-node-id="sDALzX8WYbGB9Df48hYQHe">30 天趋势</b><span data-page-node-id="TiYiUtqXmX5eeukt8e9bep">存活主机/端口</span></div><div id="sTrend" style="height:210px" data-page-node-id="l74i2ODW1uWFYnuYbphhr4"></div>
+                <div class="t" style="margin-top:6px" data-page-node-id="rYAMoGh7YI28C6K22PV0yJ"><b data-page-node-id="MnjCbjlgl0wKvBSVLaLct5">实时事件流</b></div><div id="sEv" style="height:150px;overflow:hidden;font-size:10.5px;color:#7e93c9;line-height:1.9" data-page-node-id="16wTDs0IrywV8BVrGs8E4O"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 资产检索 ============ -->
+      <div class="page" id="pSearch" data-page-node-id="jOFVMfmhM2gb7ECwSeAI2P">
+        <div class="page-head" data-page-node-id="7ZFXaEQ1V90V2AFF11E84e"><div data-page-node-id="WeQFw0EBJ6fcpEOh29cIB9"><h2 data-page-node-id="iA1fwXErHD5D04EBmK3rRQ">资产检索</h2><div class="desc" data-page-node-id="1RnNvOCRHTXQ3DAnodasp1">类 FOFA 语法 · 后端将解析为 Elasticsearch bool 查询（本页为前端模拟）</div></div><span class="tag" data-page-node-id="fSmIqnzyJtYGJl6DU26U8D">ES 索引 asset</span></div>
+        <div class="search-bar" data-page-node-id="SWnZSsrlfyIV6HQPzznz7c">
+          <input id="q" placeholder='如：port=3389 或 service=nginx && subnet=10.0.3.0/24' value="port=3389" data-page-node-id="Jt98DwJHtG7dHos5Et2xvK">
+          <button class="btn btn-primary" onclick="doSearch(1)" data-page-node-id="4cHRDKKd5fkmsKoOCw6ZwS">检 索</button>
+          <button class="btn btn-ghost" onclick="toast('CSV 导出将在后续阶段接入','')" data-page-node-id="FjcCQ1l6Mga8GJFh60WH7b">导出</button>
+        </div>
+        <div class="syntax-tips" data-page-node-id="aCiajrSz3LUVDVDQrJT4sg">语法：
+          <code onclick="fillQ('port=3389')" data-page-node-id="vt4ZKDE2rxiUXleakk9yCm">port=3389</code><code onclick="fillQ('service=nginx')" data-page-node-id="LAHaD0AEk4qz0wXj1NcFrf">service=nginx</code>
+          <code onclick="fillQ('port=3306 && proto=tcp')" data-page-node-id="P7c8jsxqcahaqDjGEpAilT">port=3306 && proto=tcp</code>
+          <code onclick="fillQ('subnet=10.0.3.0/24')" data-page-node-id="J7Krmz8Z7xBwgvLAeI3cP1">subnet=10.0.3.0/24</code>
+          <code onclick="fillQ('risk=high')" data-page-node-id="Lr821Yllg2URygzGBdGFG1">risk=high</code><code onclick="fillQ('proto=udp')" data-page-node-id="Yb7SW2tGKAhm02axIWwQNe">proto=udp</code>
+        </div>
+        <div class="panel" data-page-node-id="r6C7JRF1538B8HfF4PEVc2">
+          <div class="chart-title" data-page-node-id="HQoyBPqFOrWz6wFHTwFpKL">检索结果<small id="sMeta" data-page-node-id="DdNriSzjDiD57P3CJ123Z4"></small></div>
+          <table data-page-node-id="iZSypVXGxnS3vWbjYIAppx"><thead data-page-node-id="0hn42RsxRqbCRHxSAShJEA"><tr data-page-node-id="ZvXqs1TLVv9UAD1ZXmcLtU"><th data-page-node-id="Ak4IHSrtd2gTd2Iy0rbcpD">IP</th><th data-page-node-id="EmLpyVu1t5fGd4vcbvR8Ln">端口</th><th data-page-node-id="SW0nvRSl84M1oGr1ppZ3H7">协议</th><th data-page-node-id="OL7r9N0QdEfAhu3C6nWIWU">服务指纹</th><th data-page-node-id="hqR97HC8bGTc94Y3nZTrrt">网段</th><th data-page-node-id="87n2INE0KGTW3Ggv7MnAD3">归属</th><th data-page-node-id="whOjmoAPanKRy2QcNy5ydp">风险</th><th data-page-node-id="BqynKElsTI798Auqa2GP65">最近存活</th></tr></thead><tbody id="sRows" data-page-node-id="F1Wq6BEKKqV4RvN8CnnRvv"></tbody></table>
+          <div class="pager" id="pager" data-page-node-id="Fia2CGHYg1XIlgypk3imMi"></div>
+        </div>
+      </div>
+
+      <!-- ============ 资产视图 ============ -->
+      <div class="page" id="pView" data-page-node-id="3UkQnTomm8Q8bKiJ567ZgK">
+        <div class="page-head" data-page-node-id="BKU62CrFTqYaSwIN1QVsKw"><div data-page-node-id="0iZB0ZqBdEvDOzMG13cC78"><h2 data-page-node-id="NRbsfBnLv4Uu7PkJ9LEbUq">资产视图</h2><div class="desc" data-page-node-id="SyTRuIuKj7r9NYiEYBnrCC">私网 IP（RFC1918）→ 网段拓扑；公网 IP → 地理分布。按资产归属自动适配</div></div><span class="tag" data-page-node-id="1dJJMKnjZSxybHI3db8r53">双视图</span></div>
+        <div style="display:flex;gap:8px;margin-bottom:12px" data-page-node-id="z26tcUeMXa7MUbpB2OAkcV">
+          <button class="btn btn-ghost" id="tTopo" onclick="switchView('topo')" data-page-node-id="0DlxsyGiW9wxR7Qy2OI1mW">树状拓扑（私网）</button>
+          <button class="btn btn-ghost" id="tMap" onclick="switchView('map')" data-page-node-id="1E2E5SID9LHA802UfVJF1z">地理分布（公网）</button>
+        </div>
+        <div class="panel" data-page-node-id="8CZtRUr9VaCCef40BFYRfJ">
+          <div id="vTopo" style="height:540px" data-page-node-id="jUBRsj3oEPBuYAfLaU5rST"></div>
+          <div id="vMap" style="height:540px;display:none" data-page-node-id="8SZv63zVZwfjYwGgWXESN2"></div>
+          <div style="font-size:11.5px;color:var(--sub);margin-top:8px" data-page-node-id="gfgP2CdBpIJdV1gKBufyBu">节点颜色 = 风险等级（<span style="color:var(--danger)" data-page-node-id="o2N4HJSi1x30vGDHNwegpb">■</span> 高 <span style="color:var(--warn)" data-page-node-id="5OcjNdse46LBznsXLuF1yZ">■</span> 中 <span style="color:var(--ok)" data-page-node-id="I95DJy3xYxuh5efd63CWBA">■</span> 低）· 拓扑可缩放拖拽 · 地图数据加载失败自动降级为省份排行</div>
+        </div>
+      </div>
+
+      <!-- ============ 风险态势 ============ -->
+      <div class="page" id="pRisk" data-page-node-id="x9dvtYS3b8hR7ysAZJzbEl">
+        <div class="page-head" data-page-node-id="7w0MqLXUSYq7HeN8uA46Xt"><div data-page-node-id="t4gy48RCWNRP6ZOXukDU0J"><h2 data-page-node-id="5ceUBKEcVynZB86yjz4gFi">风险态势</h2><div class="desc" data-page-node-id="MqPH8mzDrP9W39UwGphKmK">轻量规则指纹（端口 → Banner → 关键词）命中结果 · 规则库 v1.3 共 86 条</div></div><span class="tag" data-page-node-id="GEASHimU1S5pjpsfMP3Nwc">接清洗模块 risk_level 字段</span></div>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr)" data-page-node-id="wEWbb293DwffGWeqK9PrKn">
+          <div class="panel" style="border-top:3px solid var(--danger)" data-page-node-id="JAYdE1mU6w4Ony0HLvAZ45"><div class="chart-title" data-page-node-id="BtcUVBnVTtXU0AKYSGAJdI">高危</div><div style="font-size:30px;font-weight:700;color:var(--danger)" data-page-node-id="6yBK0jtSNKaL7azvUADtiU">58</div><div style="font-size:11.5px;color:var(--sub)" data-page-node-id="nl8CNlkBppD4GqXcdW3jK5">管理端口直接暴露（RDP/SSH/MySQL/Redis 对外可达）</div></div>
+          <div class="panel" style="border-top:3px solid var(--warn)" data-page-node-id="5ljQysJsad2KLCdWICXjtl"><div class="chart-title" data-page-node-id="j4UU181IaApzCnO5aUpEHf">中危</div><div style="font-size:30px;font-weight:700;color:var(--warn)" data-page-node-id="WlEl384vg9fVWfbXZZMIFg">137</div><div style="font-size:11.5px;color:var(--sub)" data-page-node-id="giKl3DUWXf52sVbsUychWt">老旧服务版本（nginx/1.14、OpenSSH 7.4、MySQL 5.7）</div></div>
+          <div class="panel" style="border-top:3px solid #b9c4d6" data-page-node-id="P8vKTqFHct4NnDumiigYO9"><div class="chart-title" data-page-node-id="uExxvRPgLHq82f2KACzMWY">低危</div><div style="font-size:30px;font-weight:700;color:var(--sub)" data-page-node-id="uQCVNWQsGV7jUmbl6t8XYQ">412</div><div style="font-size:11.5px;color:var(--sub)" data-page-node-id="tGQsdeY7HogYLvAPKGpH7E">一般服务暴露，建议按最小化原则收敛</div></div>
+        </div>
+        <div class="panel" style="margin-top:14px" data-page-node-id="7uMpjTfaTboxeoYeLbkKTV">
+          <div class="chart-title" data-page-node-id="TcuRacsToAGnYicJoRiWw3">高危资产明细<small data-page-node-id="PyfrSSzqGdIeQpxKImiJyA">处置状态由运营人员更新</small></div>
+          <table data-page-node-id="nUFuMJGB85U9dgt7xmJRF2"><thead data-page-node-id="zvj5jHxNc4DfhIOPK4JVH5"><tr data-page-node-id="k9iRAV8dbjYLtGukwpC7Z1"><th data-page-node-id="Zg7Gd5UurOAEYvG0AflbZo">IP</th><th data-page-node-id="k5Xreh20wq6evPrZrpKTse">端口</th><th data-page-node-id="i3FAhT1r0q3osVrrAvRpw3">服务指纹</th><th data-page-node-id="nCf5IAcjHD26tfjU53bXJ7">命中规则</th><th data-page-node-id="H8z2DmItlSJhCKsdGmvpz3">处置建议</th><th data-page-node-id="vNp3uzuXeEON7xNfz8KQwx">状态</th><th data-page-node-id="wuslGmI5G0U9fvAtHzz7c8">操作</th></tr></thead><tbody data-page-node-id="PF7HHvCfzVor7j1j7GrGcN">
+            <tr data-page-node-id="pxAYhKG4a1Fe8hIJK8F2HR"><td data-page-node-id="kg9R9H7W5wahKAHO1ISywr">10.0.3.17</td><td data-page-node-id="N3Gmt3IMJXb4GjVGyJDwVn">3389/tcp</td><td data-page-node-id="BMrpA6A5gcCOKSWYziNbIQ">MS Terminal Service</td><td data-page-node-id="krhxxNGHmunBOHsuLc6xe9">R-001 管理端口暴露</td><td data-page-node-id="e3FuiGInSXtgzLEC4ElWPI">限制源 IP 或改用 VPN 接入</td><td data-page-node-id="EjfCgqfG2Y0aBx91FT36Qn"><span class="pill p-high" data-page-node-id="PBDVTfTWvKAejtY6GvWW2j">未处理</span></td><td data-page-node-id="cAYRIpsiXrGWDY0ES54L7T"><a href="javascript:void(0)" onclick="openDetail('10.0.3.17')" style="color:var(--primary)" data-page-node-id="yKPId9pnHV6ZpWUTVp1En6">详情</a></td></tr>
+            <tr data-page-node-id="gAPbSedy2JB5ZJZHKMM4bn"><td data-page-node-id="pOTZM19EFYrtFRUJT3JxMm">10.0.5.22</td><td data-page-node-id="yqZ2pa26c3C1yep0w4988b">3306/tcp</td><td data-page-node-id="DmKJXy01UVPEM7fElDEDPE">MySQL 5.7.26</td><td data-page-node-id="yE7tKp9VU20JI2PlWcHE4u">R-004 数据库暴露+老旧版本</td><td data-page-node-id="5pTXxqz4agor5BsfXnUdfs">迁移内网并升级 8.x</td><td data-page-node-id="tLaU2fFlbk5LJHHVrvEBfh"><span class="pill p-mid" data-page-node-id="DjoFAsEycZbywDZRH98SqH">处理中</span></td><td data-page-node-id="ALACuGWK1tdpVPOnyB3Hfz"><a href="javascript:void(0)" onclick="openDetail('10.0.5.22')" style="color:var(--primary)" data-page-node-id="TFZ1VELt6HqIcqGlVn8ZXc">详情</a></td></tr>
+            <tr data-page-node-id="LQWfxDB5NFBJHsQOES1ZxG"><td data-page-node-id="0yCCsYSuI8ABCdigS2d9Wm">10.0.7.9</td><td data-page-node-id="GnNjE1wnZDJArMyBxg1OEe">22/tcp</td><td data-page-node-id="ntiWdmH7xeA3Vfad66NGh9">OpenSSH 7.4</td><td data-page-node-id="rajXaaysoQ9xP9pOiHTvRc">R-007 SSH 老旧版本</td><td data-page-node-id="mafGSsulbKsv3AHEY0sbFt">升级 9.x，启用密钥登录</td><td data-page-node-id="cbrFCMFloejYwF61UOHF8A"><span class="pill p-ok" data-page-node-id="TAm1Gs3OSYXcrffNY99ZKU">已修复</span></td><td data-page-node-id="tP6MXCbrJm7Xbf9FNLSFGm"><a href="javascript:void(0)" onclick="openDetail('10.0.7.9')" style="color:var(--primary)" data-page-node-id="gkN6aJ71llk0VnbLvQzFoa">详情</a></td></tr>
+            <tr data-page-node-id="YTonfTsVWm3PP2jRlXuPJs"><td data-page-node-id="3kkHzUqjPKOukuq7CVv64o">10.0.9.31</td><td data-page-node-id="AUgCyhCNKwtbH7INGjj7IY">6379/tcp</td><td data-page-node-id="CQSkR7cUW2A5IGNfrNH3Uw">Redis 4.0.9</td><td data-page-node-id="wbkD18Pco0Rdn8duA5qTv7">R-012 Redis 未授权访问</td><td data-page-node-id="gdQHbsjzZfKvzg9WEiQkJx">设置 requirepass 并绑定内网</td><td data-page-node-id="DxEfoADS6Nh2x2Me4R3ohE"><span class="pill p-high" data-page-node-id="TUGCAAyJ5dpagGHizDCvBc">未处理</span></td><td data-page-node-id="UpiEEIX5VWEiZfpkt0MaIh"><a href="javascript:void(0)" onclick="openDetail('10.0.9.31')" style="color:var(--primary)" data-page-node-id="00EQeLGCu0yzA9FyLzBvRD">详情</a></td></tr>
+            <tr data-page-node-id="tOV1xz3hCA2fGm5lGiyHGr"><td data-page-node-id="5ibglXOuqo1ON3R4tmOoGb">10.0.11.4</td><td data-page-node-id="yoHFhQZ147lnBRRjtgRMBf">1900/udp</td><td data-page-node-id="s6ythAfEmfLvtJe4zDz6rA">SSDP / UPnP</td><td data-page-node-id="oOByXo0UyxOZjCy8TjcTPw">R-021 UPnP 对外可达</td><td data-page-node-id="Q8NCaX9A6f03nEst5Qv0ug">网关关闭 UPnP 转发</td><td data-page-node-id="0iT85ShwzDQR8fIV2SKezd"><span class="pill p-mid" data-page-node-id="ZtKTm85M0BYPqqfctSUhqZ">处理中</span></td><td data-page-node-id="NOFzQ8iElVEEYGdETGfCaa"><a href="javascript:void(0)" onclick="openDetail('10.0.11.4')" style="color:var(--primary)" data-page-node-id="8xlXh4Jh7HHCqGeCcuudgK">详情</a></td></tr>
+          </tbody></table>
+        </div>
+        <div class="panel" style="margin-top:14px" data-page-node-id="wPQKQRVA1BjF5cH7UP9HE5"><div class="chart-title" data-page-node-id="CSC7xkeetopqpAMDgpJFio">风险等级分布（按子网）</div><div id="rStack" class="chart" style="height:260px" data-page-node-id="IbKErM1Eb04xQpzY1xi2cy"></div></div>
+      </div>
+
+      <!-- ============ LLM 报告 ============ -->
+      <div class="page" id="pReport" data-page-node-id="rVx95C5eAUIVB6dTQDP4EU">
+        <div class="page-head" data-page-node-id="2nXlyOlEyUcWGdaNARAJYE"><div data-page-node-id="MxNSjMvVCqdgQlAYCHPmfF"><h2 data-page-node-id="DGaGa5ytP9r64ARTdsF4wV">LLM 巡检报告</h2><div class="desc" data-page-node-id="zXE0GgCX40PrJrFM26RIYO">资产库 → 检索召回 → LLM 推理 → 自然语言报告（创新点 01）</div></div><span class="tag" data-page-node-id="y0ZZAGiI5kSSHsVt4Wz8iY">统计数据代码生成，分析段落由 LLM 撰写</span></div>
+        <div class="grid rep-layout" data-page-node-id="r48wMIx6qsDC9iev4Kvrc8">
+          <div class="panel" data-page-node-id="rPHxifvCI6tH5yC8pLslzH">
+            <div class="chart-title" data-page-node-id="BNAkEim3zDxOrwlcRbHSd4">报告配置</div>
+            <label style="font-size:12px;color:var(--sub);display:block;margin:12px 0 6px" data-page-node-id="GP8j99z16HTPpR2kAnikNX">报告类型</label>
+            <select style="width:100%" data-page-node-id="p5Ugzcqysvb3v9z7DEy0Fo"><option data-page-node-id="swdG1F1wbPZmDt11c9HQrN">周期巡检报告</option><option data-page-node-id="SNQBUEi5occfKtI7XIUcUx">资产清单报告</option><option data-page-node-id="LKbGQ2REYF9wImrheqKALj">暴露面侦察报告</option></select>
+            <label style="font-size:12px;color:var(--sub);display:block;margin:12px 0 6px" data-page-node-id="DiFobmdO0dKOqKvvkimguB">统计周期</label>
+            <select style="width:100%" data-page-node-id="H51VqXEsZSgTz4RrpwDzNL"><option data-page-node-id="REegEOsobw2j9Jme1GgUtZ">最近 7 天</option><option data-page-node-id="PCZbL3YXF2mWjcLIlV53EO">最近 30 天</option></select>
+            <label style="font-size:12px;color:var(--sub);display:block;margin:12px 0 6px" data-page-node-id="BBF6eqrs6X6TA8iSieepUK">范围</label>
+            <input style="width:100%" value="授权网段白名单（3 段）" disabled data-page-node-id="5yVaoxdv6VJ3FTQPca4imE">
+            <button class="btn btn-primary" style="width:100%;margin-top:18px" id="repBtn" onclick="genReport()" data-page-node-id="EYdw8KEo0q6W8bDDoX3mA1">⚡ 一键生成报告</button>
+            <div style="font-size:11px;color:var(--sub);line-height:1.9;margin-top:14px;padding-top:12px;border-top:1px dashed var(--border)" data-page-node-id="frLEUVPeUDr8DLGY2CFtb9">
+              <b data-page-node-id="xPRDTBTpCtesIbGUhcbXLN">生成链路</b><br data-page-node-id="dENVN3kPRYgKi2T0sbLnO9">① SQL/ES 聚合取数<br data-page-node-id="OraUuDRI4hhRDnzOAa8PBu">② 组装结构化上下文<br data-page-node-id="7PSpsWXiswGuE7FBx1X5yV">③ LLM 仅撰写分析段落<br data-page-node-id="YRDIj0qLgz3rg75xKMXHx8">④ 模板合成 · 可导出
+            </div>
+          </div>
+          <div class="panel" data-page-node-id="d5HSHeazeJK7WTjHGXQirt"><div id="repBody" data-page-node-id="VTrkCzNuE1CGd2HjKhltus"><span class="typing" data-page-node-id="lMulf5PE7pxHVSrAdV4TeJ">点击左侧「一键生成报告」…</span></div></div>
+        </div>
+      </div>
+
+      <!-- ============ 智能体分析（对接大模型组 API） ============ -->
+      <div class="page" id="pAgent">
+        <div class="page-head"><div><h2>智能体分析</h2><div class="desc">单 IP 深度分析（LangGraph Agent · 流式进度）· 自然语言资产问答 · 只读数据库已有扫描数据，不触发任何主动扫描</div></div><span class="tag">创新点 01 · Agent</span></div>
+        <div class="panel">
+          <div class="search-bar" style="margin-bottom:0">
+            <input id="agIp" placeholder="输入 IPv4，如 1.2.163.154" value="1.2.163.154">
+            <button class="btn btn-ghost" onclick="agCheck()">查询已有报告</button>
+            <button class="btn btn-primary" id="agRunBtn" onclick="agRun()">开始分析</button>
+          </div>
+          <div style="font-size:11.5px;color:var(--sub);margin-top:8px">流程：先调 <code style="background:var(--bg);padding:1px 6px;border-radius:5px;color:var(--primary)">GET /assets/{ip}/analysis</code> 查已保存报告；无结果时点「开始分析」走流式接口 <code style="background:var(--bg);padding:1px 6px;border-radius:5px;color:var(--primary)">POST /analysis/ip/stream</code>，逐节点展示分析进度</div>
+          <div id="agSteps" class="ag-steps" style="display:none"></div>
+        </div>
+        <div class="panel" id="agResult" style="margin-top:14px;display:none"></div>
+
+        <div class="panel" style="margin-top:14px">
+          <div class="chart-title">Agent 资产问答<small>自然语言 · POST /agent/chat</small></div>
+          <div class="ag-chat-log" id="agChat"><div class="ag-msg a">示例：查询 1.2.163.154 开放了哪些服务和产品？</div></div>
+          <div class="search-bar" style="margin:12px 0 0">
+            <input id="agQ" placeholder="用自然语言问资产相关的问题…" onkeydown="if(event.key==='Enter')askAgent()">
+            <button class="btn btn-primary" onclick="askAgent()">提 问</button>
+            <button class="btn btn-ghost" onclick="resetAgentConversation()">新会话</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot-note" data-page-node-id="hL9YJV1eR1qfyS6JEmtFrA">※ 数据链路：态势 / 检索 / 平台报告 ← FastAPI 测绘后端（/api/*）；单 IP 智能分析 / Agent 问答 ← 大模型组智能体后端（/assets/{ip}/analysis · /analysis/ip/stream · /agent/chat），全程只读不扫描</div>
+    </div>
+  </div>
+</div>
+
+<!-- 资产详情抽屉 -->
+<div class="backdrop" id="backdrop" onclick="closeDetail()"></div>
+<div class="drawer" id="drawer" data-page-node-id="Je636WpAmZqMoaW5Da1NiQ">
+  <div class="dh" data-page-node-id="WdN1FxmoNdGtV3X0FchgWP"><b data-page-node-id="GDmIJIACDPevHDspN5tCll">资产详情</b><span onclick="closeDetail()" data-page-node-id="XzYLwSnvBjIlgFZkSF0Knd">✕</span></div>
+  <div class="db" id="drawerBody" data-page-node-id="SQVWOFdyrQjbEr9IeZiuMm"></div>
+</div>
+<div id="toast" data-page-node-id="GjmRgBveQR48L48kdULMQt"></div>
+
+<script>
+/* =====================================================================
+   数据接入层（API MOCK）
+   =====================================================================
+   数据接入层（FastAPI + 现有 MySQL 扫描数据库）
+   =====================================================================
+   实际接口契约详见项目 docs/API接口契约.md：
+   GET /api/bootstrap  → 一次性拉取 概览+统计+资产（本页初始化用）
+   GET /api/search     → 语法检索（后端真实解析过滤，支持 && 组合）
+   POST /api/report    → 生成巡检报告（统计代码算、分析段落 LLM 优先/模板降级）
+   平台只读，无任务下发接口（采集端负责扫描落库，五层解耦）。
+===================================================================== */
+async function apiJson(url,options){
+  const r=await fetch(url,options);const data=await r.json().catch(()=>null);
+  if(!r.ok)throw new Error(data?.detail||`HTTP ${r.status}`);return data;
+}
+const API = {
+  bootstrap: () => apiJson('/api/bootstrap'),
+  search: (q, page=1) => apiJson(`/api/search?q=${encodeURIComponent(q)}&page=${page}`),
+  report: () => apiJson('/api/report',{method:'POST'})
+};
+
+/* =====================================================================
+   智能体后端接入层（大模型组 API，接口契约见《API接口契约》v1）
+   =====================================================================
+   前端由同一个 FastAPI 进程托管，因此 AGENT_BASE 为空字符串；平台和 Agent 接口同源，
+   不依赖额外端口或浏览器 CORS 配置。
+===================================================================== */
+const AGENT_BASE='';
+let AGENT_CONVERSATION_ID=null;
+const AGENT={
+  url:p=>`${AGENT_BASE}${p}`,
+  async getAnalysis(ip){          // GET /assets/{ip}/analysis → 200 有报告 / 404 无
+    const r=await fetch(AGENT.url(`/assets/${ip}/analysis`));
+    return {status:r.status, data:r.ok?await r.json().catch(()=>null):null};
+  },
+  async chat(question){           // POST /agent/chat
+    const r=await fetch(AGENT.url('/agent/chat'),{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({question,scan_round:null,conversation_id:AGENT_CONVERSATION_ID})});
+    const data=await r.json().catch(()=>null);
+    if(!r.ok)throw new Error(data?.detail||`HTTP ${r.status}`);
+    AGENT_CONVERSATION_ID=data.conversation_id||AGENT_CONVERSATION_ID;
+    return data;
+  }
+};
+const IPV4_RE=/^\d{1,3}(\.\d{1,3}){3}$/;
+const AGENT_ERR='智能体接口请求失败：请查看当前 FastAPI 终端日志并确认数据库连接正常';
+
+/* ---------- 智能体分析页 ---------- */
+function pillLvl(l){l=String(l||'').toLowerCase();
+  return (l.includes('critical'))?'<span class="pill p-high">严重</span>'
+       :(l.includes('high')||l.includes('危'))?'<span class="pill p-high">高</span>'
+       :(l.includes('mid')||l.includes('medium')||l.includes('中'))?'<span class="pill p-mid">中</span>'
+       :'<span class="pill p-ok">低</span>';}
+function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function kvRows(obj){return Object.entries(obj||{})
+  .filter(([k,v])=>v!==null&&v!==undefined&&typeof v!=='object')
+  .map(([k,v])=>`<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div>`).join('');}
+function arrTable(arr){          // 数组通用渲染：对象数组→表格，原始值数组→列表
+  if(!Array.isArray(arr)||!arr.length)return '<div style="font-size:12px;color:var(--sub);padding:4px 0">（无数据）</div>';
+  const objs=arr.filter(o=>o&&typeof o==='object');
+  if(!objs.length)return `<div style="font-size:12.5px;line-height:2">${arr.map(v=>`· ${escapeHtml(typeof v==='object'?JSON.stringify(v):String(v))}`).join('<br>')}</div>`;
+  const keys=[...new Set(objs.flatMap(o=>Object.keys(o)))];
+  const cell=v=>escapeHtml(v===null||v===undefined?'-':typeof v==='object'?JSON.stringify(v):String(v));
+  return `<table><thead><tr>${keys.map(k=>`<th>${escapeHtml(k)}</th>`).join('')}</tr></thead><tbody>${
+    objs.map(o=>`<tr>${keys.map(k=>`<td>${cell(o[k])}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+function renderAgent(res){
+  const S=res.summary||{},rk=res.risks||[],meta=res.metadata||{};
+  let h=`<div class="ag-res"><h3>摘要</h3><div class="kv">${
+    kvRows(S)||`<div class="k">summary</div><div class="v">${escapeHtml(typeof S==='object'?JSON.stringify(S):String(S))}</div>`}</div>`;
+  h+=`<h3>服务明细</h3>${arrTable(res.services)}`;
+  h+=`<h3>风险研判</h3>${rk.length?rk.map(r=>`<div style="padding:9px 0;border-bottom:1px dashed #F1F3F7;font-size:12.5px">${
+        pillLvl(r.level||r.severity||r.risk_level)} <b>${escapeHtml(r.title||r.name||r.risk||'')}</b>${
+        r.confidence!=null?`<span style="color:var(--sub);margin-left:10px">置信度 ${escapeHtml(r.confidence)}</span>`:''}${
+        (r.description||r.detail||r.desc)?`<div style="color:var(--sub);margin-top:3px">${escapeHtml(r.description||r.detail||r.desc)}</div>`:''}</div>`).join('')
+      :'<div style="font-size:12px;color:var(--sub);padding:4px 0">（无风险条目）</div>'}`;
+  h+=`<h3>证据</h3>${arrTable(res.evidence)}`;
+  h+=`<h3>处置建议</h3>${arrTable(res.recommendations)}`;
+  h+=`<h3>数据限制</h3>${arrTable(res.limitations)}`;
+  if(Object.keys(meta).length)h+=`<h3>元数据</h3><div class="kv">${kvRows(meta)}</div>`;
+  $('#agResult').innerHTML=h+'</div>';
+  $('#agResult').style.display='block';
+}
+function addStep(ev){
+  const box=$('#agSteps');
+  const prev=[...box.querySelectorAll('.ag-step.running')].find(x=>x.dataset.node===ev.node);
+  if(prev&&ev.status){          // 同节点 running→completed 就地更新
+    prev.classList.remove('run');prev.classList.add(ev.status);
+    prev.lastElementChild.textContent=ev.status;return;
+  }
+  const row=document.createElement('div');
+  row.className='ag-step '+(ev.status||'run');row.dataset.node=ev.node||'';
+  row.innerHTML=`<span class="dot"></span><span>${escapeHtml(ev.label||ev.node)}</span><span class="tag-n">${escapeHtml(ev.node||'')}</span><span style="margin-left:auto;color:var(--sub);font-size:11px">${escapeHtml(ev.status||'')}</span>`;
+  box.appendChild(row);box.scrollTop=box.scrollHeight;
+}
+async function agCheck(){        // 查询已保存分析结果（契约推荐第一入口）
+  const ip=($('#agIp').value||'').trim();
+  if(!IPV4_RE.test(ip))return toast('请输入合法 IPv4','err');
+  try{
+    const {status,data}=await AGENT.getAnalysis(ip);
+    if(status===404){toast('该 IP 暂无已保存的分析报告，可点击「开始分析」生成','');return;}
+    if(status!==200||!data)throw new Error('HTTP '+status);
+    renderAgent(data.result||data);
+    toast(`已加载已保存分析报告（批次 ${data.scan_round??'-'}）`,'ok');
+  }catch(e){toast(AGENT_ERR,'err');}
+}
+async function agRun(){          // 流式单 IP 分析：NDJSON 逐行读 node/result 事件
+  const ip=($('#agIp').value||'').trim();
+  if(!IPV4_RE.test(ip))return toast('请输入合法 IPv4','err');
+  const btn=$('#agRunBtn');btn.disabled=true;btn.textContent='分析中…';
+  const box=$('#agSteps');box.style.display='flex';box.innerHTML='';
+  let result=null;
+  try{
+    const r=await fetch(AGENT.url('/analysis/ip/stream'),{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ip,scan_round:null,save_result:true})});
+    if(!r.ok||!r.body)throw new Error('HTTP '+r.status);
+    const reader=r.body.getReader(),dec=new TextDecoder();
+    let buf='';
+    while(true){
+      const {done,value}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n');buf=lines.pop();
+      for(const line of lines){
+        if(!line.trim())continue;
+        const ev=JSON.parse(line);           // {"type":"node",...} / {"type":"result",...}
+        if(ev.type==='node')addStep(ev);
+        else if(ev.type==='result')result=ev.data;
+        else if(ev.type==='error')throw new Error(ev.detail||`分析失败（${ev.status_code}）`);
+      }
+    }
+    if(result){renderAgent(result.result||result);toast('分析完成','ok');}
+    else{box.insertAdjacentHTML('beforeend','<div class="ag-step fail"><span class="dot"></span>流结束但未收到 result 事件</div>');toast('分析流未返回结果','err');}
+  }catch(e){
+    const failed=document.createElement('div');failed.className='ag-step fail';
+    failed.textContent=`连接失败：${e.message||e}`;box.appendChild(failed);
+    toast(AGENT_ERR,'err');
+  }finally{btn.disabled=false;btn.textContent='开始分析';}
+}
+async function askAgent(){       // 自然语言问答
+  const q=($('#agQ').value||'').trim();if(!q)return;
+  $('#agQ').value='';
+  const log=$('#agChat');
+  log.insertAdjacentHTML('beforeend','<div class="ag-msg u"></div>');
+  log.lastElementChild.textContent=q;
+  try{
+    const d=await AGENT.chat(q);
+    const ans=d.answer??d.answer_text??d.response??d.content;
+    const bits=[d.model_provider||d.model_source||d.model||'',d.intent?'意图：'+d.intent:'',d.context_reused?'已复用上文':''].filter(Boolean).join(' · ');
+    log.insertAdjacentHTML('beforeend','<div class="ag-msg a"></div>');
+    const m=log.lastElementChild;
+    m.textContent=typeof ans==='string'?ans:JSON.stringify(d,null,2);
+    if(bits){const meta=document.createElement('div');meta.className='meta';meta.textContent=bits;m.appendChild(meta);}
+    appendAgentFacts(m,d);
+  }catch(e){
+    const failed=document.createElement('div');failed.className='ag-msg a';failed.textContent=`Agent 接口请求失败：${e.message||e}`;log.appendChild(failed);
+  }
+  log.scrollTop=log.scrollHeight;
+}
+function appendAgentFacts(message,data){
+  const groups=[
+    ['工具调用',data.tools_used?.map(x=>`${x.name}（${x.status}）`)],
+    ['处置优先级',data.priority_assets?.map(x=>`#${x.rank} ${x.ip} · ${x.risk_level} · ${(x.reasons||[]).join('；')}`)],
+    ['证据',data.evidence?.map(x=>x.detail)],
+    ['数据限制',data.limitations]
+  ];
+  for(const [title,items] of groups){
+    if(!items?.length)continue;
+    const box=document.createElement('div');box.className='meta';
+    const strong=document.createElement('strong');strong.textContent=title+'：';box.appendChild(strong);
+    box.appendChild(document.createTextNode(items.slice(0,5).join(' ｜ ')));message.appendChild(box);
+  }
+}
+async function resetAgentConversation(){
+  const old=AGENT_CONVERSATION_ID;AGENT_CONVERSATION_ID=null;
+  if(old){try{await fetch(AGENT.url(`/agent/conversations/${encodeURIComponent(old)}`),{method:'DELETE'});}catch(e){}}
+  const log=$('#agChat');log.replaceChildren();
+  const msg=document.createElement('div');msg.className='ag-msg a';msg.textContent='已开始新会话，请重新提供 IP、扫描批次或任务 ID。';log.appendChild(msg);
+}
+
+/* ---------- Mock 数据 ---------- */
+const PORTS=[{p:443,s:'nginx/1.24.0',r:'low'},{p:80,s:'Apache/2.4.41',r:'low'},{p:22,s:'OpenSSH 8.9p1',r:'mid'},{p:3389,s:'MS Terminal Service',r:'high'},{p:3306,s:'MySQL 8.0.32',r:'mid'},{p:6379,s:'Redis 6.2.6',r:'low'},{p:53,s:'ISC BIND 9.16',r:'low'},{p:161,s:'SNMPv2 public',r:'high'},{p:8080,s:'Tomcat/9.0.65',r:'mid'},{p:123,s:'NTPd 4.2.8',r:'low'},{p:1900,s:'SSDP/UPnP',r:'high'},{p:5353,s:'mDNS (Avahi)',r:'low'}];
+const PUB_LOC=['广东省广州市','北京市','上海市','浙江省杭州市','江苏省南京市','四川省成都市','山东省济南市','湖北省武汉市','陕西省西安市','福建省厦门市'];
+const rnd=n=>Math.floor(Math.random()*n);
+/* 资产/统计数据由后端 GET /api/bootstrap 从现有 MySQL 扫描库读取 */
+let ASSETS=[],STATS=null,OVERVIEW=null;
+async function loadBackend(){
+  const r=await API.bootstrap();
+  ASSETS=r.assets;STATS=r.stats;OVERVIEW=r.overview;
+  $('#backendStatus').textContent=`真实数据 · 扫描批次 ${OVERVIEW.scan_round??'-'}`;
+}
+
+/* ---------- 通用 ---------- */
+const $=s=>document.querySelector(s);
+function toast(msg,type=''){const d=document.createElement('div');d.className='toast '+type;d.textContent=msg;$('#toast').appendChild(d);setTimeout(()=>d.remove(),2600)}
+function pillOf(r){return r==='critical'?'<span class="pill p-high">严重</span>'
+  :r==='high'?'<span class="pill p-high">高</span>'
+  :(r==='mid'||r==='medium')?'<span class="pill p-mid">中</span>'
+  :r==='unknown'?'<span class="pill p-low">未知</span>'
+  :r==='info'?'<span class="pill p-info">信息</span>'
+  :'<span class="pill p-ok">低</span>'}
+
+/* ---------- 登录 ---------- */
+async function doLogin(){
+  const btn=document.querySelector('#loginPage button');
+  btn.disabled=true;btn.textContent='连接后端…';
+  try{
+    await loadBackend();
+    $('#loginPage').style.display='none';$('#app').classList.add('show');
+    initHome();toast(`连接成功，已加载 ${ASSETS.length} 条服务资产记录`,'ok');
+  }catch(e){
+    toast('后端连接失败：请启动 agent_service.api.real_main 或 mock_main','err');
+  }finally{btn.disabled=false;btn.textContent='登 录 平 台';}
+}
+
+/* ---------- 导航 ---------- */
+const CRUMB={pHome:['控制台首页','授权范围资产分布与风险态势'],pScreen:['态势大屏','投屏演示模式'],
+  pSearch:['资产检索','类 FOFA 语法查询'],pView:['资产视图','拓扑 / 地理分布双模式'],
+  pRisk:['风险态势','指纹规则命中结果'],
+  pReport:['LLM 巡检报告','创新点 01 落地'],
+  pAgent:['智能体分析','单 IP 深度分析 · Agent 问答（对接大模型组 API）']};
+const inited={};
+document.querySelectorAll('.nav a').forEach(a=>a.onclick=()=>{
+  document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');$('#'+a.dataset.p).classList.add('active');
+  $('#crumb').firstChild.textContent=CRUMB[a.dataset.p][0];$('#crumbSub').textContent=CRUMB[a.dataset.p][1];
+  if(!inited[a.dataset.p]){inited[a.dataset.p]=true;
+    ({pSearch:()=>doSearch(1),pView:()=>drawView(),pRisk:()=>drawRisk(),pScreen:()=>{},pReport:()=>{}})[a.dataset.p]?.();
+  }
+  window.dispatchEvent(new Event('resize'));
+});
+
+/* ---------- 首页 ---------- */
+function countUp(el,target,dur=800){
+  const start=performance.now();
+  (function f(t){const p=Math.min(1,(t-start)/dur),e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(target*e).toLocaleString();
+    if(p<1)requestAnimationFrame(f);})(start);
+}
+function initHome(){
+  /* 全部数据来自后端 /api/bootstrap（OVERVIEW + STATS），不再前端硬编码 */
+  const hT=echarts.init($('#hTrend'));
+  hT.setOption({tooltip:{trigger:'axis'},legend:{top:0,right:0,itemWidth:14,textStyle:{fontSize:11,color:'#6b7a90'}},grid:{left:52,right:16,top:26,bottom:24},
+    xAxis:{type:'category',data:STATS.trend.days,boundaryGap:false,axisLabel:{color:'#6b7a90',interval:5}},
+    yAxis:{type:'value',splitLine:{lineStyle:{color:'#f0f3f8'}},axisLabel:{color:'#6b7a90'}},
+    series:[{name:'存活主机',type:'line',smooth:true,data:STATS.trend.hosts,symbol:'none',lineStyle:{width:2.5,color:'#3B6EF6'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(47,107,255,.22)'},{offset:1,color:'rgba(47,107,255,0)'}]}}},
+      {name:'开放端口',type:'line',smooth:true,data:STATS.trend.ports,symbol:'none',lineStyle:{width:2,color:'#7c5cff',type:'dashed'}}]});
+  const svcColors=['#3B6EF6','#7c5cff','#E5484D','#16A34A','#b9c4d6'];
+  echarts.init($('#hSvc')).setOption({tooltip:{trigger:'item'},legend:{bottom:0,itemWidth:10,itemHeight:10,textStyle:{fontSize:11,color:'#6b7a90'}},
+    series:[{type:'pie',radius:['44%','68%'],center:['50%','44%'],label:{formatter:'{b} {d}%',fontSize:11,color:'#6b7a90'},
+      data:STATS.svcDist.map((d,i)=>({name:d.name,value:d.value,itemStyle:{color:svcColors[i%svcColors.length]}}))}]});
+  const pd=STATS.portTop10.slice().reverse();
+  echarts.init($('#hPort')).setOption({grid:{left:44,right:40,top:8,bottom:8},
+    xAxis:{type:'value',splitLine:{lineStyle:{color:'#f0f3f8'}}},yAxis:{type:'category',data:pd.map(d=>d[0]),axisLabel:{color:'#6b7a90'}},
+    series:[{type:'bar',barWidth:11,label:{show:true,position:'right',color:'#6b7a90',fontSize:10},
+      itemStyle:{borderRadius:[0,6,6,0],color:{type:'linear',x:0,y:0,x2:1,y2:0,colorStops:[{offset:0,color:'#5C8DFF'},{offset:1,color:'#3B6EF6'}]}},data:pd.map(d=>d[1])}]});
+  countUp($('#kHost'),OVERVIEW.host);countUp($('#kRisk'),OVERVIEW.riskHigh);
+  $('#kPort').textContent=OVERVIEW.port.toLocaleString();
+  $('#kTcpUdp').textContent=`TCP ${OVERVIEW.tcp.toLocaleString()} · UDP ${OVERVIEW.udp.toLocaleString()}`;
+  $('#kSvc').textContent=OVERVIEW.svcTypes;
+  const d1=STATS.trend.hosts.length>1?STATS.trend.hosts.at(-1)-STATS.trend.hosts.at(-2):0;
+  $('#kDelta1').textContent=(d1>=0?'▲':'▼')+` 较上次扫描 ${d1>=0?'+':''}${d1}`;
+  $('#kDelta1').className='d '+(d1>=0?'up':'down');
+  $('#kDelta2').textContent=`▲ 今日新增 ${OVERVIEW.newToday}，需关注`;
+  $('#hRisk').innerHTML=STATS.highList.map(a=>
+    `<tr style="cursor:pointer" onclick="openDetail('${a.ip}')"><td>${escapeHtml(a.ip)}</td><td>${escapeHtml(a.port)}/${escapeHtml(a.proto)}</td><td>${escapeHtml(a.service)}</td><td>${pillOf(a.risk)}</td><td style="color:var(--sub)">来自已保存 Agent 分析</td></tr>`).join('');
+}
+
+/* ---------- 大屏 ---------- */
+setInterval(()=>{$('#sClock')&&($('#sClock').textContent=new Date().toTimeString().slice(0,8))},1000);
+function toggleScreen(){
+  const b=$('#screenBody');b.classList.toggle('show');
+  $('#btnFull').textContent=b.classList.contains('show')?'收起大屏预览':'展开大屏预览';
+  if(b.classList.contains('show'))initScreen();
+  else setTimeout(()=>window.dispatchEvent(new Event('resize')),100);
+}
+function initScreen(){
+  /* 图表数据来自后端 STATS（/api/bootstrap），事件流模板保留本地 */
+  $('#sHost').textContent=OVERVIEW.host.toLocaleString();
+  $('#sPort').textContent=OVERVIEW.port.toLocaleString();
+  $('#sRisk').textContent=OVERVIEW.riskHigh;
+  $('#sNew').textContent=OVERVIEW.newToday;
+  $('#sTcpPct').textContent=OVERVIEW.tcpPct+'%';
+  $('#sPrivPct').textContent=OVERVIEW.privPct+'%';
+  const sColors=['#4C8DFF','#8FB3FF','#FF8A85','#35C7D8','#F5B64A'];
+  echarts.init($('#sSvc')).setOption({tooltip:{trigger:'item'},series:[{type:'pie',radius:['48%','70%'],center:['50%','50%'],
+    label:{color:'#7e93c9',fontSize:10,formatter:'{b} {d}%'},labelLine:{length:6,length2:5,lineStyle:{color:'rgba(84,120,255,.3)'}},
+    itemStyle:{borderColor:'#0b1430',borderWidth:2},
+    data:STATS.svcDist.map((d,i)=>({name:d.name,value:d.value,itemStyle:{color:sColors[i%sColors.length]}}))}]});
+  const pd=STATS.portTop10.slice(0,5).reverse();
+  echarts.init($('#sPortChart')).setOption({grid:{left:36,right:34,top:4,bottom:4},
+    xAxis:{type:'value',axisLabel:{show:false},splitLine:{show:false}},yAxis:{type:'category',data:pd.map(d=>d[0]),axisLabel:{color:'#7e93c9',fontSize:10},splitLine:{show:false},axisLine:{show:false}},
+    series:[{type:'bar',barWidth:8,label:{show:true,position:'right',color:'#7e93c9',fontSize:9},
+      itemStyle:{borderRadius:[0,4,4,0],color:{type:'linear',x:0,y:0,x2:1,y2:0,colorStops:[{offset:0,color:'#1D3A7A'},{offset:1,color:'#4C8DFF'}]}},data:pd.map(d=>d[1])}]});
+  fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json').then(r=>r.json()).then(geo=>{
+    echarts.registerMap('china',geo);
+    echarts.init($('#sMap')).setOption({visualMap:{min:0,max:Math.max(60,...STATS.provinces.map(p=>p[1])),left:10,bottom:6,text:['多','少'],textStyle:{color:'#7e93c9',fontSize:9},inRange:{color:['#10214A','#1D3A7A','#3B6EF6','#8FB3FF']},calculable:false},
+      series:[{type:'map',map:'china',roam:false,layoutCenter:['50%','52%'],layoutSize:'115%',
+        itemStyle:{borderColor:'rgba(120,160,255,.4)',borderWidth:.6,shadowColor:'rgba(63,123,255,.35)',shadowBlur:10},
+        emphasis:{itemStyle:{areaColor:'#35C7D8'}},select:{disabled:true},
+        data:STATS.provinces.map(p=>({name:p[0],value:p[1]}))}]});
+  }).catch(()=>{
+    echarts.init($('#sMap')).setOption({grid:{left:60,right:34,top:10,bottom:10},xAxis:{type:'value',splitLine:{show:false},axisLabel:{show:false}},yAxis:{type:'category',data:STATS.provinces.slice(0,5).map(p=>p[0]).reverse(),axisLabel:{color:'#7e93c9',fontSize:10}},
+      series:[{type:'bar',barWidth:9,data:STATS.provinces.slice(0,5).map(p=>p[1]).reverse(),itemStyle:{borderRadius:[0,4,4,0],color:'#4C8DFF'}}]});
+  });
+  echarts.init($('#sTrend')).setOption({grid:{left:44,right:10,top:16,bottom:22},
+    xAxis:{type:'category',data:STATS.trend.days,boundaryGap:false,axisLabel:{color:'#7e93c9',fontSize:9,interval:9}},
+    yAxis:{type:'value',splitLine:{lineStyle:{color:'rgba(84,120,255,.12)'}},axisLabel:{color:'#7e93c9',fontSize:9}},
+    series:[{type:'line',smooth:true,data:STATS.trend.hosts,symbol:'none',lineStyle:{width:2.2,color:'#35C7D8'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(53,208,232,.3)'},{offset:1,color:'rgba(53,208,232,0)'}]}}}]});
+  const evBox=$('#sEv');
+  const evTpl=['10.0.3.17 存活确认 · TTL 128','10.0.9.31 指纹命中 Redis 6.2','203.0.113.7 命中高危规则 R-001',`资产入库 · asset 表 ${OVERVIEW.host.toLocaleString()} 条`,'10.0.5.22 端口 3306 开放 · syn-ack'];
+  function pushEv(){const d=document.createElement('div');d.textContent='› '+evTpl[rnd(evTpl.length)];evBox.prepend(d);while(evBox.children.length>6)evBox.lastChild.remove();}
+  for(let i=0;i<6;i++)pushEv();setInterval(()=>{if($('#screenBody').classList.contains('show'))pushEv()},2400);
+}
+
+/* ---------- 检索 ---------- */
+let curPage=1,curList=[];
+function fillQ(s){$('#q').value=s;doSearch(1)}
+async function doSearch(page=1){
+  curPage=page;
+  const q=$('#q').value.trim();
+  const res=await API.search(q,page);
+  curList=res.list;
+  $('#sMeta').textContent=`命中 ${res.total} 条 · 耗时 ${res.ms} ms（FastAPI + MySQL）`;
+  $('#sRows').innerHTML=res.rows.map(a=>
+    `<tr style="cursor:pointer" onclick="openDetail('${a.ip}')"><td>${escapeHtml(a.ip)}</td><td>${escapeHtml(a.port)}</td><td>${escapeHtml(a.proto)}</td><td>${escapeHtml(a.service)}</td><td>${escapeHtml(a.subnet)}</td><td>${escapeHtml(a.loc)}</td><td>${pillOf(a.risk)}</td><td>${escapeHtml(a.last)}</td></tr>`).join('')
+    ||`<tr><td colspan='8'><div class='empty'><svg width='36' height='36' viewBox='0 0 24 24' fill='none' stroke='#7A8194' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/></svg><div style='font-size:13px;margin-bottom:4px'>没有匹配的资产</div><div style='font-size:11.5px'>试试放宽条件，或点击上方常用语法快速查询</div></div></td></tr>`;
+  const total=res.total, pages=Math.max(1,Math.ceil(total/15));
+  let html=`共 ${total} 条`;
+  for(let i=1;i<=Math.min(pages,5);i++)html+=`<button class="${i===page?'on':''}" onclick="doSearch(${i})">${i}</button>`;
+  $('#pager').innerHTML=html;
+}
+
+/* ---------- 资产视图 ---------- */
+let vMode='topo';
+function switchView(m){vMode=m;
+  $('#tTopo').classList.toggle('btn-primary',m==='topo');$('#tMap').classList.toggle('btn-primary',m==='map');
+  $('#vTopo').style.display=m==='topo'?'block':'none';$('#vMap').style.display=m==='map'?'block':'none';
+  if(m==='map')drawVMap();else window.dispatchEvent(new Event('resize'));
+}
+function drawView(){
+  const nodes=[{id:'r',name:'授权扫描范围',symbolSize:58,itemStyle:{color:'#3B6EF6'},label:{fontSize:12,fontWeight:'bold'}}],links=[];
+  for(let seg=0;seg<4;seg++){const sid='s'+seg;
+    nodes.push({id:sid,name:`10.0.${seg*4+3}.0/24`,symbolSize:34,itemStyle:{color:'#5C8DFF'}});links.push({source:'r',target:sid});
+    for(let h=0;h<5;h++){const risk=Math.random()<.15?'high':Math.random()<.4?'mid':'low';
+      nodes.push({id:`h${seg}${h}`,name:`10.0.${seg*4+3}.${h+10}\n${PORTS[h%PORTS.length].s}`,symbolSize:18,itemStyle:{color:risk==='high'?'#E5484D':risk==='mid'?'#E8901A':'#16A34A'}});
+      links.push({source:sid,target:`h${seg}${h}`});}}
+  echarts.init($('#vTopo')).setOption({tooltip:{show:false},
+    series:[{type:'graph',layout:'force',roam:true,force:{repulsion:110,edgeLength:52},
+      label:{show:true,fontSize:9.5,color:'#1f2d3d',formatter:'{b}'},lineStyle:{color:'#c7d2e8',width:1.2},emphasis:{focus:'adjacency'},data:nodes,links}]});
+}
+function drawVMap(){
+  fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json').then(r=>r.json()).then(geo=>{
+    echarts.registerMap('china',geo);
+    echarts.init($('#vMap')).setOption({tooltip:{trigger:'item',formatter:p=>`${p.name}：${p.value||0} 个公网资产`},
+      visualMap:{min:0,max:Math.max(60,...STATS.provinces.map(p=>p[1])),left:14,bottom:14,text:['多','少'],inRange:{color:['#e8efff','#3B6EF6']},textStyle:{color:'#6b7a90',fontSize:11}},
+      series:[{type:'map',map:'china',roam:true,data:STATS.provinces.map(p=>({name:p[0],value:p[1]}))}]});
+  }).catch(()=>echarts.init($('#vMap')).setOption({grid:{left:64,right:40,top:20,bottom:20},
+    xAxis:{type:'value',splitLine:{lineStyle:{color:'#f0f3f8'}}},yAxis:{type:'category',data:STATS.provinces.slice(0,12).map(p=>p[0]).reverse(),axisLabel:{color:'#6b7a90',fontSize:11}},
+    series:[{type:'bar',barWidth:12,data:STATS.provinces.slice(0,12).map(p=>p[1]).reverse(),itemStyle:{borderRadius:[0,6,6,0],color:'#3B6EF6'}}]}));
+}
+
+/* ---------- 风险 ---------- */
+function drawRisk(){
+  const rs=STATS.riskSubnet;
+  echarts.init($('#rStack')).setOption({tooltip:{trigger:'axis'},legend:{top:0,right:0,itemWidth:12,textStyle:{fontSize:11,color:'#6b7a90'}},grid:{left:40,right:20,top:30,bottom:26},
+    xAxis:{type:'category',data:rs.subnets.map(s=>s.split('.').slice(0,3).join('.')),axisLabel:{color:'#6b7a90'}},
+    yAxis:{type:'value',splitLine:{lineStyle:{color:'#f0f3f8'}},axisLabel:{color:'#6b7a90'}},
+    series:[{name:'高危',type:'bar',stack:'r',barWidth:26,data:rs.high,itemStyle:{color:'#E5484D'}},
+      {name:'中危',type:'bar',stack:'r',data:rs.mid,itemStyle:{color:'#E8901A'}},
+      {name:'低危',type:'bar',stack:'r',data:rs.low,itemStyle:{color:'#b9c4d6'}}]});
+}
+
+
+/* ---------- 详情抽屉 ---------- */
+function openDetail(ip){
+  const list=ASSETS.filter(a=>a.ip===ip);
+  const a=list[0]||{ip,port:'—',proto:'—',service:'—',subnet:'—',loc:'—',ttl:'—',banner:'—',last:'—',first:'—',conf:'—',risk:'mid'};
+  const all=list.map(x=>`<span class="pill ${x.risk==='critical'||x.risk==='high'?'p-high':x.risk==='medium'?'p-mid':'p-ok'}" style="margin:0 4px 4px 0">${escapeHtml(x.port)}/${escapeHtml(x.proto)} · ${escapeHtml(x.service)}</span>`).join('');
+  $('#drawerBody').innerHTML=`
+    <div class="kv">
+      <span class="k">IP 地址</span><span class="v">${escapeHtml(a.ip)}</span>
+      <span class="k">归属</span><span class="v">${escapeHtml(a.loc)}（${escapeHtml(a.subnet)}）</span>
+      <span class="k">首次发现</span><span class="v">${escapeHtml(a.first)}</span>
+      <span class="k">最近存活</span><span class="v">${escapeHtml(a.last)}</span>
+    </div>
+    <div class="subh">开放端口（${list.length||1}）</div><div>${all||'<span class="pill p-mid">3389/tcp · MS Terminal Service</span>'}</div>
+    <div class="subh">Banner 抓取</div><div class="code">${escapeHtml(a.banner)}</div>
+    <div class="subh">指纹识别依据（三层规则）</div>
+    <div class="code">L1 端口规则 : port ${escapeHtml(a.port)} → 服务类型 ${escapeHtml(a.service)}
+L2 Banner  : Server 字段命中 → ${escapeHtml(a.service)}
+L3 关键词  : 版本号提取成功 · confidence=${escapeHtml(a.conf)}</div>
+    <div class="subh">扫描时间线</div>
+    <div style="color:var(--sub);font-size:12px">
+      ${escapeHtml(a.first||'暂无')} · 首次发现<br>
+      ${escapeHtml(a.last||'暂无')} · 最近一次存活确认<br>
+      TTL ${escapeHtml(a.ttl??'数据库未提供')}</div>`;
+  $('#drawer').classList.add('show');$('#backdrop').classList.add('show');
+}
+function closeDetail(){$('#drawer').classList.remove('show');$('#backdrop').classList.remove('show')}
+
+/* ---------- LLM 报告 ---------- */
+async function genReport(){
+  const btn=$('#repBtn');btn.disabled=true;btn.textContent='生成中…';
+  const body=$('#repBody');body.classList.add('blink');body.innerHTML='';
+  let secs,engine='template';
+  try{
+    const res=await API.report();       // POST /api/report：统计代码算；分析段 LLM 优先，未配置/失败自动降级模板
+    secs=res.sections;engine=res.engine;
+  }catch(e){
+    body.classList.remove('blink');btn.disabled=false;btn.textContent='⚡ 一键生成报告';
+    return toast('报告接口调用失败：请确认后端已启动','err');
+  }
+  let i=0;
+  (function step(){
+    if(i>=secs.length){body.classList.remove('blink');btn.disabled=false;btn.textContent='⚡ 一键生成报告';toast(`报告生成完成（链路：取数→聚合→${engine==='llm'?'LLM 撰写':'模板降级'}）`,'ok');return;}
+    const {t,txt,src}=secs[i++];
+    if(t==='h'){const h=document.createElement('h4');h.textContent=txt;body.appendChild(h);}
+    else{
+      const d=document.createElement('div');
+      if(src){const b=document.createElement('span');b.className='pill p-info';b.style.marginRight='8px';b.textContent=src;d.appendChild(b);}
+      d.appendChild(document.createTextNode(txt));body.appendChild(d);
+    }
+    setTimeout(step,t==='h'?160:650+Math.random()*450);
+  })();
+}
+</script>
+</body>
+</html>

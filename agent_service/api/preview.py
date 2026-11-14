@@ -285,14 +285,22 @@ PREVIEW_HTML = """<!doctype html>
 </html>"""
 
 
-def create_preview_router() -> APIRouter:
+def create_preview_router(*, include_root: bool = True) -> APIRouter:
     """创建无需额外前端构建步骤的预览页面路由。"""
 
     router = APIRouter(include_in_schema=False)
 
-    @router.get("/", response_class=HTMLResponse)
     @router.get("/preview", response_class=HTMLResponse)
     def preview() -> HTMLResponse:
         return HTMLResponse(PREVIEW_HTML)
+
+    if include_root:
+        router.add_api_route(
+            "/",
+            preview,
+            methods=["GET"],
+            response_class=HTMLResponse,
+            include_in_schema=False,
+        )
 
     return router

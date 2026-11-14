@@ -16,7 +16,38 @@
 python -m uvicorn agent_service.api.mock_main:app --host 127.0.0.1 --port 8003
 ```
 
-## 2. 查询原始扫描数据
+## 2. NetScope 合并前端初始化
+
+```http
+GET /api/health
+```
+
+验证 FastAPI 到现有 MySQL 的连接，返回 `ok` 和数据库名称。该接口不返回账号、密码或连接串。
+
+```http
+GET /api/bootstrap
+```
+
+读取数据库中的最新扫描批次，返回：
+
+- `overview`：扫描批次、存活主机、已发现服务、TCP/UDP、风险和占比；
+- `stats`：端口、服务类型、真实扫描日期趋势、内网风险和高风险资产；
+- `assets`：由 `service_instance_l2` 生成的服务资产行；
+- `limitations`：数据库当前缺失的 TTL、地理位置、风险分析或趋势范围说明。
+
+存活主机数量来自最新批次的 `active_host`；资产行只包含该批次中 `scan_status=1` 的
+`service_instance_l2` 记录；风险来自相同批次已经保存的 Agent 分析结果。没有分析结果时风险为
+`unknown`，不会用端口或服务名称猜测风险。当前接口不创建 SQLite，也不触发扫描或模型调用。
+
+```http
+GET /api/search?q=port%3D22%20%26%26%20service%3Dopenssh&page=1
+```
+
+只读过滤最新批次的服务资产，支持 `loc`、`port`、`proto`、`risk`、`service` 和 `subnet`。
+多个条件使用 `&&`，每页 15 条；响应包含总数、查询耗时、当前页 `rows` 和全量命中 `list`。
+接口只解析固定白名单字段，不接受 SQL。语法错误返回 `400`。
+
+## 3. 查询原始扫描数据
 
 ```http
 GET /assets/{ip}/scan-data?scan_round={可选正整数}
@@ -31,7 +62,7 @@ GET /assets/1.2.163.154/scan-data
 响应包含 IP、扫描批次、发现时间、扫描节点、端口、协议、服务类型、产品版本、Banner、
 L3 明细和数据限制。该接口不调用模型、不创建任务。
 
-## 3. 查询已保存分析结果
+## 4. 查询已保存分析结果
 
 ```http
 GET /assets/{ip}/analysis?scan_round={可选正整数}
@@ -60,7 +91,7 @@ GET /assets/{ip}/analysis?scan_round={可选正整数}
 
 没有保存结果时返回 `404`，不会重新调用模型。
 
-## 4. 创建并执行单 IP 分析
+## 5. 创建并执行单 IP 分析
 
 ```http
 POST /analysis/ip
@@ -87,7 +118,7 @@ POST /analysis/ip
 }
 ```
 
-## 5. 流式执行单 IP 分析
+## 6. 流式执行单 IP 分析
 
 ```http
 POST /analysis/ip/stream
@@ -102,7 +133,7 @@ POST /analysis/ip/stream
 
 需要实时进度时使用该接口；当前不需要通过任务状态接口轮询单 IP 实时进度。
 
-## 6. 创建有限批量 IP 分析
+## 7. 创建有限批量 IP 分析
 
 ```http
 POST /analysis/batch
@@ -135,7 +166,7 @@ POST /analysis/batch
 后台任务默认最多同时处理 3 个 IP，单个 IP 失败不影响其他 IP。已有相同 IP 和扫描批次
 的结果会直接复用。第一版后台任务运行在 FastAPI 进程内，服务重启会中断尚未完成的任务。
 
-## 7. 查询任务状态
+## 8. 查询任务状态
 
 ```http
 GET /analysis/tasks/{task_id}
@@ -163,7 +194,7 @@ GET /analysis/tasks/{task_id}
 
 状态取值：`pending`、`running`、`success`、`failed`、`cancelled`。
 
-## 8. 查询任务结果
+## 9. 查询任务结果
 
 ```http
 GET /analysis/tasks/{task_id}/result
@@ -174,7 +205,7 @@ GET /analysis/tasks/{task_id}/result
 - 任务仍为 `pending` 或 `running`：`409`；
 - 失败子项的 `result` 为 `null`，并通过 `error_message` 说明原因。
 
-## 9. 生成和查询批量统计报告
+## 10. 生成和查询批量统计报告
 
 批量任务完成后生成并保存确定性 JSON 报告：
 
@@ -204,7 +235,7 @@ GET /analysis/tasks/{task_id}/report
 报告由程序根据已保存结果统计，不调用大模型。任务未完成时 POST 返回 `409`，非批量任务
 返回 `400`，尚未生成报告时 GET 返回 `404`。
 
-## 10. 自然语言 Agent
+## 11. 自然语言 Agent
 
 ```http
 POST /agent/chat
@@ -263,7 +294,7 @@ DELETE /agent/conversations/{conversation_id}
 程序会从原问题独立提取并校验 IP、批次号和任务 ID。即使模型选择了正确工具，也不能
 改变已经验证的参数、执行 SQL 或触发主动扫描。
 
-## 11. 查询单 IP 跨扫描批次变化
+## 12. 查询单 IP 跨扫描批次变化
 
 ```http
 GET /assets/{ip}/changes?from_scan_round=1&to_scan_round=2
@@ -283,7 +314,7 @@ GET /assets/{ip}/changes?from_scan_round=1&to_scan_round=2
 两个批次相同时返回 `400`；指定扫描批次不存在时返回 `404` 和 `missing_scan_rounds`；
 IP 在两个有效批次中都不存在时返回 `404`；IP 只存在于一个有效批次时正常返回资产新增或消失。
 
-## 12. 错误处理
+## 13. 错误处理
 
 统一错误结构：
 
@@ -301,7 +332,7 @@ IP 在两个有效批次中都不存在时返回 `404`；IP 只存在于一个�
 | `500` | 服务内部错误 |
 | `502` | 模型服务调用失败 |
 
-## 13. 前端推荐调用方式
+## 14. 前端推荐调用方式
 
 - 扫描详情页面：`GET /assets/{ip}/scan-data`；
 - 已保存报告页面：`GET /assets/{ip}/analysis`；

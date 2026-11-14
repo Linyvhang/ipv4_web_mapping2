@@ -1,0 +1,30 @@
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+FRONTEND = ROOT / "前端" / "index.html"
+
+
+def test_integrated_frontend_uses_same_origin_agent_and_multiturn_chat() -> None:
+    content = FRONTEND.read_text(encoding="utf-8")
+
+    assert "const AGENT_BASE=''" in content
+    assert "conversation_id:AGENT_CONVERSATION_ID" in content
+    assert "data.priority_assets" in content
+    assert "data.tools_used" in content
+    assert "data.evidence" in content
+    assert "resetAgentConversation" in content
+    assert "/agent/conversations/" in content
+    assert "renderAgent(result.result||result)" in content
+    assert "ev.type==='error'" in content
+    assert "function escapeHtml" in content
+    assert "escapeHtml(r.confidence)" in content
+    assert "l.includes('critical')" in content
+
+
+def test_integrated_frontend_loads_platform_bootstrap() -> None:
+    content = FRONTEND.read_text(encoding="utf-8")
+
+    assert "apiJson('/api/bootstrap')" in content
+    assert "FastAPI · MySQL · LangGraph" in content
+    assert "SQLite 自有数据库" not in content
