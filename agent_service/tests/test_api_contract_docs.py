@@ -9,6 +9,7 @@ def test_api_contract_documents_all_visualization_routes() -> None:
     for route in (
         "GET /assets/{ip}/scan-data",
         "GET /assets/{ip}/analysis",
+        "GET /assets/{ip}/changes",
         "POST /analysis/ip",
         "POST /analysis/ip/stream",
         "POST /analysis/batch",
@@ -24,6 +25,8 @@ def test_api_contract_documents_all_visualization_routes() -> None:
     assert "2～50" in content
     assert "不接受 CIDR" in content
     assert "不调用大模型" in content
+    assert "from_scan_round" in content
+    assert "to_scan_round" in content
 
 
 def test_visualization_handoff_is_directly_actionable() -> None:

@@ -18,6 +18,7 @@ def test_mock_app_exposes_analysis_and_chat_endpoints() -> None:
     assert "/analysis/tasks/{task_id}" in route_paths
     assert "/analysis/batch" in route_paths
     assert "/analysis/tasks/{task_id}/report" in route_paths
+    assert "/assets/{ip}/changes" in route_paths
 
 
 def test_mock_app_supports_visualization_integration_flow() -> None:
@@ -89,4 +90,21 @@ def test_batch_request_validates_ipv4_and_minimum_count() -> None:
 
     assert invalid.status_code == 422
     assert too_few.status_code == 422
+
+
+def test_mock_app_compares_two_scan_rounds_without_model_calls() -> None:
+    with TestClient(create_mock_app()) as client:
+        response = client.get(
+            "/assets/192.0.2.10/changes",
+            params={"from_scan_round": 1, "to_scan_round": 2},
+        )
+        invalid = client.get(
+            "/assets/192.0.2.10/changes",
+            params={"from_scan_round": 2, "to_scan_round": 2},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["change_status"] == "unchanged"
+    assert response.json()["risk_changes"]["available"] is False
+    assert invalid.status_code == 400
 

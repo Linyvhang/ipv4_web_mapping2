@@ -31,6 +31,7 @@ from agent_service.services.ip_analysis import SingleIPAnalysisService
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
 from agent_service.services.batch_analysis import BatchAnalysisService
 from agent_service.services.batch_report import BatchReportService
+from agent_service.services.asset_change import AssetChangeService
 
 
 def _build_model_provider() -> ModelProvider:
@@ -108,12 +109,14 @@ def _make_app() -> FastAPI:
         max_ips=min(_positive_int_env("AGENT_BATCH_MAX_IPS", 50), 50),
     )
     batch_report_service = BatchReportService(session_factory=session_factory)
+    asset_change_service = AssetChangeService(session_factory=session_factory)
     app = create_app(
         orchestrator,
         chat_ai_provider=_build_chat_ai_provider(),
         batch_service=batch_service,
         query_session_factory=session_factory,
         batch_report_service=batch_report_service,
+        asset_change_service=asset_change_service,
     )
 
     original_lifespan = app.router.lifespan_context

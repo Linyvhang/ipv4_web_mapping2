@@ -43,6 +43,20 @@ class L3DataProvider:
         )
 
     @staticmethod
+    def build_scan_round_exists_query(scan_round: int) -> Select:
+        return (
+            select(active_host.c.id)
+            .where(active_host.c.scan_round == scan_round)
+            .limit(1)
+        )
+
+    async def scan_round_exists(self, scan_round: int) -> bool:
+        result = await self.session.execute(
+            self.build_scan_round_exists_query(scan_round)
+        )
+        return result.first() is not None
+
+    @staticmethod
     def build_detail_query(service_type: str, service_instance_id: int, port: int) -> Select | None:
         table_name = DETAIL_TABLE_BY_SERVICE_TYPE.get(service_type.lower())
         table = DETAIL_TABLES.get(table_name) if table_name else None

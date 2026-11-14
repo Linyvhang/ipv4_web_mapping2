@@ -219,7 +219,27 @@ POST /agent/chat
 
 响应包含自然语言回答、意图、模型来源、工具轨迹、LangGraph 节点轨迹、证据和限制。
 
-## 11. 错误处理
+## 11. 查询单 IP 跨扫描批次变化
+
+```http
+GET /assets/{ip}/changes?from_scan_round=1&to_scan_round=2
+```
+
+该接口只读取两个指定扫描批次及其已保存分析结果，不触发扫描、不调用大模型。返回内容包括：
+
+- `change_status`：`added`、`removed`、`changed` 或 `unchanged`；
+- `service_changes`：新增、消失和保持存在的服务；
+- `product_changes`：新识别、识别丢失、产品变化和版本变化；
+- `risk_changes`：整体风险升高、降低或不变，以及新增/消失的疑似风险；
+- `limitations`：风险报告缺失、常用端口扫描等数据限制。
+
+服务使用“端口 + 传输协议 + 服务类型”匹配。风险变化需要两个批次都存在已保存分析结果；
+缺少风险结果时仍正常返回服务和产品变化，并把风险对比标记为 `unavailable`。
+
+两个批次相同时返回 `400`；指定扫描批次不存在时返回 `404` 和 `missing_scan_rounds`；
+IP 在两个有效批次中都不存在时返回 `404`；IP 只存在于一个有效批次时正常返回资产新增或消失。
+
+## 12. 错误处理
 
 统一错误结构：
 
@@ -237,7 +257,7 @@ POST /agent/chat
 | `500` | 服务内部错误 |
 | `502` | 模型服务调用失败 |
 
-## 12. 前端推荐调用方式
+## 13. 前端推荐调用方式
 
 - 扫描详情页面：`GET /assets/{ip}/scan-data`；
 - 已保存报告页面：`GET /assets/{ip}/analysis`；
@@ -248,6 +268,7 @@ POST /agent/chat
 - 获取任务下所有结果：`GET /analysis/tasks/{task_id}/result`；
 - 生成批量统计：`POST /analysis/tasks/{task_id}/report`；
 - 查询批量统计：`GET /analysis/tasks/{task_id}/report`；
+- 对比两个扫描批次：`GET /assets/{ip}/changes`；
 - 自然语言问答：`POST /agent/chat`。
 
 前后端分开启动时，推荐前端开发服务器配置 `/api` 代理；正式部署时由 Nginx 将前端与

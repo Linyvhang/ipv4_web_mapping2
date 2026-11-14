@@ -79,9 +79,16 @@ def test_query_builders_target_latest_host_and_detail_table() -> None:
     latest_sql = str(host_query.compile(dialect=mysql.dialect()))
     detail_query = L3DataProvider.build_detail_query("web", 12, 443)
     detail_sql = str(detail_query.compile(dialect=mysql.dialect()))
+    round_sql = str(
+        L3DataProvider.build_scan_round_exists_query(2).compile(
+            dialect=mysql.dialect()
+        )
+    )
 
     assert "active_host.scan_round" in latest_sql
     assert "LIMIT" in latest_sql
     assert "web_service_detail.service_instance_id" in detail_sql
     assert "web_service_detail.port" in detail_sql
+    assert "active_host.scan_round" in round_sql
+    assert "LIMIT" in round_sql
 

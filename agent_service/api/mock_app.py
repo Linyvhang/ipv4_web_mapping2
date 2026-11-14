@@ -18,9 +18,13 @@ from agent_service.services.ip_analysis import SingleIPAnalysisService
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
 from agent_service.services.batch_analysis import BatchAnalysisService
 from agent_service.services.batch_report import BatchReportService
+from agent_service.services.asset_change import AssetChangeService
 
 
 class MockL3DataProvider:
+    async def scan_round_exists(self, scan_round: int) -> bool:
+        return scan_round >= 1
+
     async def fetch_asset(self, *, ip_value: int, scan_round: int | None = None):
         ip = str(IPv4Address(ip_value))
         return AssetAnalysisInput(
@@ -211,9 +215,15 @@ def create_mock_app():
         analysis_repository_factory=lambda _session: analysis_repository,
         report_repository_factory=lambda _session: report_repository,
     )
+    asset_change_service = AssetChangeService(
+        session_factory=_MockSessionFactory(),
+        data_provider_factory=lambda _session: data_provider,
+        analysis_repository_factory=lambda _session: analysis_repository,
+    )
     return create_app(
         orchestrator,
         batch_service=batch_service,
         batch_report_service=batch_report_service,
+        asset_change_service=asset_change_service,
     )
 

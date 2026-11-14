@@ -11,6 +11,7 @@ from fastapi import FastAPI
 from agent_service.services.task_orchestrator import SingleIPTaskOrchestrator
 from agent_service.services.batch_analysis import BatchAnalysisService
 from agent_service.services.batch_report import BatchReportService
+from agent_service.services.asset_change import AssetChangeService
 from agent_service.services.chat_ai import NaturalLanguageAgentProvider
 from agent_service.services.single_ip_graph import build_single_ip_graph
 from agent_service.services.chat_agent_graph import build_chat_agent_graph
@@ -29,6 +30,7 @@ from .preview import create_preview_router
 from .routes import create_single_ip_router
 from .batch_routes import create_batch_analysis_router
 from .batch_report_routes import create_batch_report_router
+from .asset_change_routes import create_asset_change_router
 
 
 def create_app(
@@ -39,6 +41,7 @@ def create_app(
     batch_service: BatchAnalysisService | None = None,
     query_session_factory=None,
     batch_report_service: BatchReportService | None = None,
+    asset_change_service: AssetChangeService | None = None,
 ) -> FastAPI:
     """创建已连接单 IP 编排 Service 的 FastAPI 应用。"""
 
@@ -78,5 +81,8 @@ def create_app(
     if batch_report_service is not None:
         app.state.batch_report_service = batch_report_service
         app.include_router(create_batch_report_router(batch_report_service))
+    if asset_change_service is not None:
+        app.state.asset_change_service = asset_change_service
+        app.include_router(create_asset_change_router(asset_change_service))
     return app
 
