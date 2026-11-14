@@ -34,3 +34,10 @@ def test_integrated_frontend_loads_platform_bootstrap() -> None:
     assert "授权网段 3 段" not in content
     assert "授权网段白名单（3 段）" not in content
     assert "最新扫描批次中已发现服务的全部资产" in content
+    assert "FastAPI 读取 MySQL 最新扫描批次并执行只读过滤" in content
+    assert "MySQL 服务资产" in content
+    assert "MySQL 聚合取数" in content
+    assert "本页为前端模拟" not in content
+    assert "Elasticsearch bool 查询" not in content
+    assert "ES 索引 asset" not in content
+    assert "SQL/ES 聚合取数" not in content

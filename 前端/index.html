@@ -262,7 +262,7 @@ tr:hover td{background:#F7FAFF}
 
       <!-- ============ 资产检索 ============ -->
       <div class="page" id="pSearch" data-page-node-id="jOFVMfmhM2gb7ECwSeAI2P">
-        <div class="page-head" data-page-node-id="7ZFXaEQ1V90V2AFF11E84e"><div data-page-node-id="WeQFw0EBJ6fcpEOh29cIB9"><h2 data-page-node-id="iA1fwXErHD5D04EBmK3rRQ">资产检索</h2><div class="desc" data-page-node-id="1RnNvOCRHTXQ3DAnodasp1">类 FOFA 语法 · 后端将解析为 Elasticsearch bool 查询（本页为前端模拟）</div></div><span class="tag" data-page-node-id="fSmIqnzyJtYGJl6DU26U8D">ES 索引 asset</span></div>
+        <div class="page-head" data-page-node-id="7ZFXaEQ1V90V2AFF11E84e"><div data-page-node-id="WeQFw0EBJ6fcpEOh29cIB9"><h2 data-page-node-id="iA1fwXErHD5D04EBmK3rRQ">资产检索</h2><div class="desc" data-page-node-id="1RnNvOCRHTXQ3DAnodasp1">类 FOFA 白名单语法 · FastAPI 读取 MySQL 最新扫描批次并执行只读过滤</div></div><span class="tag" data-page-node-id="fSmIqnzyJtYGJl6DU26U8D">MySQL 服务资产</span></div>
         <div class="search-bar" data-page-node-id="SWnZSsrlfyIV6HQPzznz7c">
           <input id="q" placeholder='如：port=3389 或 service=nginx && subnet=10.0.3.0/24' value="port=3389" data-page-node-id="Jt98DwJHtG7dHos5Et2xvK">
           <button class="btn btn-primary" onclick="doSearch(1)" data-page-node-id="4cHRDKKd5fkmsKoOCw6ZwS">检 索</button>
@@ -330,7 +330,7 @@ tr:hover td{background:#F7FAFF}
             <input style="width:100%" value="最新扫描批次中已发现服务的全部资产" disabled data-page-node-id="5yVaoxdv6VJ3FTQPca4imE">
             <button class="btn btn-primary" style="width:100%;margin-top:18px" id="repBtn" onclick="genReport()" data-page-node-id="EYdw8KEo0q6W8bDDoX3mA1">⚡ 一键生成报告</button>
             <div style="font-size:11px;color:var(--sub);line-height:1.9;margin-top:14px;padding-top:12px;border-top:1px dashed var(--border)" data-page-node-id="frLEUVPeUDr8DLGY2CFtb9">
-              <b data-page-node-id="xPRDTBTpCtesIbGUhcbXLN">生成链路</b><br data-page-node-id="dENVN3kPRYgKi2T0sbLnO9">① SQL/ES 聚合取数<br data-page-node-id="OraUuDRI4hhRDnzOAa8PBu">② 组装结构化上下文<br data-page-node-id="7PSpsWXiswGuE7FBx1X5yV">③ LLM 仅撰写分析段落<br data-page-node-id="YRDIj0qLgz3rg75xKMXHx8">④ 模板合成 · 可导出
+              <b data-page-node-id="xPRDTBTpCtesIbGUhcbXLN">生成链路</b><br data-page-node-id="dENVN3kPRYgKi2T0sbLnO9">① MySQL 聚合取数<br data-page-node-id="OraUuDRI4hhRDnzOAa8PBu">② 组装结构化上下文<br data-page-node-id="7PSpsWXiswGuE7FBx1X5yV">③ LLM 仅撰写分析段落<br data-page-node-id="YRDIj0qLgz3rg75xKMXHx8">④ 模板合成 · 可导出
             </div>
           </div>
           <div class="panel" data-page-node-id="d5HSHeazeJK7WTjHGXQirt"><div id="repBody" data-page-node-id="VTrkCzNuE1CGd2HjKhltus"><span class="typing" data-page-node-id="lMulf5PE7pxHVSrAdV4TeJ">点击左侧「一键生成报告」…</span></div></div>
@@ -377,7 +377,7 @@ tr:hover td{background:#F7FAFF}
 
 <script>
 /* =====================================================================
-   数据接入层（API MOCK）
+   数据接入层（真实 FastAPI API）
    =====================================================================
    数据接入层（FastAPI + 现有 MySQL 扫描数据库）
    =====================================================================
